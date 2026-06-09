@@ -32,6 +32,10 @@ export default function OrderListScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchOrders());
+      const interval = setInterval(() => {
+        dispatch(fetchOrders({ hideLoader: true }));
+      }, 5000);
+      return () => clearInterval(interval);
     }, [dispatch])
   );
 

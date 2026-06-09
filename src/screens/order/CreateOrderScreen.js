@@ -9,10 +9,12 @@ import { addToCart } from '../../store/orderSlice';
 import { useTheme } from '../../theme/ThemeProvider';
 import WatermarkView from '../../components/WatermarkView';
 
-export default function CreateOrderScreen({ navigation }) {
+export default function CreateOrderScreen({ route, navigation }) {
   const dispatch = useDispatch();
   const { theme } = useTheme();
   const { colors, spacing, typography, radius } = theme;
+
+  const passedService = route?.params?.service;
 
   const [loading, setLoading] = useState(true);
   const [materials, setMaterials] = useState([]);
@@ -21,7 +23,7 @@ export default function CreateOrderScreen({ navigation }) {
 
   const [selectedMaterial, setSelectedMaterial] = useState('');
   const [selectedItem, setSelectedItem] = useState('');
-  const [selectedService, setSelectedService] = useState('');
+  const [selectedService, setSelectedService] = useState(passedService?._id || '');
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(0);
   const [fetchingPrice, setFetchingPrice] = useState(false);
@@ -189,7 +191,7 @@ export default function CreateOrderScreen({ navigation }) {
         <ThemedButton
           label="Add Item to Cart"
           onPress={handleAddToCart}
-          disabled={fetchingPrice || price === 0}
+          loading={fetchingPrice}
         />
 
         <ThemedButton

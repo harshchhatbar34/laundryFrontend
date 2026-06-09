@@ -19,6 +19,10 @@ export default function OrderDetailScreen({ route }) {
   useFocusEffect(
     useCallback(() => {
       dispatch(fetchOrderById(orderId));
+      const interval = setInterval(() => {
+        dispatch(fetchOrderById({ id: orderId, hideLoader: true }));
+      }, 5000);
+      return () => clearInterval(interval);
     }, [dispatch, orderId])
   );
 
@@ -33,7 +37,7 @@ export default function OrderDetailScreen({ route }) {
     ]);
   };
 
-  if (loading || !order) {
+  if ((loading && !order) || (order && order._id !== orderId)) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator color={colors.primary} size="large" />
@@ -91,13 +95,12 @@ export default function OrderDetailScreen({ route }) {
       </ThemedCard>
 
       <ThemedCard title="Delivery Address" style={{ marginBottom: spacing.md }}>
-
-        <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
-          {order.address?.apartmentNo ? `${order.address.apartmentNo}, ` : ''}{order.address?.buildingVilla}
-        </Text>
-        <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>
-          {order.address?.area}, {order.address?.emirate} {order.address?.makani ? `— Makani: ${order.address.makani}` : ''}
-        </Text>
+          <Text style={[typography.body, { color: colors.text, fontWeight: '600' }]}>
+            {order.address?.flatHouseNo}, {order.address?.society}
+          </Text>
+          <Text style={[typography.bodySmall, { color: colors.textSecondary, marginTop: 4 }]}>
+            {order.address?.landmark ? `${order.address.landmark}, ` : ''}{order.address?.city}, {order.address?.state} - {order.address?.pincode}
+          </Text>
       </ThemedCard>
 
       {/* Pricing */}

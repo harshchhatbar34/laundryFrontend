@@ -64,6 +64,8 @@ const ThemedInput = ({
             typography.body,
             {
               color: colors.text,
+              backgroundColor: 'transparent',
+              outlineStyle: 'none',
               paddingVertical: spacing.md,
               paddingHorizontal: spacing.md,
               minHeight: multiline ? numberOfLines * 24 + 20 : 54,
@@ -78,7 +80,7 @@ const ThemedInput = ({
             onPress={() => setShowPass(!showPass)}
             style={{ paddingRight: spacing.md }}
           >
-            <Text style={{ color: colors.primary, fontWeight: '600' }}>{showPass ? 'Hide' : 'Show'}</Text>
+            <Text style={{ fontSize: 18 }}>{showPass ? '🙈' : '👁️'}</Text>
           </TouchableOpacity>
         )}
         {rightIcon && !secureTextEntry && <View style={{ paddingRight: spacing.md }}>{rightIcon}</View>}

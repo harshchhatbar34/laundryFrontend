@@ -1,18 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../api/axiosInstance';
 
-export const fetchOrders = createAsyncThunk('orders/fetch', async (params = {}, { rejectWithValue }) => {
+export const fetchOrders = createAsyncThunk('orders/fetch', async (arg = {}, { rejectWithValue }) => {
+  const { hideLoader, ...params } = arg;
   try {
-    const { data } = await api.get('/orders', { params });
+    const { data } = await api.get('/orders', { params, hideLoader });
     return data;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Failed to fetch orders');
   }
 });
 
-export const fetchOrderById = createAsyncThunk('orders/fetchOne', async (id, { rejectWithValue }) => {
+export const fetchOrderById = createAsyncThunk('orders/fetchOne', async (arg, { rejectWithValue }) => {
+  const id = typeof arg === 'object' ? arg.id : arg;
+  const hideLoader = typeof arg === 'object' ? arg.hideLoader : false;
   try {
-    const { data } = await api.get(`/orders/${id}`);
+    const { data } = await api.get(`/orders/${id}`, { hideLoader });
     return data.data.order;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Failed to fetch order');
@@ -68,11 +71,8 @@ const orderSlice = createSlice({
     clearCart: (state) => {
       state.cart = [];
     },
-    updateOrderFromSocket: (state, action) => {
-      const updated = action.payload;
-      const idx = state.orders.findIndex((o) => o._id === updated._id);
-      if (idx !== -1) state.orders[idx] = updated;
-      if (state.currentOrder?._id === updated._id) state.currentOrder = updated;
+    setCart: (state, action) => {
+      state.cart = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -99,5 +99,5 @@ const orderSlice = createSlice({
   },
 });
 
-export const { clearOrderError, updateOrderFromSocket, addToCart, removeFromCart, clearCart } = orderSlice.actions;
+export const { clearOrderError, addToCart, removeFromCart, clearCart, setCart } = orderSlice.actions;
 export default orderSlice.reducer;

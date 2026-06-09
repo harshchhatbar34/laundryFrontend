@@ -4,33 +4,27 @@ import api from '../api/axiosInstance';
 
 /* ─── Thunks ──────────────────────────────────── */
 
-export const sendOtp = createAsyncThunk('auth/sendOtp', async (mobileNumber, { rejectWithValue }) => {
+export const register = createAsyncThunk('auth/register', async (userData, { rejectWithValue }) => {
   try {
-    const { data } = await api.post('/auth/send-otp', { mobileNumber });
-    return data.data;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Failed to send OTP');
-  }
-});
-
-export const verifyOtp = createAsyncThunk('auth/verifyOtp', async ({ mobileNumber, otp }, { rejectWithValue }) => {
-  try {
-    const { data } = await api.post('/auth/verify-otp', { mobileNumber, otp });
+    const { data } = await api.post('/auth/register', userData);
     if (data.data.token) {
       await AsyncStorage.setItem('@token', data.data.token);
     }
     return data.data;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'OTP verification failed');
+    return rejectWithValue(err.response?.data?.message || 'Registration failed');
   }
 });
 
-export const completeProfile = createAsyncThunk('auth/completeProfile', async (profileData, { rejectWithValue }) => {
+export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
   try {
-    const { data } = await api.post('/auth/complete-profile', profileData);
+    const { data } = await api.post('/auth/login', credentials);
+    if (data.data.token) {
+      await AsyncStorage.setItem('@token', data.data.token);
+    }
     return data.data;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || 'Profile update failed');
+    return rejectWithValue(err.response?.data?.message || 'Login failed');
   }
 });
 
@@ -58,38 +52,32 @@ const authSlice = createSlice({
     user: null,
     token: null,
     isLoggedIn: false,
-    isNewUser: false,
     loading: false,
     error: null,
-    otpSent: false,
   },
   reducers: {
     clearError: (state) => { state.error = null; },
-    clearOtpState: (state) => { state.otpSent = false; },
   },
   extraReducers: (builder) => {
-    // Send OTP
-    builder.addCase(sendOtp.pending, (state) => { state.loading = true; state.error = null; });
-    builder.addCase(sendOtp.fulfilled, (state) => { state.loading = false; state.otpSent = true; });
-    builder.addCase(sendOtp.rejected, (state, action) => { state.loading = false; state.error = action.payload; });
-
-    // Verify OTP
-    builder.addCase(verifyOtp.pending, (state) => { state.loading = true; state.error = null; });
-    builder.addCase(verifyOtp.fulfilled, (state, action) => {
+    // Register
+    builder.addCase(register.pending, (state) => { state.loading = true; state.error = null; });
+    builder.addCase(register.fulfilled, (state, action) => {
       state.loading = false;
       state.token = action.payload.token;
       state.user = action.payload.user;
-      state.isNewUser = action.payload.isNewUser;
-      state.isLoggedIn = !action.payload.isNewUser;
-    });
-    builder.addCase(verifyOtp.rejected, (state, action) => { state.loading = false; state.error = action.payload; });
-
-    // Complete profile
-    builder.addCase(completeProfile.fulfilled, (state, action) => {
-      state.user = action.payload.user;
-      state.isNewUser = false;
       state.isLoggedIn = true;
     });
+    builder.addCase(register.rejected, (state, action) => { state.loading = false; state.error = action.payload; });
+
+    // Login
+    builder.addCase(login.pending, (state) => { state.loading = true; state.error = null; });
+    builder.addCase(login.fulfilled, (state, action) => {
+      state.loading = false;
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      state.isLoggedIn = true;
+    });
+    builder.addCase(login.rejected, (state, action) => { state.loading = false; state.error = action.payload; });
 
     // Load user
     builder.addCase(loadUser.fulfilled, (state, action) => {
@@ -108,10 +96,9 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isLoggedIn = false;
-      state.otpSent = false;
     });
   },
 });
 
-export const { clearError, clearOtpState } = authSlice.actions;
+export const { clearError } = authSlice.actions;
 export default authSlice.reducer;

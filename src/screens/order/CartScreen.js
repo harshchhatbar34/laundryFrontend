@@ -32,7 +32,7 @@ export default function CartScreen({ navigation }) {
 
   const fetchAddresses = async () => {
     try {
-      const { data } = await api.get('/users/addresses');
+      const { data } = await api.get('/users/addresses', { hideLoader: true });
       const fetchedAddrs = data.data.addresses || [];
       setAddresses(fetchedAddrs);
       setSelectedAddress(fetchedAddrs.find((a) => a.isDefault) || (fetchedAddrs.length > 0 ? fetchedAddrs[0] : null));
@@ -103,7 +103,7 @@ export default function CartScreen({ navigation }) {
               label="Add Items"
               variant="outline"
               style={{ marginTop: spacing.lg }}
-              onPress={() => navigation.navigate('CreateOrder')}
+              onPress={() => navigation.navigate('HomeTab', { screen: 'CreateOrder' })}
             />
           </View>
         ) : (
@@ -129,7 +129,7 @@ export default function CartScreen({ navigation }) {
                 >
                   <Text style={[typography.label, { color: colors.text }]}>{selectedAddress?.label}</Text>
                   <Text style={[typography.bodySmall, { color: colors.textSecondary }]} numberOfLines={2}>
-                    {selectedAddress?.buildingVilla}, {selectedAddress?.area}
+                    {selectedAddress?.flatHouseNo}, {selectedAddress?.society}, {selectedAddress?.city}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -198,6 +198,12 @@ export default function CartScreen({ navigation }) {
               </View>
             </ThemedCard>
 
+            <ThemedButton 
+              label="+ Add More Items" 
+              variant="outline" 
+              onPress={() => navigation.navigate('HomeTab', { screen: 'CreateOrder' })} 
+              style={{ marginBottom: spacing.md }} 
+            />
             <ThemedButton label="Place Order" onPress={handlePlaceOrder} loading={loading} />
           </>
         )}

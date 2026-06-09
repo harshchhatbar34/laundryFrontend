@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export const darkTheme = {
   mode: 'dark',
   colors: {
@@ -65,26 +67,41 @@ export const darkTheme = {
     label: { fontSize: 14, fontWeight: '600' },
   },
   shadow: {
-    sm: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
-      elevation: 2,
-    },
-    md: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.3,
-      shadowRadius: 24,
-      elevation: 8,
-    },
-    lg: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 12 },
-      shadowOpacity: 0.4,
-      shadowRadius: 32,
-      elevation: 12,
-    },
+    sm: Platform.select({
+      web: {
+        boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.2)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 2,
+      },
+    }),
+    md: Platform.select({
+      web: {
+        boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.3)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 24,
+        elevation: 8,
+      },
+    }),
+    lg: Platform.select({
+      web: {
+        boxShadow: '0px 12px 32px rgba(0, 0, 0, 0.4)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.4,
+        shadowRadius: 32,
+        elevation: 12,
+      },
+    }),
   },
 };

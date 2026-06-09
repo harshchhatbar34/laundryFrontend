@@ -1,16 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const STATUS_STEPS = [
-  { key: 'pending', label: 'Placed', icon: '📋' },
-  { key: 'confirmed', label: 'Confirmed', icon: '✅' },
-  { key: 'pickup', label: 'Pickup', icon: '🚗' },
-  { key: 'received', label: 'Received', icon: '📦' },
-  { key: 'processing', label: 'Washing', icon: '🫧' },
-  { key: 'ready', label: 'Ready', icon: '✨' },
-  { key: 'out_delivery', label: 'Delivery', icon: '🚚' },
-  { key: 'delivered', label: 'Delivered', icon: '🎉' },
+  { key: 'pending', label: 'Placed', icon: 'clipboard-text-outline' },
+  { key: 'confirmed', label: 'Confirmed', icon: 'check-circle-outline' },
+  { key: 'pickup', label: 'Pickup', icon: 'car-pickup' },
+  { key: 'received', label: 'Received', icon: 'package-variant-closed' },
+  { key: 'processing', label: 'Washing', icon: 'washing-machine' },
+  { key: 'ready', label: 'Ready', icon: 'hanger' },
+  { key: 'out_delivery', label: 'Delivery', icon: 'truck-delivery-outline' },
+  { key: 'delivered', label: 'Delivered', icon: 'party-popper' },
 ];
 
 const OrderStatusTracker = ({ currentStatus }) => {
@@ -67,7 +68,11 @@ const OrderStatusTracker = ({ currentStatus }) => {
 
             {/* Label */}
             <View style={[styles.labelCol, { paddingBottom: spacing.md }]}>
-              <Text style={{ fontSize: 16 }}>{step.icon}</Text>
+              <MaterialCommunityIcons 
+                name={step.icon} 
+                size={22} 
+                color={isCurrent ? colors.primary : isDone ? colors.success : colors.textMuted} 
+              />
               <Text
                 style={[
                   typography.body,

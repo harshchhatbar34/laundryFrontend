@@ -71,7 +71,7 @@ function OrderCard({ order, onPress, theme }) {
             <Text style={{ fontSize: 20 }}>📍</Text>
             <View style={{ flex: 1, marginLeft: spacing.sm }}>
               <Text style={[typography.bodySmall, { color: colors.textSecondary }]} numberOfLines={2}>
-                {order.address?.buildingVilla}, {order.address?.area}, {order.address?.emirate}
+                {order.address?.flatHouseNo}, {order.address?.society}, {order.address?.city} - {order.address?.pincode}
               </Text>
             </View>
           </View>
@@ -104,23 +104,23 @@ export default function DriverDashboardScreen({ navigation }) {
     { key: 'delivered', label: 'Completed', statuses: ['delivered'] },
   ];
 
-  const fetchOrders = useCallback(async (showRefresh = false) => {
+  const fetchOrders = useCallback(async (showRefresh = false, hideLoader = false) => {
     if (showRefresh) setRefreshing(true);
-    else setLoading(true);
+    else if (!hideLoader) setLoading(true);
     try {
-      const { data } = await api.get('/orders/driver/assigned');
+      const { data } = await api.get('/orders/driver/assigned', { hideLoader });
       setOrders(data.data || []);
     } catch {
       Alert.alert('Error', 'Failed to fetch orders');
     } finally {
-      setLoading(false);
+      if (!hideLoader) setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 30000); // Poll every 30s
+    fetchOrders(false, false);
+    const interval = setInterval(() => fetchOrders(false, true), 5000); // Poll every 5s
     return () => clearInterval(interval);
   }, [fetchOrders]);
 

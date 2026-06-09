@@ -56,8 +56,7 @@ export default function HomeScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      api.get('/services').then(({ data }) => {
+      api.get('/services', { hideLoader: true }).then(({ data }) => {
         setServices(data.data.services || []);
       }).catch(() => { }).finally(() => setLoading(false));
     }, [])

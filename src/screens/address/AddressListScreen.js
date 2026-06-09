@@ -47,7 +47,7 @@ export default function AddressListScreen({ navigation }) {
               {item.isDefault && <View style={{ backgroundColor: colors.primary + '20', borderRadius: 4, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={[typography.caption, { color: colors.primary }]}>Default</Text></View>}
             </View>
 
-            <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>{item.apartmentNo ? `${item.apartmentNo}, ` : ''}{item.buildingVilla}, {item.area}, {item.emirate}</Text>
+            <Text style={[typography.bodySmall, { color: colors.textSecondary }]}>{item.flatHouseNo}, {item.society}, {item.landmark ? `${item.landmark}, ` : ''}{item.city}, {item.state} - {item.pincode}</Text>
             <View style={{ flexDirection: 'row', gap: 8, marginTop: spacing.sm }}>
               {!item.isDefault && <TouchableOpacity onPress={() => handleSetDefault(item._id)}><Text style={[typography.caption, { color: colors.primary }]}>Set Default</Text></TouchableOpacity>}
               <TouchableOpacity onPress={() => handleDelete(item._id)}><Text style={[typography.caption, { color: colors.error }]}>Delete</Text></TouchableOpacity>

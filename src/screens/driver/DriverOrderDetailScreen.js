@@ -68,9 +68,9 @@ export default function DriverOrderDetailScreen({ route }) {
   const [updating, setUpdating] = useState(false);
   const locationInterval = useRef(null);
 
-  const fetchOrder = useCallback(async () => {
+  const fetchOrder = useCallback(async (hideLoader = false) => {
     try {
-      const { data } = await api.get(`/orders/${orderId}`);
+      const { data } = await api.get(`/orders/${orderId}`, { hideLoader });
       setOrder(data.data.order);
     } catch {
       Alert.alert('Error', 'Could not load order details');
@@ -81,7 +81,9 @@ export default function DriverOrderDetailScreen({ route }) {
 
   useFocusEffect(
     useCallback(() => {
-      fetchOrder();
+      fetchOrder(false);
+      const interval = setInterval(() => fetchOrder(true), 5000); // Poll every 5s
+      return () => clearInterval(interval);
     }, [fetchOrder])
   );
 
@@ -98,7 +100,7 @@ export default function DriverOrderDetailScreen({ route }) {
       try {
         // Use a simple mock for now - in production integrate expo-location
         // const loc = await Location.getCurrentPositionAsync({});
-        await api.put('/orders/driver/location', { lat: 25.2048, lng: 55.2708 });
+        await api.put('/orders/driver/location', { lat: 25.2048, lng: 55.2708 }, { hideLoader: true });
       } catch {
         // Silent fail - non-critical
       }
@@ -215,17 +217,11 @@ export default function DriverOrderDetailScreen({ route }) {
         {/* Address */}
         <ThemedCard title="Pickup / Delivery Address" style={{ marginBottom: spacing.md }}>
           <Text style={[typography.body, { color: colors.text, fontWeight: '600' }]}>
-            {order.address?.buildingVilla}
-            {order.address?.apartmentNo ? `, Apt ${order.address.apartmentNo}` : ''}
+            {order.address?.flatHouseNo}, {order.address?.society}
           </Text>
           <Text style={[typography.bodySmall, { color: colors.textSecondary, marginTop: 4 }]}>
-            {order.address?.area}, {order.address?.emirate}
+            {order.address?.landmark ? `${order.address.landmark}, ` : ''}{order.address?.city}, {order.address?.state} - {order.address?.pincode}
           </Text>
-          {order.address?.makani && (
-            <Text style={[typography.caption, { color: colors.textMuted, marginTop: 2 }]}>
-              Makani: {order.address.makani}
-            </Text>
-          )}
           <TouchableOpacity
             onPress={openMaps}
             style={[styles.mapsBtn, { backgroundColor: colors.primary, borderRadius: radius.md, marginTop: spacing.md }]}

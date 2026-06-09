@@ -4,9 +4,8 @@ export default function WatermarkView() {
   return (
     <Image
       source={require('../../assets/logo.png')}
-      style={styles.watermark}
+      style={[styles.watermark, { pointerEvents: 'none' }]}
       resizeMode="contain"
-      pointerEvents="none"
     />
   );
 }
