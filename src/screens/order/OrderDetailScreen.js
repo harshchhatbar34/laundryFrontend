@@ -37,10 +37,10 @@ export default function OrderDetailScreen({ route }) {
     ]);
   };
 
-  if ((loading && !order) || (order && order._id !== orderId)) {
+  if (!order || order._id !== orderId) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator color={colors.primary} size="large" />
+        {loading ? <ActivityIndicator color={colors.primary} size="large" /> : <Text style={[typography.body, { color: colors.textSecondary }]}>Order not found</Text>}
       </View>
     );
   }
