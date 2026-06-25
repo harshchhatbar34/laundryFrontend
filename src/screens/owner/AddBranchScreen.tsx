@@ -91,18 +91,23 @@ export default function AddBranchScreen({ navigation }: Props) {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          const { latitude, longitude } = loc.coords;
-          setForm(p => ({ ...p, lat: String(latitude), lng: String(longitude) }));
-          mapRef.current?.animateToRegion({
-            latitude,
-            longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }, 500);
-          
-          // Auto-fill address for their current location
-          handleReverseGeocode(latitude, longitude);
+          let loc = await Location.getLastKnownPositionAsync({});
+          if (!loc) {
+            loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          }
+          if (loc) {
+            const { latitude, longitude } = loc.coords;
+            setForm(p => ({ ...p, lat: String(latitude), lng: String(longitude) }));
+            mapRef.current?.animateToRegion({
+              latitude,
+              longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }, 500);
+            
+            // Auto-fill address for their current location
+            handleReverseGeocode(latitude, longitude);
+          }
         }
       } catch (err) {
         console.log('Error getting initial location:', err);

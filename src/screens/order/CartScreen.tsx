@@ -46,9 +46,14 @@ export default function CartScreen({ route, navigation }: Props) {
         let lng = 72.5714;
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          lat = loc.coords.latitude;
-          lng = loc.coords.longitude;
+          let loc = await Location.getLastKnownPositionAsync({});
+          if (!loc) {
+            loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          }
+          if (loc) {
+            lat = loc.coords.latitude;
+            lng = loc.coords.longitude;
+          }
         }
         const res = await getNearestBranch(lat, lng).catch(() => null);
         if (res?.data?.branch) {

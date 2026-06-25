@@ -85,10 +85,15 @@ export default function HomeScreen({ navigation }: Props) {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          lat = loc.coords.latitude;
-          lng = loc.coords.longitude;
-          setUserLocation({ latitude: lat, longitude: lng });
+          let loc = await Location.getLastKnownPositionAsync({});
+          if (!loc) {
+            loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          }
+          if (loc) {
+            lat = loc.coords.latitude;
+            lng = loc.coords.longitude;
+            setUserLocation({ latitude: lat, longitude: lng });
+          }
         }
       } catch (err) {
         console.log('Error getting location:', err);
