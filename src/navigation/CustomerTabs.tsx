@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
+import { getOrders } from '../api/orders';
+
 
 import HomeScreen from '../screens/home/HomeScreen';
 import ServiceDetailScreen from '../screens/home/ServiceDetailScreen';
@@ -88,6 +90,29 @@ export default function CustomerTabs() {
   const { theme } = useTheme();
   const cart = useSelector((s: RootState) => s.orders.cart);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const [updateCount, setUpdateCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUpdateCount = async (isSilent = false) => {
+      try {
+        const res = await getOrders(undefined, isSilent ? { hideLoader: true } : undefined);
+        if (res?.data) {
+          const list = Array.isArray(res.data) ? res.data : res.data.orders || [];
+          const count = list.filter((order: any) => order.billUpdated && !order.billConfirmed).length;
+          setUpdateCount(count);
+        }
+      } catch (e) {
+        console.log('Error fetching order update count:', e);
+      }
+    };
+
+    fetchUpdateCount(false);
+
+    // Poll every 15 seconds silently to keep the badge fresh
+    const interval = setInterval(() => fetchUpdateCount(true), 15000);
+    return () => clearInterval(interval);
+  }, []);
+
 
   return (
     <Tab.Navigator
@@ -134,6 +159,10 @@ export default function CustomerTabs() {
       <Tab.Screen 
         name="Orders" 
         component={OrderStackScreen} 
+        options={{
+          tabBarBadge: updateCount > 0 ? updateCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: theme.colors.error, color: '#FFF' }
+        }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             (e as any).preventDefault();
@@ -141,6 +170,7 @@ export default function CustomerTabs() {
           },
         })}
       />
+
       <Tab.Screen 
         name="Profile" 
         component={ProfileStackScreen} 

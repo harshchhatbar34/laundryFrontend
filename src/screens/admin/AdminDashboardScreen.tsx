@@ -18,7 +18,20 @@ interface StatCardProps {
   value: string | number;
   color?: string;
   delay: number;
+  theme: any;
 }
+
+const StatCard = React.memo(({ icon, label, value, color, delay, theme }: StatCardProps) => (
+  <FadeSlideIn delay={delay} style={{ flex: 1, margin: 4 }}>
+    <Card padding="medium" style={{ alignItems: 'center' }}>
+      <View style={[styles.statIcon, { backgroundColor: (color || theme.colors.primary) + '15' }]}>
+        <Ionicons name={icon} size={22} color={color || theme.colors.primary} />
+      </View>
+      <Text style={[theme.typography.h2, { color: theme.colors.textPrimary, marginTop: 8 }]}>{value}</Text>
+      <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 4 }]}>{label}</Text>
+    </Card>
+  </FadeSlideIn>
+));
 
 export default function AdminDashboardScreen({ navigation }: Props) {
   const { theme } = useTheme();
@@ -29,18 +42,6 @@ export default function AdminDashboardScreen({ navigation }: Props) {
   useEffect(() => { fetch(); }, []);
   const onRefresh = async () => { setRefreshing(true); await fetch(); setRefreshing(false); };
 
-  const StatCard = ({ icon, label, value, color, delay }: StatCardProps) => (
-    <FadeSlideIn delay={delay} style={{ flex: 1, margin: 4 }}>
-      <Card padding="medium" style={{ alignItems: 'center' }}>
-        <View style={[styles.statIcon, { backgroundColor: (color || theme.colors.primary) + '15' }]}>
-          <Ionicons name={icon} size={22} color={color || theme.colors.primary} />
-        </View>
-        <Text style={[theme.typography.h2, { color: theme.colors.textPrimary, marginTop: 8 }]}>{value}</Text>
-        <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 4 }]}>{label}</Text>
-      </Card>
-    </FadeSlideIn>
-  );
-
   return (
     <ScreenWrapper>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
@@ -48,12 +49,12 @@ export default function AdminDashboardScreen({ navigation }: Props) {
         <Text style={[theme.typography.h1, { color: theme.colors.textPrimary, marginBottom: 4 }]}>Admin Panel</Text>
         <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginBottom: 20 }]}>Platform overview</Text>
         <View style={{ flexDirection: 'row' }}>
-          <StatCard icon="people-outline" label="Owners" value={stats?.totalOwners || 0} delay={0} />
-          <StatCard icon="people-circle-outline" label="Customers" value={stats?.totalCustomers || 0} color="#F59E0B" delay={100} />
+          <StatCard icon="people-outline" label="Owners" value={stats?.totalOwners || 0} delay={0} theme={theme} />
+          <StatCard icon="people-circle-outline" label="Customers" value={stats?.totalCustomers || 0} color="#F59E0B" delay={100} theme={theme} />
         </View>
         <View style={{ flexDirection: 'row', marginTop: 4 }}>
-          <StatCard icon="cash-outline" label="Revenue" value={formatPrice(stats?.totalRevenue || 0)} color={theme.colors.success} delay={200} />
-          <StatCard icon="receipt-outline" label="Orders" value={stats?.totalOrders || 0} color="#8B5CF6" delay={300} />
+          <StatCard icon="cash-outline" label="Revenue" value={formatPrice(stats?.totalRevenue || 0)} color={theme.colors.success} delay={200} theme={theme} />
+          <StatCard icon="receipt-outline" label="Orders" value={stats?.totalOrders || 0} color="#8B5CF6" delay={300} theme={theme} />
         </View>
         <Text style={[theme.typography.h3, { color: theme.colors.textPrimary, marginTop: 28, marginBottom: 12 }]}>Quick Actions</Text>
         {([

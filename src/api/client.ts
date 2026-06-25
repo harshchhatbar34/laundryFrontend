@@ -7,15 +7,25 @@ import { startLoading, stopLoading, showToast } from '../store/slices/uiSlice';
 declare module 'axios' {
   export interface AxiosRequestConfig {
     hideLoader?: boolean;
+    hideErrorToast?: boolean;
   }
 }
 
 interface CustomRequestConfig extends InternalAxiosRequestConfig {
   hideLoader?: boolean;
+  hideErrorToast?: boolean;
+}
+
+let sanitizedBaseURL = process.env.EXPO_PUBLIC_API_URL || '';
+if (sanitizedBaseURL.endsWith('/')) {
+  sanitizedBaseURL = sanitizedBaseURL.slice(0, -1);
+}
+if (sanitizedBaseURL.endsWith('/api')) {
+  sanitizedBaseURL = sanitizedBaseURL.slice(0, -4);
 }
 
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
+  baseURL: sanitizedBaseURL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
@@ -84,7 +94,10 @@ api.interceptors.response.use(
     const message =
       error.response?.data?.message || error.message || 'Something went wrong';
 
-    store.dispatch(showToast({ type: 'error', message }));
+    // Only show error toast if not explicitly suppressed
+    if (!config.hideErrorToast) {
+      store.dispatch(showToast({ type: 'error', message }));
+    }
 
     // Clear token and logout on 401 Unauthorized
     if (error.response?.status === 401) {

@@ -13,9 +13,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "laundryapp",
+      "bundleIdentifier": "com.laundroflow.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -25,7 +26,11 @@
       },
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "pan",
-      "package": "com.pragnesh.mathukiya.mobile"
+      "package": "com.laundroflow.app",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,7 +42,17 @@
     },
     "plugins": [
       "@react-native-community/datetimepicker",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo.png",
+          "color": "#6366F1",
+          "sounds": [],
+          "mode": "production"
+        }
+      ]
     ]
   }
 }
+

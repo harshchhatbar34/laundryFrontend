@@ -74,7 +74,9 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
       })
     );
 
-    // Reset item selection and quantity for next item
+    // Reset all selections for next item
+    setSelectedService(null);
+    setSelectedMaterial(null);
     setSelectedItem(null);
     setQuantity(1);
   };

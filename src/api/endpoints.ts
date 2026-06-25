@@ -65,6 +65,7 @@ export const NOTIFICATIONS = '/api/notifications';
 export const USER_PROFILE = '/api/users/profile';
 export const USER_ADDRESSES = '/api/users/addresses';
 export const USER_ADDRESS = (id: string) => `/api/users/addresses/${id}`;
+export const USER_PUSH_TOKEN = '/api/users/push-token';
 
 // ── Customer Lists ───────────────────────────────────────────────────
 export const OWNER_CUSTOMERS = '/api/owner/customers';

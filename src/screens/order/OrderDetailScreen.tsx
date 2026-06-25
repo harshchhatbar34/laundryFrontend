@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, Alert, StyleSheet, Platform } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
@@ -25,17 +26,22 @@ export default function OrderDetailScreen({ route, navigation }: Props) {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchOrder = async () => {
+  const fetchOrder = async (silent = false) => {
     try {
-      const res = await getOrderDetail(orderId);
+      const res = await getOrderDetail(orderId, silent ? { hideLoader: true } : undefined);
       if (res?.data?.order) setOrder(res.data.order);
       else if (res?.data) setOrder(res.data);
     } catch (e) { console.log(e); }
   };
 
-  useEffect(() => {
-    fetchOrder();
-  }, [orderId]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrder(false);
+      // Poll every 15 seconds silently to update content without reload
+      const interval = setInterval(() => fetchOrder(true), 15000);
+      return () => clearInterval(interval);
+    }, [orderId])
+  );
 
   const handleCancel = () => {
     Alert.alert('Cancel Order', 'Are you sure?', [
@@ -85,34 +91,57 @@ export default function OrderDetailScreen({ route, navigation }: Props) {
           </Text>
         </View>
 
-        {/* Timeline */}
-        <Card style={{ marginTop: 16 }} padding="medium">
-          <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, marginBottom: 12 }]}>Order Timeline</Text>
-          {ORDER_STATUS_FLOW.map((status: any, idx: number) => {
-            const isActive = idx <= currentIdx;
-            const isCurrent = idx === currentIdx;
-            const colorKey = getStatusColorKey(status);
-            return (
-              <View key={status} style={styles.timelineItem}>
-                <View style={styles.timelineLeft}>
-                  <View style={[styles.dot, {
-                    backgroundColor: isActive && colorKey ? (theme.colors as any)[colorKey] : theme.colors.border,
-                    width: isCurrent ? 14 : 10, height: isCurrent ? 14 : 10, borderRadius: 7,
-                  }]} />
-                  {idx < ORDER_STATUS_FLOW.length - 1 && (
-                    <View style={[styles.line, { backgroundColor: isActive && colorKey ? (theme.colors as any)[colorKey] : theme.colors.border }]} />
-                  )}
-                </View>
-                <Text style={[theme.typography.bodySmall, {
-                  color: isActive ? theme.colors.textPrimary : theme.colors.textMuted,
-                  fontWeight: isCurrent ? '700' : '400', marginLeft: 12, paddingBottom: 16,
-                }]}>
-                  {getStatusLabel(status)}
-                </Text>
+        {/* Rejection Reason Banner — shown to customer when order is rejected */}
+        {order.status === 'rejected' && (
+          <Card style={{ marginTop: 16, backgroundColor: '#FEF2F2', borderColor: '#EF4444', borderWidth: 1 }} padding="medium">
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+              <Ionicons name="close-circle" size={22} color="#EF4444" style={{ marginTop: 1 }} />
+              <View style={{ marginLeft: 10, flex: 1 }}>
+                <Text style={[theme.typography.label, { color: '#991B1B', fontWeight: '700' }]}>Order Rejected by Shop</Text>
+                {order.rejectionReason || order.note ? (
+                  <Text style={[theme.typography.bodySmall, { color: '#B91C1C', marginTop: 6, lineHeight: 18 }]}>
+                    💬 Reason: {order.rejectionReason || order.note}
+                  </Text>
+                ) : (
+                  <Text style={[theme.typography.bodySmall, { color: '#B91C1C', marginTop: 4, lineHeight: 16 }]}>
+                    The shop was unable to process your order at this time.
+                  </Text>
+                )}
               </View>
-            );
-          })}
-        </Card>
+            </View>
+          </Card>
+        )}
+
+        {/* Timeline — hidden for rejected and cancelled orders */}
+        {order.status !== 'rejected' && order.status !== 'cancelled' && (
+          <Card style={{ marginTop: 16 }} padding="medium">
+            <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, marginBottom: 12 }]}>Order Timeline</Text>
+            {ORDER_STATUS_FLOW.map((status: any, idx: number) => {
+              const isActive = idx <= currentIdx;
+              const isCurrent = idx === currentIdx;
+              const colorKey = getStatusColorKey(status);
+              return (
+                <View key={status} style={styles.timelineItem}>
+                  <View style={styles.timelineLeft}>
+                    <View style={[styles.dot, {
+                      backgroundColor: isActive && colorKey ? (theme.colors as any)[colorKey] : theme.colors.border,
+                      width: isCurrent ? 14 : 10, height: isCurrent ? 14 : 10, borderRadius: 7,
+                    }]} />
+                    {idx < ORDER_STATUS_FLOW.length - 1 && (
+                      <View style={[styles.line, { backgroundColor: isActive && colorKey ? (theme.colors as any)[colorKey] : theme.colors.border }]} />
+                    )}
+                  </View>
+                  <Text style={[theme.typography.bodySmall, {
+                    color: isActive ? theme.colors.textPrimary : theme.colors.textMuted,
+                    fontWeight: isCurrent ? '700' : '400', marginLeft: 12, paddingBottom: 16,
+                  }]}>
+                    {getStatusLabel(status)}
+                  </Text>
+                </View>
+              );
+            })}
+          </Card>
+        )}
 
         {/* Pickup Details & Address */}
         {(order.scheduledPickup || order.address) && (

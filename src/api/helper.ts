@@ -5,9 +5,9 @@ import {
   HELPER_BILL,
 } from './endpoints';
 
-export const getHelperOrders = async (params?: Record<string, any>): Promise<any> => {
+export const getHelperOrders = async (params?: Record<string, any>, config?: any): Promise<any> => {
   try {
-    const response = await api.get(HELPER_ORDERS, { params });
+    const response = await api.get(HELPER_ORDERS, { params, ...config });
     return response.data;
   } catch (error) {
     throw error;

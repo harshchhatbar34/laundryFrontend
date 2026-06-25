@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadUser } from '../store/slices/authSlice';
 import { loadSavedTheme } from '../store/slices/themeSlice';
@@ -12,12 +12,15 @@ import HelperStack from './HelperStack';
 import OwnerTabs from './OwnerTabs';
 import AdminTabs from './AdminTabs';
 import { AppDispatch, RootState } from '../store';
+import { usePushNotifications } from '../hooks/usePushNotifications';
+import * as Notifications from 'expo-notifications';
 
 export default function AppNavigator() {
   const dispatch = useDispatch<AppDispatch>();
   const { isLoggedIn, user } = useSelector((state: RootState) => state.auth);
   const { theme } = useTheme();
   const [isReady, setIsReady] = React.useState(false);
+  const navigationRef = useRef<NavigationContainerRef<any>>(null);
 
   useEffect(() => {
     Promise.all([
@@ -25,6 +28,37 @@ export default function AppNavigator() {
       dispatch(loadUser() as any),
     ]).finally(() => setIsReady(true));
   }, [dispatch]);
+
+  // Handle notification taps — navigate to the right order detail screen
+  const handleNotificationTap = useCallback((notification: Notifications.Notification) => {
+    const data = notification.request.content.data as any;
+    if (!navigationRef.current || !data) return;
+
+    const orderId = data.orderId;
+    if (!orderId) return;
+
+    // Navigate based on the logged-in user's role
+    if (user?.role === USER_ROLES.CUSTOMER) {
+      navigationRef.current.navigate('Orders', { screen: 'OrderDetail', params: { orderId } });
+    } else if (user?.role === USER_ROLES.OWNER) {
+      navigationRef.current.navigate('Orders', { screen: 'OwnerOrderDetail', params: { orderId } });
+    } else if (user?.role === USER_ROLES.HELPER) {
+      navigationRef.current.navigate('HelperOrderDetail', { orderId });
+    }
+  }, [user?.role]);
+
+  // Register for push notifications and set up listeners
+  usePushNotifications({ onNotificationTap: handleNotificationTap });
+
+  // Handle notification that launched the app from killed state
+  useEffect(() => {
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response?.notification) {
+        // Slight delay to let the navigator mount
+        setTimeout(() => handleNotificationTap(response.notification), 1000);
+      }
+    });
+  }, [isLoggedIn]);
 
   if (!isReady) {
     return (
@@ -51,7 +85,7 @@ export default function AppNavigator() {
   };
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {getNavigator()}
     </NavigationContainer>
   );

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
@@ -33,16 +34,23 @@ export default function HelperDashboardScreen({ navigation }: Props) {
   const [filter, setFilter] = useState('pending');
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetch = useCallback(async () => {
+  const fetch = useCallback(async (silent = false) => {
     try {
-      const res = await getHelperOrders({ status: filter });
+      const res = await getHelperOrders({ status: filter }, silent ? { hideLoader: true } : undefined);
       if (res?.data) setOrders(Array.isArray(res.data) ? res.data : res.data.orders || []);
     } catch (e) { console.log(e); }
   }, [filter]);
 
-  useEffect(() => { fetch(); }, [fetch]);
-  useEffect(() => { const u = navigation.addListener('focus', fetch); return u; }, [navigation, fetch]);
-  const onRefresh = async () => { setRefreshing(true); await fetch(); setRefreshing(false); };
+  useFocusEffect(
+    useCallback(() => {
+      fetch(false);
+      // Poll every 15 seconds silently while focused
+      const interval = setInterval(() => fetch(true), 15000);
+      return () => clearInterval(interval);
+    }, [fetch])
+  );
+
+  const onRefresh = async () => { setRefreshing(true); await fetch(false); setRefreshing(false); };
 
   const handleAccept = async (id: string) => {
     try { await acceptOrder(id); fetch(); } catch (e) { dispatch(showToast({ type: 'error', message: 'Failed to accept order' })); }

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl, Alert, StyleSheet, Platform } from 'react-native';
+import { View, Text, FlatList, RefreshControl, StyleSheet, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Header from '../../components/ui/Header';
@@ -14,6 +14,7 @@ import { respondToOrder, getOwnerOrders } from '../../api/owner';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { OwnerOrderStackParamList } from '../../navigation/OwnerTabs';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<OwnerOrderStackParamList, 'OwnerOrderList'>;
 
@@ -29,6 +30,12 @@ export default function OwnerOrderListScreen({ navigation }: Props) {
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+
+  // Rejection modal state
+  const [rejectModalVisible, setRejectModalVisible] = useState(false);
+  const [rejectOrderId, setRejectOrderId] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectLoading, setRejectLoading] = useState(false);
 
   const fetch = useCallback(async (isSilent = false) => {
     try {
@@ -55,18 +62,26 @@ export default function OwnerOrderListScreen({ navigation }: Props) {
 
   const handleRespond = async (id: string, action: string) => {
     if (action === 'reject') {
-      if (Platform.OS === 'ios' && Alert.prompt) {
-        Alert.prompt('Reject Order', 'Reason (optional):', async (note) => {
-          await respondToOrder(id, 'reject', note);
-          fetch(true);
-        });
-      } else {
-        await respondToOrder(id, 'reject');
-        fetch(true);
-      }
+      // Open cross-platform reject reason modal
+      setRejectOrderId(id);
+      setRejectReason('');
+      setRejectModalVisible(true);
     } else {
       await respondToOrder(id, 'accept');
       fetch(true);
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    setRejectLoading(true);
+    try {
+      await respondToOrder(rejectOrderId, 'reject', rejectReason.trim() || undefined);
+      setRejectModalVisible(false);
+      fetch(true);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setRejectLoading(false);
     }
   };
 
@@ -106,6 +121,78 @@ export default function OwnerOrderListScreen({ navigation }: Props) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />}
         ListEmptyComponent={<EmptyState icon="receipt-outline" title="No orders" />}
       />
+
+      {/* ── Rejection Reason Modal ─────────────────────────────────── */}
+      <Modal
+        visible={rejectModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setRejectModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalBackdrop}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={[styles.rejectModalContent, { backgroundColor: theme.colors.surface }]}>
+            {/* Header */}
+            <View style={styles.rejectModalHeader}>
+              <View style={[styles.rejectIconBg, { backgroundColor: '#FEE2E2' }]}>
+                <Ionicons name="close-circle" size={24} color="#EF4444" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={[theme.typography.h3, { color: theme.colors.textPrimary }]}>Reject Order</Text>
+                <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 2 }]}>
+                  The customer will be notified with your reason.
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setRejectModalVisible(false)} style={{ padding: 4 }}>
+                <Ionicons name="close" size={22} color={theme.colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Reason input */}
+            <Text style={[theme.typography.label, { color: theme.colors.textPrimary, marginBottom: 8, marginTop: 4 }]}>
+              Reason for rejection <Text style={{ color: theme.colors.textMuted, fontWeight: '400' }}>(optional)</Text>
+            </Text>
+            <TextInput
+              style={[styles.rejectInput, {
+                backgroundColor: theme.colors.surfaceVariant,
+                borderColor: theme.colors.borderLight,
+                color: theme.colors.textPrimary,
+              }]}
+              placeholder="e.g. Out of service area, fully booked, item not accepted..."
+              placeholderTextColor={theme.colors.textMuted}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              multiline
+              numberOfLines={3}
+              maxLength={300}
+              textAlignVertical="top"
+            />
+            <Text style={[theme.typography.caption, { color: theme.colors.textMuted, textAlign: 'right', marginBottom: 16 }]}>
+              {rejectReason.length}/300
+            </Text>
+
+            {/* Action buttons */}
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <Button
+                title="Cancel"
+                onPress={() => setRejectModalVisible(false)}
+                variant="outline"
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Confirm Reject"
+                onPress={handleConfirmReject}
+                variant="danger"
+                loading={rejectLoading}
+                icon="close-circle-outline"
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScreenWrapper>
   );
 }
@@ -114,4 +201,9 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-start' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTopWidth: 1 },
   filterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 8 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+  rejectModalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36 },
+  rejectModalHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  rejectIconBg: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  rejectInput: { borderWidth: 1, borderRadius: 12, padding: 12, minHeight: 90, fontSize: 14, marginBottom: 6 },
 });

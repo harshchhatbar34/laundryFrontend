@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Header from '../../components/ui/Header';
 import Card from '../../components/ui/Card';
@@ -28,16 +29,24 @@ export default function OrderListScreen({ navigation }: Props) {
   const [filter, setFilter] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (silent = false) => {
     try {
-      const params = filter ? { status: filter } : {};
-      const res = await getOrders(params);
+      const params: Record<string, any> = filter ? { status: filter } : {};
+      const res = await getOrders(params, silent ? { hideLoader: true } : undefined);
       if (res?.data) setOrders(Array.isArray(res.data) ? res.data : res.data.orders || []);
     } catch (e) { console.log(e); }
   }, [filter]);
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
-  const onRefresh = async () => { setRefreshing(true); await fetchOrders(); setRefreshing(false); };
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrders(false);
+      // Poll every 15 seconds silently while the screen is focused
+      const interval = setInterval(() => fetchOrders(true), 15000);
+      return () => clearInterval(interval);
+    }, [fetchOrders])
+  );
+
+  const onRefresh = async () => { setRefreshing(true); await fetchOrders(false); setRefreshing(false); };
 
   const renderOrder = ({ item, index }: { item: any; index: number }) => (
     <FadeSlideIn delay={index * 70}>

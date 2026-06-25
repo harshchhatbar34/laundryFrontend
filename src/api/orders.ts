@@ -1,9 +1,9 @@
 import api from './client';
 import { ORDERS, ORDER_DETAIL, ORDER_RESCHEDULE } from './endpoints';
 
-export const getOrders = async (params?: Record<string, any>): Promise<any> => {
+export const getOrders = async (params?: Record<string, any>, config?: any): Promise<any> => {
   try {
-    const response = await api.get(ORDERS, { params });
+    const response = await api.get(ORDERS, { params, ...config });
     return response.data;
   } catch (error) {
     throw error;
@@ -19,9 +19,9 @@ export const createOrder = async (data: Record<string, any>): Promise<any> => {
   }
 };
 
-export const getOrderDetail = async (id: string): Promise<any> => {
+export const getOrderDetail = async (id: string, config?: any): Promise<any> => {
   try {
-    const response = await api.get(ORDER_DETAIL(id));
+    const response = await api.get(ORDER_DETAIL(id), { ...config });
     return response.data;
   } catch (error) {
     throw error;

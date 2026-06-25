@@ -188,8 +188,18 @@ export default function CustomerProfileScreen({ navigation }: Props) {
         try {
           const data = await getAddresses();
           if (!cancelled) {
-            // API might return { addresses: [...] } or an array
-            const list = Array.isArray(data) ? data : data?.addresses || data?.data || [];
+            let list: Address[] = [];
+            if (Array.isArray(data)) {
+              list = data;
+            } else if (data) {
+              if (Array.isArray(data.addresses)) {
+                list = data.addresses;
+              } else if (Array.isArray(data.data)) {
+                list = data.data;
+              } else if (data.data && Array.isArray(data.data.addresses)) {
+                list = data.data.addresses;
+              }
+            }
             setAddresses(list);
           }
         } catch {

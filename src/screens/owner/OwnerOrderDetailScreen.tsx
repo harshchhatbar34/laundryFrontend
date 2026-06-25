@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
@@ -58,6 +59,11 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
   const [pickerTitle, setPickerTitle] = useState('');
   const [pickerOptions, setPickerOptions] = useState<any[]>([]);
   const [onSelectOption, setOnSelectOption] = useState<(opt: any) => void>(() => () => {});
+
+  // Reject Order Modal State
+  const [rejectModalVisible, setRejectModalVisible] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectLoading, setRejectLoading] = useState(false);
 
   // Fetch owner's UPI ID on mount
   useEffect(() => {
@@ -183,9 +189,9 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
     }
   };
 
-  const fetchOrder = async () => {
+  const fetchOrder = async (silent = false) => {
     try {
-      const r = await getOrderDetail(orderId);
+      const r = await getOrderDetail(orderId, silent ? { hideLoader: true } : undefined);
       const o = r?.data?.order || r?.data;
       if (o) {
         setOrder(o);
@@ -201,11 +207,29 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
   }, [orderId]);
 
   const handleRespond = async (action: string) => {
+    if (action === 'reject') {
+      setRejectReason('');
+      setRejectModalVisible(true);
+      return;
+    }
     try {
       await respondToOrder(orderId, action);
       fetchOrder();
     } catch (e) {
       dispatch(showToast({ type: 'error', message: 'Action failed' }));
+    }
+  };
+
+  const handleConfirmReject = async () => {
+    setRejectLoading(true);
+    try {
+      await respondToOrder(orderId, 'reject', rejectReason.trim() || undefined);
+      setRejectModalVisible(false);
+      fetchOrder();
+    } catch (e) {
+      dispatch(showToast({ type: 'error', message: 'Failed to reject order' }));
+    } finally {
+      setRejectLoading(false);
     }
   };
 
@@ -745,6 +769,79 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
           </View>
         </View>
       </Modal>
+
+      {/* ── Reject Order Modal ───────────────────────────────────── */}
+      <Modal
+        visible={rejectModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setRejectModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalBackdrop}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={[styles.rejectModalContent, { backgroundColor: theme.colors.surface }]}>
+            {/* Header */}
+            <View style={styles.rejectModalHeader}>
+              <View style={[styles.rejectIconBg, { backgroundColor: '#FEE2E2' }]}>
+                <Ionicons name="close-circle" size={24} color="#EF4444" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={[theme.typography.h3, { color: theme.colors.textPrimary }]}>Reject Order</Text>
+                <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 2 }]}>
+                  The customer will be notified with your reason.
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setRejectModalVisible(false)} style={{ padding: 4 }}>
+                <Ionicons name="close" size={22} color={theme.colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Reason input */}
+            <Text style={[theme.typography.label, { color: theme.colors.textPrimary, marginBottom: 8, marginTop: 4 }]}>
+              Reason for rejection{' '}
+              <Text style={{ color: theme.colors.textMuted, fontWeight: '400' }}>(optional)</Text>
+            </Text>
+            <TextInput
+              style={[styles.rejectInput, {
+                backgroundColor: theme.colors.surfaceVariant,
+                borderColor: theme.colors.borderLight,
+                color: theme.colors.textPrimary,
+              }]}
+              placeholder="e.g. Out of service area, fully booked, item not accepted..."
+              placeholderTextColor={theme.colors.textMuted}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              multiline
+              numberOfLines={3}
+              maxLength={300}
+              textAlignVertical="top"
+            />
+            <Text style={[theme.typography.caption, { color: theme.colors.textMuted, textAlign: 'right', marginBottom: 16 }]}>
+              {rejectReason.length}/300
+            </Text>
+
+            {/* Action buttons */}
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <Button
+                title="Cancel"
+                onPress={() => setRejectModalVisible(false)}
+                variant="outline"
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Confirm Reject"
+                onPress={handleConfirmReject}
+                variant="danger"
+                loading={rejectLoading}
+                icon="close-circle-outline"
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScreenWrapper>
   );
 }
@@ -767,4 +864,8 @@ const styles = StyleSheet.create({
   qrSection: { alignItems: 'center', marginBottom: 8 },
   qrBox: { padding: 14, borderRadius: 16, borderWidth: 1 },
   cashInfo: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12, borderWidth: 1, marginBottom: 4 },
+  rejectModalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36 },
+  rejectModalHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  rejectIconBg: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  rejectInput: { borderWidth: 1, borderRadius: 12, padding: 12, minHeight: 90, fontSize: 14, marginBottom: 6 },
 });
