@@ -3,7 +3,7 @@ import {
   ScrollView, View, Text, KeyboardAvoidingView,
   Platform, StyleSheet, ActivityIndicator, TouchableOpacity,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Header from '../../components/ui/Header';
@@ -19,6 +19,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import Avatar from '../../components/ui/Avatar';
 import StateDropdown from '../../components/ui/StateDropdown';
+import CityDropdown from '../../components/ui/CityDropdown';
+import PincodeDropdown from '../../components/ui/PincodeDropdown';
 
 type Props = NativeStackScreenProps<AdminOwnerStackParamList, 'EditOwner'>;
 
@@ -37,6 +39,7 @@ interface FormState {
   paymentMode: string;
   subscription: string;
   photo?: string;
+  upiId: string;
 }
 
 const INITIAL_FORM: FormState = {
@@ -54,12 +57,16 @@ const INITIAL_FORM: FormState = {
   paymentMode: 'cash',
   subscription: 'monthly',
   photo: '',
+  upiId: '',
 };
 
 export default function EditOwnerScreen({ route, navigation }: Props) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const { ownerId } = route.params;
+
+  const { user } = useSelector((s: any) => s.auth);
+  const superAdminUpi = user?.upiId;
 
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [loading, setLoading] = useState(true);
@@ -90,6 +97,7 @@ export default function EditOwnerScreen({ route, navigation }: Props) {
             paymentMode: tenant?.paymentMode || 'cash',
             subscription: tenant?.subscription || 'monthly',
             photo: owner.photo || '',
+            upiId: tenant?.upiId || '',
           });
         }
       } catch (e) {
@@ -157,6 +165,7 @@ export default function EditOwnerScreen({ route, navigation }: Props) {
       paymentMode: form.paymentMode || undefined,
       subscription: form.subscription || undefined,
       photo: form.photo || null,
+      upiId: form.upiId.trim() || null,
     };
 
     if (amountStr) payload.paymentAmount = Number(amountStr);
@@ -269,27 +278,32 @@ export default function EditOwnerScreen({ route, navigation }: Props) {
           />
           <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
             <View style={{ flex: 1 }}>
-              <Input
-                label="City"
-                value={form.city}
-                onChangeText={v => set('city', v)}
-                icon="location-outline"
-              />
-            </View>
-            <View style={{ flex: 1 }}>
               <StateDropdown
                 label="State"
                 selectedState={form.state}
-                onSelect={selected => set('state', selected)}
+                onSelect={selected => {
+                  set('state', selected);
+                  set('city', '');
+                }}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <CityDropdown
+                label="City"
+                selectedState={form.state}
+                selectedCity={form.city}
+                onSelect={selected => {
+                  set('city', selected);
+                  set('pincode', '');
+                }}
               />
             </View>
           </View>
-          <Input
+          <PincodeDropdown
             label="Pincode"
-            value={form.pincode}
-            onChangeText={v => set('pincode', v)}
-            icon="map-outline"
-            keyboardType="numeric"
+            selectedCity={form.city}
+            selectedPincode={form.pincode}
+            onSelect={selected => set('pincode', selected)}
           />
 
           <Divider spacing={16} />
@@ -337,6 +351,34 @@ export default function EditOwnerScreen({ route, navigation }: Props) {
             ))}
           </View>
 
+          {form.paymentMode === 'upi' && (
+            superAdminUpi ? (
+              <View style={[styles.upiNote, { backgroundColor: theme.colors.primaryBg, borderColor: theme.colors.primary }]}>
+                <Ionicons name="information-circle-outline" size={16} color={theme.colors.primary} />
+                <Text style={[theme.typography.bodySmall, { color: theme.colors.primary, flex: 1, marginLeft: 6 }]}>
+                  Collect subscription payment to your UPI ID: <Text style={{ fontWeight: '700' }}>{superAdminUpi}</Text>
+                </Text>
+              </View>
+            ) : (
+              <View style={[styles.upiNote, { backgroundColor: theme.colors.errorBg, borderColor: theme.colors.error }]}>
+                <Ionicons name="warning-outline" size={16} color={theme.colors.error} />
+                <Text style={[theme.typography.bodySmall, { color: theme.colors.error, flex: 1, marginLeft: 6 }]}>
+                  Note: You have not set your SuperAdmin UPI ID in Profile settings yet.
+                </Text>
+              </View>
+            )
+          )}
+
+          <Input
+            label="Owner Shop UPI ID"
+            value={form.upiId}
+            onChangeText={v => set('upiId', v)}
+            icon="qr-code-outline"
+            placeholder="e.g. ownername@upi"
+            autoCapitalize="none"
+            style={{ marginTop: 16 }}
+          />
+
           <Button
             title="Save Changes"
             onPress={handleSave}
@@ -380,5 +422,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#FFF',
+  },
+  upiNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 16,
   },
 });

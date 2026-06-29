@@ -19,11 +19,14 @@ import Header from '../../components/ui/Header';
 import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import StateDropdown from '../../components/ui/StateDropdown';
+import CityDropdown from '../../components/ui/CityDropdown';
 import FadeSlideIn from '../../animations/FadeSlideIn';
 import { useTheme } from '../../theme/ThemeContext';
 import { showToast } from '../../store/slices/uiSlice';
 import { getOwnerProfile, updateOwnerProfile } from '../../api/owner';
 import { updateProfile } from '../../api/user';
+import { updateUser } from '../../store/slices/authSlice';
 import { RootState } from '../../store';
 
 interface Props {
@@ -99,6 +102,7 @@ export default function OwnerProfileScreen({ navigation }: Props) {
     setLoadingPersonal(true);
     try {
       await updateProfile({ name: draftName.trim(), mobileNumber: draftPhone.trim() });
+      dispatch(updateUser({ name: draftName.trim(), mobileNumber: draftPhone.trim() }));
       setEditingPersonal(false);
       dispatch(showToast({ type: 'success', message: 'Personal info updated!' }));
     } catch (_) {
@@ -261,19 +265,19 @@ export default function OwnerProfileScreen({ navigation }: Props) {
                     icon="storefront-outline"
                     placeholder="e.g. Harsh Laundry"
                   />
-                  <Input
-                    label="City"
-                    value={draftCity}
-                    onChangeText={setDraftCity}
-                    icon="location-outline"
-                    placeholder="e.g. Ahmedabad"
-                  />
-                  <Input
+                  <StateDropdown
                     label="State"
-                    value={draftState}
-                    onChangeText={setDraftState}
-                    icon="map-outline"
-                    placeholder="e.g. Gujarat"
+                    selectedState={draftState}
+                    onSelect={(selected) => {
+                      setDraftState(selected);
+                      setDraftCity('');
+                    }}
+                  />
+                  <CityDropdown
+                    label="City"
+                    selectedState={draftState}
+                    selectedCity={draftCity}
+                    onSelect={setDraftCity}
                   />
                   <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
                     <Button title="Save" onPress={handleSaveBusiness} loading={loadingBusiness} icon="checkmark-circle-outline" style={{ flex: 1 }} />

@@ -19,11 +19,12 @@ interface StatCardProps {
   color?: string;
   delay: number;
   theme: any;
+  onPress?: () => void;
 }
 
-const StatCard = React.memo(({ icon, label, value, color, delay, theme }: StatCardProps) => (
+const StatCard = React.memo(({ icon, label, value, color, delay, theme, onPress }: StatCardProps) => (
   <FadeSlideIn delay={delay} style={{ flex: 1, margin: 4 }}>
-    <Card padding="medium" style={{ alignItems: 'center' }}>
+    <Card padding="medium" style={{ alignItems: 'center' }} onPress={onPress}>
       <View style={[styles.statIcon, { backgroundColor: (color || theme.colors.primary) + '15' }]}>
         <Ionicons name={icon} size={22} color={color || theme.colors.primary} />
       </View>
@@ -49,17 +50,16 @@ export default function AdminDashboardScreen({ navigation }: Props) {
         <Text style={[theme.typography.h1, { color: theme.colors.textPrimary, marginBottom: 4 }]}>Admin Panel</Text>
         <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginBottom: 20 }]}>Platform overview</Text>
         <View style={{ flexDirection: 'row' }}>
-          <StatCard icon="people-outline" label="Owners" value={stats?.totalOwners || 0} delay={0} theme={theme} />
-          <StatCard icon="people-circle-outline" label="Customers" value={stats?.totalCustomers || 0} color="#F59E0B" delay={100} theme={theme} />
+          <StatCard icon="people-outline" label="Owners" value={stats?.totalOwners || 0} delay={0} theme={theme} onPress={() => navigation.navigate('Owners')} />
+          <StatCard icon="people-circle-outline" label="Customers" value={stats?.totalCustomers || 0} color="#F59E0B" delay={100} theme={theme} onPress={() => navigation.navigate('Customers')} />
         </View>
         <View style={{ flexDirection: 'row', marginTop: 4 }}>
           <StatCard icon="cash-outline" label="Revenue" value={formatPrice(stats?.totalRevenue || 0)} color={theme.colors.success} delay={200} theme={theme} />
-          <StatCard icon="receipt-outline" label="Orders" value={stats?.totalOrders || 0} color="#8B5CF6" delay={300} theme={theme} />
+          <StatCard icon="receipt-outline" label="Orders" value={stats?.totalOrders || 0} color="#8B5CF6" delay={300} theme={theme} onPress={() => navigation.navigate('Orders')} />
         </View>
         <Text style={[theme.typography.h3, { color: theme.colors.textPrimary, marginTop: 28, marginBottom: 12 }]}>Quick Actions</Text>
         {([
           { icon: 'people-outline' as const, label: 'Manage Owners', tab: 'Owners', screen: 'OwnerManagement', color: theme.colors.primary },
-          { icon: 'key-outline' as const, label: 'Tenant Codes', tab: 'Owners', screen: 'TenantCode', color: '#F59E0B' },
         ]).map((a, i) => (
           <FadeSlideIn key={a.screen} delay={400 + i * 60}>
             <Card onPress={() => navigation.navigate(a.tab, { screen: a.screen })} style={{ marginBottom: 8 }} padding="medium">

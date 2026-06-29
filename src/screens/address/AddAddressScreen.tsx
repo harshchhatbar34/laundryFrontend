@@ -7,6 +7,8 @@ import Header from '../../components/ui/Header';
 import Input from '../../components/ui/Input';
 import Chip from '../../components/ui/Chip';
 import StateDropdown from '../../components/ui/StateDropdown';
+import CityDropdown from '../../components/ui/CityDropdown';
+import PincodeDropdown from '../../components/ui/PincodeDropdown';
 import Button from '../../components/ui/Button';
 import { useTheme } from '../../theme/ThemeContext';
 import { addAddress } from '../../api/user';
@@ -70,17 +72,38 @@ export default function AddAddressScreen({ navigation }: Props) {
 
           <Input label="Address Line 1" value={form.addressLine1} onChangeText={(v) => set('addressLine1', v)} icon="location-outline" error={errors.addressLine1} />
           <Input label="Address Line 2" value={form.addressLine2} onChangeText={(v) => set('addressLine2', v)} />
-          <Input label="City" value={form.city} onChangeText={(v) => set('city', v)} error={errors.city} icon="business-outline" />
           
           {/* Indian States Dropdown */}
           <StateDropdown
             label="State"
             selectedState={form.state}
-            onSelect={(selected) => set('state', selected)}
+            onSelect={(selected) => {
+              set('state', selected);
+              set('city', '');
+            }}
             error={errors.state}
           />
 
-          <Input label="Pincode" value={form.pincode} onChangeText={(v) => set('pincode', v)} keyboardType="number-pad" error={errors.pincode} icon="mail-outline" />
+          {/* Cities Dropdown */}
+          <CityDropdown
+            label="City"
+            selectedState={form.state}
+            selectedCity={form.city}
+            onSelect={(selected) => {
+              set('city', selected);
+              set('pincode', '');
+            }}
+            error={errors.city}
+          />
+
+          {/* Pincode Dropdown */}
+          <PincodeDropdown
+            label="Pincode"
+            selectedCity={form.city}
+            selectedPincode={form.pincode}
+            onSelect={(selected) => set('pincode', selected)}
+            error={errors.pincode}
+          />
           
           <Button title="Save Address" onPress={handleSave} loading={loading} icon="checkmark-outline" style={{ marginTop: 8 }} />
         </ScrollView>

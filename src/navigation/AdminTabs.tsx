@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import OwnerManagementScreen from '../screens/admin/OwnerManagementScreen';
@@ -116,6 +117,8 @@ function SettingsStackScreen() {
 
 export default function AdminTabs() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 60 + insets.bottom;
   return (
     <Tab.Navigator
       id="AdminTabs"
@@ -136,7 +139,7 @@ export default function AdminTabs() {
         tabBarStyle: { 
           backgroundColor: theme.colors.tabBar, 
           borderTopColor: theme.colors.border, 
-          paddingBottom: 8, paddingTop: 8, height: 60 
+          paddingBottom: 8 + insets.bottom, paddingTop: 8, height: tabBarHeight 
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
       })}

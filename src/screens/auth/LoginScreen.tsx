@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDispatch } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { useTheme } from '../../theme/ThemeContext';
-import { login as loginApi } from '../../api/auth';
-import { isValidEmail } from '../../utils/helpers';
+import { isValidEmail, isValidPassword } from '../../utils/helpers';
+import { APP_NAME } from '../../utils/constants';
+import { login } from '../../store/slices/authSlice';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 import { AppDispatch } from '../../store';
@@ -28,7 +28,7 @@ export default function LoginScreen({ navigation }: Props) {
     if (!email.trim()) e.email = 'Email is required';
     else if (!isValidEmail(email)) e.email = 'Invalid email format';
     if (!password) e.password = 'Password is required';
-    else if (password.length < 6) e.password = 'Min 6 characters';
+    else if (!isValidPassword(password)) e.password = 'Min 6 characters';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -36,19 +36,13 @@ export default function LoginScreen({ navigation }: Props) {
   const handleLogin = async () => {
     if (!validate()) return;
     setLoading(true);
+    setErrors({});
     try {
-      const res = await loginApi(email.trim().toLowerCase(), password);
-      if (res?.success && res.data) {
-        if (email.trim().toLowerCase() === 'harshchhatbar34@gmail.com') {
-          res.data.user.role = 'superadmin';
-        }
-        await AsyncStorage.setItem('@token', res.data.token);
-        await AsyncStorage.setItem('@user', JSON.stringify(res.data.user));
-        const { loadUser } = require('../../store/slices/authSlice');
-        dispatch(loadUser() as any);
-      }
-    } catch (e: any) {
-      setErrors({ general: e?.response?.data?.message || 'Login failed' });
+      await dispatch(
+        login({ email: email.trim().toLowerCase(), password })
+      ).unwrap();
+    } catch (message) {
+      setErrors({ general: String(message) });
     } finally {
       setLoading(false);
     }
@@ -60,7 +54,7 @@ export default function LoginScreen({ navigation }: Props) {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <LinearGradient colors={theme.gradients.ocean as any} style={styles.header}>
             <Text style={styles.emoji}>🧺</Text>
-            <Text style={[theme.typography.displayMedium, { color: '#FFF' }]}>FreshWash</Text>
+            <Text style={[theme.typography.displayMedium, { color: '#FFF' }]}>{APP_NAME}</Text>
             <Text style={[theme.typography.bodySmall, { color: 'rgba(255,255,255,0.7)', marginTop: 4 }]}>
               Welcome back
             </Text>

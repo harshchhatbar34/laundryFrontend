@@ -6,6 +6,8 @@ import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Header from '../../components/ui/Header';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import StateDropdown from '../../components/ui/StateDropdown';
+import CityDropdown from '../../components/ui/CityDropdown';
 import { useTheme } from '../../theme/ThemeContext';
 import { createBranch } from '../../api/owner';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -23,6 +25,7 @@ export default function AddBranchScreen({ navigation }: Props) {
   const geocodeTimeoutRef = useRef<any>(null);
   
   const [form, setForm] = useState({ name: '', addressLine: '', landmark: '', city: '', phone: '', lat: '23.0225', lng: '72.5714' });
+  const [selectedState, setSelectedState] = useState('');
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -236,7 +239,20 @@ export default function AddBranchScreen({ navigation }: Props) {
           <Input label="Branch Name" value={form.name} onChangeText={(v) => set('name', v)} icon="storefront-outline" />
           <Input label="Address" value={form.addressLine} onChangeText={(v) => set('addressLine', v)} icon="location-outline" />
           <Input label="Landmark" value={form.landmark} onChangeText={(v) => set('landmark', v)} icon="flag-outline" />
-          <Input label="City" value={form.city} onChangeText={(v) => set('city', v)} icon="business-outline" />
+          <StateDropdown
+            label="State"
+            selectedState={selectedState}
+            onSelect={(selected) => {
+              setSelectedState(selected);
+              set('city', '');
+            }}
+          />
+          <CityDropdown
+            label="City"
+            selectedState={selectedState}
+            selectedCity={form.city}
+            onSelect={(selected) => set('city', selected)}
+          />
           <Input label="Phone" value={form.phone} onChangeText={(v) => set('phone', v)} icon="call-outline" keyboardType="phone-pad" />
           
           <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, marginTop: 16, marginBottom: 8 }]}>

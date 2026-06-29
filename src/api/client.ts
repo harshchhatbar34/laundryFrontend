@@ -3,7 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from '../store';
 import { startLoading, stopLoading, showToast } from '../store/slices/uiSlice';
 
-// Extend Axios configuration interface to support custom option hideLoader
 declare module 'axios' {
   export interface AxiosRequestConfig {
     hideLoader?: boolean;
@@ -32,17 +31,17 @@ const api = axios.create({
   },
 });
 
-// ── Request Interceptor ──────────────────────────────────────────────
 api.interceptors.request.use(
   async (config: CustomRequestConfig) => {
-    console.log('[API REQ]', config.method?.toUpperCase(), config.url);
-    // Attach bearer token if available
+    if (__DEV__) {
+      console.log('[API REQ]', config.method?.toUpperCase(), config.url);
+    }
+
     const token = await AsyncStorage.getItem('@token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Dispatch loading state unless explicitly hidden
     if (!config.hideLoader) {
       store.dispatch(startLoading());
     }
@@ -55,21 +54,21 @@ api.interceptors.request.use(
   }
 );
 
-// ── Response Interceptor ─────────────────────────────────────────────
 api.interceptors.response.use(
   (response: AxiosResponse) => {
     const config = response.config as CustomRequestConfig;
-    console.log('[API RES SUCCESS]', config.method?.toUpperCase(), config.url, response.status);
 
-    // Stop loading spinner
+    if (__DEV__) {
+      console.log('[API RES SUCCESS]', config.method?.toUpperCase(), config.url, response.status);
+    }
+
     if (!config.hideLoader) {
       store.dispatch(stopLoading());
     }
 
-    // Show success toast for mutating requests
     const method = config.method?.toUpperCase();
-    if (method && method !== 'GET') {
-      const message = response.data?.message || 'Operation successful';
+    const message = response.data?.message;
+    if (method && method !== 'GET' && message) {
       store.dispatch(showToast({ type: 'success', message }));
     }
 
@@ -77,36 +76,37 @@ api.interceptors.response.use(
   },
   async (error) => {
     const config = (error.config || {}) as CustomRequestConfig;
-    console.warn(
-      '[API RES ERROR]',
-      config.method?.toUpperCase(),
-      config.url,
-      error.response?.status,
-      JSON.stringify(error.response?.data || error.message)
-    );
 
-    // Stop loading spinner
+    if (__DEV__) {
+      console.warn(
+        '[API RES ERROR]',
+        config.method?.toUpperCase(),
+        config.url,
+        error.response?.status,
+        JSON.stringify(error.response?.data || error.message)
+      );
+    }
+
     if (!config.hideLoader) {
       store.dispatch(stopLoading());
     }
 
-    // Extract a user-friendly error message
     const message =
       error.response?.data?.message || error.message || 'Something went wrong';
 
-    // Only show error toast if not explicitly suppressed
     if (!config.hideErrorToast) {
       store.dispatch(showToast({ type: 'error', message }));
     }
 
-    // Clear token and logout on 401 Unauthorized
     if (error.response?.status === 401) {
       await AsyncStorage.removeItem('@token');
       try {
-        const { logout } = require('../store/slices/authSlice');
-        store.dispatch(logout() as any);
+        const { logout } = await import('../store/slices/authSlice');
+        store.dispatch(logout());
       } catch (e) {
-        console.warn('Failed to dispatch logout on 401:', e);
+        if (__DEV__) {
+          console.warn('Failed to dispatch logout on 401:', e);
+        }
       }
     }
 

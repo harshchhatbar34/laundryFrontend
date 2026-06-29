@@ -61,16 +61,14 @@ export default function AddServiceElementScreen({ route, navigation }: Props) {
               multiline
             />
           )}
-          {type !== 'service' && (
-            <Input
-              key="price-input"
-              label="Price (₹)"
-              value={form.price}
-              onChangeText={(v) => set('price', v)}
-              keyboardType={Platform.OS === 'ios' ? 'decimal-pad' : 'numeric'}
-              icon="cash-outline"
-            />
-          )}
+          <Input
+            key="price-input"
+            label={type === 'service' ? 'Base Price (₹)' : 'Price (₹)'}
+            value={form.price}
+            onChangeText={(v) => set('price', v)}
+            keyboardType={Platform.OS === 'ios' ? 'decimal-pad' : 'numeric'}
+            icon="cash-outline"
+          />
           <Button title={isEdit ? 'Update' : 'Create'} onPress={handleSave} loading={loading} icon="checkmark-outline" style={{ marginTop: 12 }} />
         </ScrollView>
       </KeyboardAvoidingView>

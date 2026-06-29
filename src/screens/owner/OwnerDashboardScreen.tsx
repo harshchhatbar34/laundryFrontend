@@ -20,11 +20,12 @@ interface StatCardProps {
   color?: string;
   delay: number;
   theme: any;
+  onPress?: () => void;
 }
 
-const StatCard = React.memo(({ icon, label, value, color, delay, theme }: StatCardProps) => (
+const StatCard = React.memo(({ icon, label, value, color, delay, theme, onPress }: StatCardProps) => (
   <FadeSlideIn delay={delay} style={{ flex: 1, margin: 4 }}>
-    <Card padding="medium" style={{ alignItems: 'center' }}>
+    <Card padding="medium" style={{ alignItems: 'center' }} onPress={onPress}>
       <View style={[styles.statIcon, { backgroundColor: (color || theme.colors.primary) + '15' }]}>
         <Ionicons name={icon} size={22} color={color || theme.colors.primary} />
       </View>
@@ -70,23 +71,24 @@ export default function OwnerDashboardScreen({ navigation }: Props) {
         <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginBottom: 20 }]}>Business overview</Text>
 
         <View style={{ flexDirection: 'row' }}>
-          <StatCard icon="receipt-outline" label="Orders" value={stats?.totalOrders || 0} delay={0} theme={theme} />
+          <StatCard icon="receipt-outline" label="Orders" value={stats?.totalOrders || 0} delay={0} theme={theme} onPress={() => navigation.navigate('Orders')} />
           <StatCard icon="cash-outline" label="Revenue" value={formatPrice(stats?.totalRevenue || 0)} color={theme.colors.success} delay={100} theme={theme} />
         </View>
         <View style={{ flexDirection: 'row', marginTop: 4 }}>
-          <StatCard icon="people-outline" label="Helpers" value={stats?.activeHelpers || 0} color="#8B5CF6" delay={200} theme={theme} />
-          <StatCard icon="star-outline" label="Rating" value={stats?.avgRating?.toFixed(1) || '0.0'} color="#F59E0B" delay={300} theme={theme} />
+          <StatCard icon="people-outline" label="Helpers" value={stats?.activeHelpers || 0} color="#8B5CF6" delay={200} theme={theme} onPress={() => navigation.navigate('Settings', { screen: 'HelperManagement' })} />
+          <StatCard icon="star-outline" label="Rating" value={stats?.avgRating?.toFixed(1) || '0.0'} color="#F59E0B" delay={300} theme={theme} onPress={() => navigation.navigate('Settings', { screen: 'OwnerStats', params: { activeTab: 'reviews' } })} />
         </View>
 
         <Text style={[theme.typography.h3, { color: theme.colors.textPrimary, marginTop: 28, marginBottom: 12 }]}>Quick Actions</Text>
         {([
           { icon: 'storefront-outline' as const, label: 'Manage Branches', tab: 'Branches', screen: 'BranchList', color: theme.colors.primary },
-          { icon: 'people-outline' as const, label: 'Manage Helpers', tab: 'Settings', screen: 'HelperManagement', color: '#F59E0B' },
+          { icon: 'people-outline' as const, label: 'Manage Helpers', tab: 'Settings', screen: 'HelperManagement', color: '#10B981' },
           { icon: 'people-circle-outline' as const, label: 'Manage Customers', tab: 'Settings', screen: 'CustomerManagement', color: '#E11D48' },
+          { icon: 'star-outline' as const, label: 'Ratings & Reviews', tab: 'Settings', screen: 'OwnerStats', params: { activeTab: 'reviews' }, color: '#F59E0B' },
           { icon: 'settings-outline' as const, label: 'Settings & UPI', tab: 'Settings', screen: 'OwnerSettingsMain', color: '#8B5CF6' },
         ]).map((a, i) => (
           <FadeSlideIn key={a.screen} delay={400 + i * 60}>
-            <Card onPress={() => navigation.navigate(a.tab, { screen: a.screen })} style={{ marginBottom: 8 }} padding="medium">
+            <Card onPress={() => navigation.navigate(a.tab, { screen: a.screen, params: a.params })} style={{ marginBottom: 8 }} padding="medium">
               <View style={styles.actionRow}>
                 <View style={[styles.actionIcon, { backgroundColor: a.color + '15' }]}>
                   <Ionicons name={a.icon} size={20} color={a.color} />

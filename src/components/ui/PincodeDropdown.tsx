@@ -1,7 +1,7 @@
-// FreshWash — StateDropdown Component
-// Dropdown selector for Indian States with built-in search filter
+// FreshWash — PincodeDropdown Component
+// Dropdown selector for Pincodes based on selected City using the postalpincode.in API
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,43 +12,92 @@ import {
   StyleSheet,
   Platform,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/ThemeContext';
-import { INDIAN_STATES } from '../../utils/constants';
 
-interface StateDropdownProps {
+interface PincodeDropdownProps {
   label?: string;
-  selectedState?: string;
-  onSelect: (state: string) => void;
+  selectedCity?: string;
+  selectedPincode?: string;
+  onSelect: (pincode: string) => void;
   error?: string | null;
   placeholder?: string;
 }
 
-const StateDropdown: React.FC<StateDropdownProps> = ({
-  label = 'State',
-  selectedState = '',
+const PincodeDropdown: React.FC<PincodeDropdownProps> = ({
+  label = 'Pincode',
+  selectedCity = '',
+  selectedPincode = '',
   onSelect,
   error,
-  placeholder = 'Select your state',
+  placeholder = 'Select pincode',
 }) => {
   const { theme } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [pincodes, setPincodes] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const filteredStates = useMemo(() => {
-    if (!searchQuery.trim()) return INDIAN_STATES;
-    return INDIAN_STATES.filter((s) =>
-      s.toLowerCase().includes(searchQuery.toLowerCase().trim())
+  // Fetch pincodes whenever the selectedCity changes
+  useEffect(() => {
+    if (!selectedCity.trim()) {
+      setPincodes([]);
+      return;
+    }
+
+    const fetchPincodes = async () => {
+      setLoading(true);
+      console.log(`[API REQ] GET https://api.postalpincode.in/postoffice/${selectedCity.trim()}`);
+      try {
+        const response = await fetch(
+          `https://api.postalpincode.in/postoffice/${encodeURIComponent(selectedCity.trim())}`
+        );
+        const data = await response.json();
+        
+        if (data && data[0] && data[0].Status === 'Success' && Array.isArray(data[0].PostOffice)) {
+          const list = data[0].PostOffice.map((po: any) => po.Pincode || po.PINCode || po.pincode).filter(Boolean);
+          // Deduplicate and sort
+          const uniqueList = Array.from(new Set(list)) as string[];
+          uniqueList.sort((a, b) => a.localeCompare(b));
+          setPincodes(uniqueList);
+          console.log(`[API RES SUCCESS] GET https://api.postalpincode.in/postoffice/${selectedCity.trim()} 200 - Found ${uniqueList.length} pincodes`);
+        } else {
+          setPincodes([]);
+          console.log(`[API RES SUCCESS] GET https://api.postalpincode.in/postoffice/${selectedCity.trim()} 200 - No pincodes found`);
+        }
+      } catch (err) {
+        console.error('Error fetching pincodes:', err);
+        setPincodes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const delayDebounce = setTimeout(() => {
+      fetchPincodes();
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [selectedCity]);
+
+  // Filter pincodes by search query
+  const filteredPincodes = useMemo(() => {
+    if (!searchQuery.trim()) return pincodes;
+    return pincodes.filter((p) =>
+      p.toLowerCase().includes(searchQuery.toLowerCase().trim())
     );
-  }, [searchQuery]);
+  }, [searchQuery, pincodes]);
 
-  const handleSelect = (state: string) => {
-    onSelect(state);
+  const handleSelect = (pincode: string) => {
+    onSelect(pincode);
     setModalVisible(false);
     setSearchQuery('');
   };
+
+  const isDisabled = !selectedCity.trim();
 
   const borderColor = error
     ? theme.colors.error
@@ -56,7 +105,29 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
     ? theme.colors.inputFocus
     : theme.colors.inputBorder;
 
-  const bgColor = modalVisible ? theme.colors.surface : theme.colors.inputBg;
+  const bgColor = isDisabled
+    ? theme.colors.border + '30'
+    : modalVisible
+    ? theme.colors.surface
+    : theme.colors.inputBg;
+
+  // Determine display text and styling
+  let displayText = placeholder;
+  let isPlaceholderStyle = !selectedPincode;
+
+  if (!selectedCity.trim()) {
+    displayText = 'Select city first';
+    isPlaceholderStyle = true;
+  } else if (loading && !selectedPincode) {
+    displayText = 'Loading pincodes...';
+    isPlaceholderStyle = true;
+  } else if (selectedPincode) {
+    displayText = selectedPincode;
+    isPlaceholderStyle = false;
+  } else if (pincodes.length === 0 && !loading) {
+    displayText = 'No pincodes found for city';
+    isPlaceholderStyle = true;
+  }
 
   return (
     <View style={styles.wrapper}>
@@ -70,6 +141,8 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
               {
                 color: error
                   ? theme.colors.error
+                  : isDisabled
+                  ? theme.colors.textMuted
                   : modalVisible
                   ? theme.colors.primary
                   : theme.colors.textSecondary,
@@ -82,36 +155,43 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
         )}
         <TouchableOpacity
           activeOpacity={0.7}
+          disabled={isDisabled}
           onPress={() => setModalVisible(true)}
           style={[
             styles.selector,
             {
-              borderColor,
+              borderColor: isDisabled ? theme.colors.border : borderColor,
               backgroundColor: bgColor,
               borderRadius: theme.radius.md,
               borderWidth: 1.5,
+              opacity: isDisabled ? 0.6 : 1,
             },
           ]}
         >
           <Ionicons
-            name="location-outline"
+            name="mail-outline"
             size={20}
-            color={modalVisible ? theme.colors.primary : theme.colors.placeholder}
+            color={isDisabled ? theme.colors.textMuted : modalVisible ? theme.colors.primary : theme.colors.placeholder}
             style={styles.leftIcon}
           />
+          
+          {loading ? (
+            <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginRight: 10 }} />
+          ) : null}
+
           <Text
             style={[
               theme.typography.body,
               styles.selectedValue,
               {
-                color: selectedState
-                  ? theme.colors.textPrimary
-                  : theme.colors.placeholder,
+                color: isPlaceholderStyle
+                  ? theme.colors.placeholder
+                  : theme.colors.textPrimary,
               },
             ]}
             numberOfLines={1}
           >
-            {selectedState || placeholder}
+            {displayText}
           </Text>
           <Ionicons
             name={modalVisible ? 'chevron-up' : 'chevron-down'}
@@ -137,7 +217,7 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
         </View>
       )}
 
-      {/* States Picker Modal */}
+      {/* Pincodes Picker Modal */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -165,7 +245,7 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
               <Ionicons name="close-outline" size={26} color={theme.colors.textPrimary} />
             </TouchableOpacity>
             <Text style={[theme.typography.h3, { color: theme.colors.textPrimary }]}>
-              Select State
+              Select Pincode ({selectedCity})
             </Text>
             <View style={{ width: 26 }} />
           </View>
@@ -186,10 +266,10 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="Search state..."
+                placeholder="Search pincode..."
                 placeholderTextColor={theme.colors.placeholder}
                 style={[styles.searchInput, theme.typography.body, { color: theme.colors.textPrimary }]}
-                autoCapitalize="words"
+                keyboardType="numeric"
                 clearButtonMode="while-editing"
               />
               {searchQuery.length > 0 && (
@@ -204,20 +284,20 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
             </View>
           </View>
 
-          {/* States List */}
+          {/* Pincodes List */}
           <FlatList
-            data={filteredStates}
+            data={filteredPincodes}
             keyExtractor={(item) => item}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.listContent}
             renderItem={({ item }) => {
-              const isSelected = item === selectedState;
+              const isSelected = item === selectedPincode;
               return (
                 <TouchableOpacity
                   activeOpacity={0.6}
                   onPress={() => handleSelect(item)}
                   style={[
-                    styles.stateRow,
+                    styles.row,
                     { borderBottomColor: theme.colors.border },
                     isSelected && { backgroundColor: theme.colors.primaryLight },
                   ]}
@@ -250,7 +330,7 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
                     { color: theme.colors.textSecondary, marginTop: 8 },
                   ]}
                 >
-                  No states match your search
+                  No pincodes match your search
                 </Text>
               </View>
             }
@@ -335,7 +415,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 24,
   },
-  stateRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -350,4 +430,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(StateDropdown);
+export default React.memo(PincodeDropdown);

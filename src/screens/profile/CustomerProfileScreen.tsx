@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '../../theme/ThemeContext';
 import { RootState } from '../../store';
-import { logout } from '../../store/slices/authSlice';
+import { logout, updateUser } from '../../store/slices/authSlice';
 import { setTheme, ThemePreference } from '../../store/slices/themeSlice';
 import { showToast } from '../../store/slices/uiSlice';
 import { updateProfile, getAddresses } from '../../api/user';
@@ -240,6 +240,7 @@ export default function CustomerProfileScreen({ navigation }: Props) {
     setSaving(true);
     try {
       await updateProfile({ name: editName, mobileNumber: editPhone });
+      dispatch(updateUser({ name: editName, mobileNumber: editPhone }));
       dispatch(showToast({ message: 'Profile updated successfully!', type: 'success' }) as any);
       setEditing(false);
     } catch (err: any) {
@@ -579,17 +580,7 @@ export default function CustomerProfileScreen({ navigation }: Props) {
           />
         </FadeSlideIn>
 
-        {/* ── Footer ────────────────────────────────────────────────────────── */}
-        <FadeSlideIn delay={300} style={[styles.fadeSlide, { marginBottom: 0 }]}>
-          <Text style={[styles.footerText, { color: theme.colors.textMuted }]}>
-            FreshWash · Customer Account
-          </Text>
-          {user?._id ? (
-            <Text style={[styles.footerText, { color: theme.colors.textMuted, fontSize: 10 }]}>
-              ID: {user._id}
-            </Text>
-          ) : null}
-        </FadeSlideIn>
+
       </ScrollView>
     </ScreenWrapper>
   );

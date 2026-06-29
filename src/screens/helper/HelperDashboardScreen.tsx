@@ -3,6 +3,7 @@ import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
+
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -16,6 +17,8 @@ import { getGreeting, formatDate, formatPrice } from '../../utils/helpers';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HelperStackParamList } from '../../navigation/HelperStack';
 import { RootState } from '../../store';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<HelperStackParamList, 'HelperDashboard'>;
 
@@ -28,8 +31,10 @@ const FILTERS = [
 
 export default function HelperDashboardScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const { user } = useSelector((s: RootState) => s.auth);
+
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState('pending');
   const [refreshing, setRefreshing] = useState(false);
@@ -53,7 +58,15 @@ export default function HelperDashboardScreen({ navigation }: Props) {
   const onRefresh = async () => { setRefreshing(true); await fetch(false); setRefreshing(false); };
 
   const handleAccept = async (id: string) => {
-    try { await acceptOrder(id); fetch(); } catch (e) { dispatch(showToast({ type: 'error', message: 'Failed to accept order' })); }
+    try {
+      const res = await acceptOrder(id);
+      if (res?.success) {
+        dispatch(showToast({ type: 'success', message: 'Order accepted' }));
+        fetch();
+      }
+    } catch (e) {
+      dispatch(showToast({ type: 'error', message: 'Failed to accept order' }));
+    }
   };
 
   const renderOrder = ({ item, index }: { item: any; index: number }) => (
@@ -101,7 +114,7 @@ export default function HelperDashboardScreen({ navigation }: Props) {
         ))}
       </View>
       <FlatList data={orders} renderItem={renderOrder} keyExtractor={(i) => i._id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 + insets.bottom }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />}
         ListEmptyComponent={<EmptyState icon="bicycle-outline" title="No orders" description={`No ${filter} orders right now`} />}
       />

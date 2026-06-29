@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Header from '../../components/ui/Header';
 import Input from '../../components/ui/Input';
@@ -11,6 +11,8 @@ import { createOwner } from '../../api/admin';
 import { showToast } from '../../store/slices/uiSlice';
 import * as ImagePicker from 'expo-image-picker';
 import StateDropdown from '../../components/ui/StateDropdown';
+import CityDropdown from '../../components/ui/CityDropdown';
+import PincodeDropdown from '../../components/ui/PincodeDropdown';
 import Avatar from '../../components/ui/Avatar';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -21,6 +23,8 @@ interface CreateOwnerScreenProps {
 export default function CreateOwnerScreen({ navigation }: CreateOwnerScreenProps) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
+  const { user } = useSelector((s: any) => s.auth);
+  const superAdminUpi = user?.upiId;
 
   const [form, setForm] = useState({
     name: '',
@@ -37,6 +41,7 @@ export default function CreateOwnerScreen({ navigation }: CreateOwnerScreenProps
     pincode: '',
     paymentMode: 'cash',
     photo: '',
+    upiId: '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -102,6 +107,7 @@ export default function CreateOwnerScreen({ navigation }: CreateOwnerScreenProps
         state: form.state.trim() || null,
         pincode: form.pincode.trim() || null,
         photo: form.photo || null,
+        upiId: form.upiId.trim() || null,
       });
       // Toast is auto-fired by the API interceptor on success
       navigation.goBack();
@@ -143,17 +149,33 @@ export default function CreateOwnerScreen({ navigation }: CreateOwnerScreenProps
           <Input label="Landmark" value={form.landmark} onChangeText={(v) => set('landmark', v)} icon="location-outline" />
           <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
             <View style={{ flex: 1 }}>
-              <Input label="City" value={form.city} onChangeText={(v) => set('city', v)} icon="location-outline" />
-            </View>
-            <View style={{ flex: 1 }}>
               <StateDropdown
                 label="State"
                 selectedState={form.state}
-                onSelect={(selected) => set('state', selected)}
+                onSelect={(selected) => {
+                  set('state', selected);
+                  set('city', '');
+                }}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <CityDropdown
+                label="City"
+                selectedState={form.state}
+                selectedCity={form.city}
+                onSelect={(selected) => {
+                  set('city', selected);
+                  set('pincode', '');
+                }}
               />
             </View>
           </View>
-          <Input label="Pincode" value={form.pincode} onChangeText={(v) => set('pincode', v)} icon="location-outline" keyboardType="numeric" />
+          <PincodeDropdown
+            label="Pincode"
+            selectedCity={form.city}
+            selectedPincode={form.pincode}
+            onSelect={(selected) => set('pincode', selected)}
+          />
 
           <Text style={[theme.typography.label, { color: theme.colors.textSecondary, marginTop: 12, marginBottom: 8 }]}>Subscription Plan *</Text>
           <View style={styles.chipRow}>
@@ -170,6 +192,34 @@ export default function CreateOwnerScreen({ navigation }: CreateOwnerScreenProps
               <Chip key={m} label={m.toUpperCase()} selected={form.paymentMode === m} onPress={() => set('paymentMode', m)} style={{ marginRight: 8 }} />
             ))}
           </View>
+
+          {form.paymentMode === 'upi' && (
+            superAdminUpi ? (
+              <View style={[styles.upiNote, { backgroundColor: theme.colors.primaryBg, borderColor: theme.colors.primary }]}>
+                <Ionicons name="information-circle-outline" size={16} color={theme.colors.primary} />
+                <Text style={[theme.typography.bodySmall, { color: theme.colors.primary, flex: 1, marginLeft: 6 }]}>
+                  Collect subscription payment to your UPI ID: <Text style={{ fontWeight: '700' }}>{superAdminUpi}</Text>
+                </Text>
+              </View>
+            ) : (
+              <View style={[styles.upiNote, { backgroundColor: theme.colors.errorBg, borderColor: theme.colors.error }]}>
+                <Ionicons name="warning-outline" size={16} color={theme.colors.error} />
+                <Text style={[theme.typography.bodySmall, { color: theme.colors.error, flex: 1, marginLeft: 6 }]}>
+                  Note: You have not set your SuperAdmin UPI ID in Profile settings yet.
+                </Text>
+              </View>
+            )
+          )}
+
+          <Input
+            label="Owner Shop UPI ID"
+            value={form.upiId}
+            onChangeText={(v) => set('upiId', v)}
+            icon="qr-code-outline"
+            placeholder="e.g. ownername@upi"
+            autoCapitalize="none"
+            style={{ marginTop: 16 }}
+          />
 
           <Button title="Create" onPress={handleSave} loading={loading} icon="business-outline" style={{ marginTop: 32 }} />
         </ScrollView>
@@ -199,5 +249,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#FFF',
+  },
+  upiNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 16,
   },
 });

@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '../../theme/ThemeContext';
 import { RootState } from '../../store';
-import { logout } from '../../store/slices/authSlice';
+import { logout, updateUser } from '../../store/slices/authSlice';
 import { setTheme, ThemePreference } from '../../store/slices/themeSlice';
 import { showToast } from '../../store/slices/uiSlice';
 import { updateProfile } from '../../api/user';
@@ -221,12 +221,16 @@ export default function AdminProfileScreen({ navigation }: Props) {
 
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(user?.name || '');
+  const [editPhone, setEditPhone] = useState(user?.mobileNumber || '');
+  const [editUpi, setEditUpi] = useState(user?.upiId || '');
   const [saving, setSaving] = useState(false);
 
   // ── Derived data ────────────────────────────────────────────────────────────
 
   const name = user?.name || 'Super Admin';
   const email = user?.email || '';
+  const phone = user?.mobileNumber || '—';
+  const upiId = user?.upiId || '—';
   const userId = user?._id || '';
   const isActive = user?.isActive ?? true;
 
@@ -262,7 +266,16 @@ export default function AdminProfileScreen({ navigation }: Props) {
     if (!editName.trim()) return;
     setSaving(true);
     try {
-      await updateProfile({ name: editName.trim() });
+      await updateProfile({
+        name: editName.trim(),
+        mobileNumber: editPhone.trim(),
+        upiId: editUpi.trim(),
+      });
+      dispatch(updateUser({
+        name: editName.trim(),
+        mobileNumber: editPhone.trim(),
+        upiId: editUpi.trim(),
+      }));
       dispatch(showToast({ message: 'Profile updated successfully!', type: 'success' }));
       setEditing(false);
     } catch (_err) {
@@ -270,7 +283,7 @@ export default function AdminProfileScreen({ navigation }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [editName, dispatch]);
+  }, [editName, editPhone, editUpi, dispatch]);
 
   const handleLogout = useCallback(() => {
     Alert.alert(
@@ -375,6 +388,25 @@ export default function AdminProfileScreen({ navigation }: Props) {
                   autoCapitalize="words"
                   style={styles.editInput}
                 />
+                <Input
+                  label="Phone Number"
+                  value={editPhone}
+                  onChangeText={setEditPhone}
+                  icon="call-outline"
+                  placeholder="10-digit mobile number"
+                  keyboardType="phone-pad"
+                  autoCapitalize="none"
+                  style={styles.editInput}
+                />
+                <Input
+                  label="UPI ID"
+                  value={editUpi}
+                  onChangeText={setEditUpi}
+                  icon="qr-code-outline"
+                  placeholder="e.g. name@upi"
+                  autoCapitalize="none"
+                  style={styles.editInput}
+                />
                 <View style={styles.editButtons}>
                   <Button
                     title="Cancel"
@@ -384,6 +416,8 @@ export default function AdminProfileScreen({ navigation }: Props) {
                     onPress={() => {
                       setEditing(false);
                       setEditName(user?.name || '');
+                      setEditPhone(user?.mobileNumber || '');
+                      setEditUpi(user?.upiId || '');
                     }}
                     style={styles.editBtnHalf}
                   />
@@ -414,6 +448,20 @@ export default function AdminProfileScreen({ navigation }: Props) {
                   dividerColor={c.divider}
                 />
                 <InfoRow
+                  label="Phone"
+                  value={phone}
+                  labelColor={c.textSecondary}
+                  textColor={c.textPrimary}
+                  dividerColor={c.divider}
+                />
+                <InfoRow
+                  label="UPI ID"
+                  value={upiId}
+                  labelColor={c.textSecondary}
+                  textColor={c.textPrimary}
+                  dividerColor={c.divider}
+                />
+                <InfoRow
                   label="Account Role"
                   value="Super Admin"
                   valueColor={c.primary}
@@ -429,14 +477,7 @@ export default function AdminProfileScreen({ navigation }: Props) {
                   textColor={c.textPrimary}
                   dividerColor={c.divider}
                 />
-                <InfoRow
-                  label="User ID"
-                  value={`…${userId.slice(-8)}`}
-                  mono
-                  labelColor={c.textSecondary}
-                  textColor={c.textPrimary}
-                  dividerColor={c.divider}
-                />
+
                 <InfoRow
                   label="Member Since"
                   value={createdAt}
@@ -452,6 +493,8 @@ export default function AdminProfileScreen({ navigation }: Props) {
                   ]}
                   onPress={() => {
                     setEditName(name);
+                    setEditPhone(user?.mobileNumber || '');
+                    setEditUpi(user?.upiId || '');
                     setEditing(true);
                   }}
                   activeOpacity={0.75}
@@ -466,63 +509,7 @@ export default function AdminProfileScreen({ navigation }: Props) {
           </Card>
         </FadeSlideIn>
 
-        {/* ═══════════════════════════════════════════════════════════
-            3. SECURITY INFO CARD
-        ════════════════════════════════════════════════════════════ */}
-        <FadeSlideIn delay={160}>
-          <Card variant="elevated" padding="large" style={styles.card}>
-            <SectionHeader
-              icon="lock-closed-outline"
-              title="Security Info"
-              iconColor="#F59E0B"
-              textColor={c.textPrimary}
-              borderColor={c.divider}
-            />
 
-            <InfoRow
-              label="Password"
-              value="••••••••"
-              labelColor={c.textSecondary}
-              textColor={c.textPrimary}
-              dividerColor={c.divider}
-            />
-            <InfoRow
-              label="User ID"
-              value={userId || '—'}
-              mono
-              labelColor={c.textSecondary}
-              textColor={c.textPrimary}
-              dividerColor={c.divider}
-            />
-            <InfoRow
-              label="Account Created"
-              value={createdAt}
-              labelColor={c.textSecondary}
-              textColor={c.textPrimary}
-              dividerColor="transparent"
-            />
-
-            <View
-              style={[
-                styles.securityNote,
-                {
-                  backgroundColor: isDark ? '#451A03' : '#FEF3C7',
-                  borderColor: '#F59E0B33',
-                },
-              ]}
-            >
-              <Ionicons name="information-circle-outline" size={16} color="#F59E0B" />
-              <Text
-                style={[
-                  styles.securityNoteText,
-                  { color: isDark ? '#FCD34D' : '#92400E' },
-                ]}
-              >
-                Contact system admin to change password
-              </Text>
-            </View>
-          </Card>
-        </FadeSlideIn>
 
         {/* ═══════════════════════════════════════════════════════════
             4. PLATFORM QUICK ACTIONS CARD
@@ -800,22 +787,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // ── Security note ─────────────────────────────────────────────
-  securityNote: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 14,
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  securityNoteText: {
-    fontSize: 12,
-    fontWeight: '500',
-    flex: 1,
-    lineHeight: 18,
-  },
 
   // ── Appearance segmented control ──────────────────────────────
   segmented: {

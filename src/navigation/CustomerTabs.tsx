@@ -6,6 +6,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { getOrders } from '../api/orders';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 import HomeScreen from '../screens/home/HomeScreen';
@@ -88,6 +89,8 @@ function ProfileStackScreen() {
 
 export default function CustomerTabs() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 60 + insets.bottom;
   const cart = useSelector((s: RootState) => s.orders.cart);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const [updateCount, setUpdateCount] = useState(0);
@@ -133,7 +136,7 @@ export default function CustomerTabs() {
         tabBarStyle: {
           backgroundColor: theme.colors.tabBar,
           borderTopColor: theme.colors.border,
-          paddingBottom: 8, paddingTop: 8, height: 60,
+          paddingBottom: 8 + insets.bottom, paddingTop: 8, height: tabBarHeight,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       })}

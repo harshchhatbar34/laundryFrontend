@@ -27,7 +27,6 @@ const initialState: AuthState = {
   error: null,
 };
 
-// Thunk: Load user session from AsyncStorage on app start
 export const loadUser = createAsyncThunk<
   { token: string | null; user: User | null; cart: any[] | null },
   void,
@@ -39,13 +38,15 @@ export const loadUser = createAsyncThunk<
       AsyncStorage.getItem('@user'),
       AsyncStorage.getItem('@cart'),
     ]);
-    
+
     let cart = null;
     if (cartJson) {
       try {
         cart = JSON.parse(cartJson);
       } catch (e) {
-        console.warn('Failed to parse saved cart JSON:', e);
+        if (__DEV__) {
+          console.warn('Failed to parse saved cart JSON:', e);
+        }
       }
     }
 
@@ -59,56 +60,70 @@ export const loadUser = createAsyncThunk<
   }
 });
 
-// Thunk: Login — calls API, stores token and user in AsyncStorage
 export const login = createAsyncThunk<
   { token: string; user: User },
-  { apiCall: () => Promise<any> },
+  { email: string; password: string },
   { rejectValue: string }
->('auth/login', async ({ apiCall }, { rejectWithValue }) => {
+>('auth/login', async ({ email, password }, { rejectWithValue }) => {
   try {
-    const data = await apiCall();
-    const { token, user } = data;
+    const { login: loginApi } = await import('../../api/auth');
+    const data = await loginApi(email, password);
+
+    if (!data?.success || !data?.data) {
+      return rejectWithValue(data?.message || 'Login failed');
+    }
+
+    const { token, user } = data.data;
     await Promise.all([
       AsyncStorage.setItem('@token', token),
       AsyncStorage.setItem('@user', JSON.stringify(user)),
     ]);
     return { token, user };
   } catch (error: any) {
-    return rejectWithValue(error.response?.data?.message || error.message);
+    return rejectWithValue(error.response?.data?.message || error.message || 'Login failed');
   }
 });
 
-// Thunk: Register — calls API, stores token and user in AsyncStorage
 export const register = createAsyncThunk<
   { token: string; user: User },
-  { apiCall: () => Promise<any> },
+  { name: string; email: string; password: string; tenantCode: string; mobileNumber?: string },
   { rejectValue: string }
->('auth/register', async ({ apiCall }, { rejectWithValue }) => {
+>('auth/register', async (payload, { rejectWithValue }) => {
   try {
-    const data = await apiCall();
-    const { token, user } = data;
+    const { register: registerApi } = await import('../../api/auth');
+    const data = await registerApi(
+      payload.name,
+      payload.email,
+      payload.password,
+      payload.tenantCode,
+      payload.mobileNumber
+    );
+
+    if (!data?.success || !data?.data) {
+      return rejectWithValue(data?.message || 'Registration failed');
+    }
+
+    const { token, user } = data.data;
     await Promise.all([
       AsyncStorage.setItem('@token', token),
       AsyncStorage.setItem('@user', JSON.stringify(user)),
     ]);
     return { token, user };
   } catch (error: any) {
-    return rejectWithValue(error.response?.data?.message || error.message);
+    return rejectWithValue(error.response?.data?.message || error.message || 'Registration failed');
   }
 });
 
-// Thunk: Logout — clears token, user, and cart from AsyncStorage
-export const logout = createAsyncThunk<
-  void,
-  void,
-  { rejectValue: string }
->('auth/logout', async (_, { rejectWithValue }) => {
-  try {
-    await AsyncStorage.multiRemove(['@token', '@user', '@cart']);
-  } catch (error: any) {
-    return rejectWithValue(error.message);
+export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      await AsyncStorage.multiRemove(['@token', '@user', '@cart']);
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
   }
-});
+);
 
 const authSlice = createSlice({
   name: 'auth',
@@ -117,9 +132,16 @@ const authSlice = createSlice({
     clearAuthError(state) {
       state.error = null;
     },
+    updateUser(state, action) {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+        AsyncStorage.setItem('@user', JSON.stringify(state.user)).catch(e => {
+          if (__DEV__) console.warn('Failed to save updated user to AsyncStorage:', e);
+        });
+      }
+    },
   },
   extraReducers: (builder) => {
-    // loadUser
     builder
       .addCase(loadUser.pending, (state) => {
         state.loading = true;
@@ -130,10 +152,7 @@ const authSlice = createSlice({
         const { token, user } = action.payload;
         if (token && user) {
           state.token = token;
-          state.user = {
-            ...user,
-            role: user.email?.toLowerCase() === 'harshchhatbar34@gmail.com' ? 'superadmin' : user.role
-          };
+          state.user = user;
           state.isLoggedIn = true;
         }
       })
@@ -142,7 +161,6 @@ const authSlice = createSlice({
         state.error = action.payload || 'Failed to load user';
       });
 
-    // login
     builder
       .addCase(login.pending, (state) => {
         state.loading = true;
@@ -151,10 +169,7 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
-        state.user = {
-          ...action.payload.user,
-          role: action.payload.user?.email?.toLowerCase() === 'harshchhatbar34@gmail.com' ? 'superadmin' : action.payload.user?.role
-        };
+        state.user = action.payload.user;
         state.isLoggedIn = true;
       })
       .addCase(login.rejected, (state, action) => {
@@ -162,7 +177,6 @@ const authSlice = createSlice({
         state.error = action.payload || 'Failed to login';
       });
 
-    // register
     builder
       .addCase(register.pending, (state) => {
         state.loading = true;
@@ -171,10 +185,7 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
-        state.user = {
-          ...action.payload.user,
-          role: action.payload.user?.email?.toLowerCase() === 'harshchhatbar34@gmail.com' ? 'superadmin' : action.payload.user?.role
-        };
+        state.user = action.payload.user;
         state.isLoggedIn = true;
       })
       .addCase(register.rejected, (state, action) => {
@@ -182,7 +193,6 @@ const authSlice = createSlice({
         state.error = action.payload || 'Failed to register';
       });
 
-    // logout
     builder
       .addCase(logout.pending, (state) => {
         state.loading = true;
@@ -201,5 +211,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuthError } = authSlice.actions;
+export const { clearAuthError, updateUser } = authSlice.actions;
 export default authSlice.reducer;

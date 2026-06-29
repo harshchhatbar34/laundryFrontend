@@ -16,11 +16,13 @@ import { formatPrice, formatDate, getStatusLabel, getStatusColorKey } from '../.
 import { ORDER_STATUS_FLOW } from '../../utils/constants';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HelperStackParamList } from '../../navigation/HelperStack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<HelperStackParamList, 'HelperOrderDetail'>;
 
 export default function HelperOrderDetailScreen({ route, navigation }: Props) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const { orderId } = route.params;
   const [order, setOrder] = useState<any>(null);
@@ -258,7 +260,7 @@ export default function HelperOrderDetailScreen({ route, navigation }: Props) {
   return (
     <ScreenWrapper edges={[]}>
       <Header title={order.orderNumber || 'Order'} showBack onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 + insets.bottom }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <Badge status={order.status} size="medium" />
           <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary, marginLeft: 12 }]}>{formatDate(order.createdAt)}</Text>

@@ -1,5 +1,7 @@
 // FreshWash — App Constants
 
+export const APP_NAME = 'LaundroFlow';
+
 export const TENANT_CODE = 'FHR6G6PY';
 
 export const USER_ROLES = {

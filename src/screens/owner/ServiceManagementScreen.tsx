@@ -42,7 +42,11 @@ export default function ServiceManagementScreen({ navigation }: Props) {
         <View style={{ flex: 1 }}>
           <Text style={[theme.typography.label, { color: theme.colors.textPrimary }]}>{item.name || `${item.serviceName} · ${item.materialName} · ${item.itemName}`}</Text>
           {item.description && <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>{item.description}</Text>}
-          {item.price != null && tab !== 'Services' && <Text style={[theme.typography.priceSmall, { color: theme.colors.primary, marginTop: 4 }]}>₹{item.price}</Text>}
+          {item.price != null && (
+            <Text style={[theme.typography.priceSmall, { color: theme.colors.primary, marginTop: 4 }]}>
+              {tab === 'Services' ? 'Base Price: ' : ''}₹{item.price}
+            </Text>
+          )}
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('AddServiceElement', { type, editItem: item })} style={{ padding: 8 }}>
           <Ionicons name="create-outline" size={20} color={theme.colors.primary} />

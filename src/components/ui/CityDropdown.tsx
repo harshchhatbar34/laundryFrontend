@@ -1,5 +1,5 @@
-// FreshWash — StateDropdown Component
-// Dropdown selector for Indian States with built-in search filter
+// FreshWash — CityDropdown Component
+// Dropdown selector for Cities based on selected Indian State using country-state-city package
 
 import React, { useState, useMemo } from 'react';
 import {
@@ -12,43 +12,66 @@ import {
   StyleSheet,
   Platform,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/ThemeContext';
-import { INDIAN_STATES } from '../../utils/constants';
+import { State, City } from 'country-state-city';
 
-interface StateDropdownProps {
+interface CityDropdownProps {
   label?: string;
   selectedState?: string;
-  onSelect: (state: string) => void;
+  selectedCity?: string;
+  onSelect: (city: string) => void;
   error?: string | null;
   placeholder?: string;
 }
 
-const StateDropdown: React.FC<StateDropdownProps> = ({
-  label = 'State',
+const CityDropdown: React.FC<CityDropdownProps> = ({
+  label = 'City',
   selectedState = '',
+  selectedCity = '',
   onSelect,
   error,
-  placeholder = 'Select your state',
+  placeholder = 'Select your city',
 }) => {
   const { theme } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredStates = useMemo(() => {
-    if (!searchQuery.trim()) return INDIAN_STATES;
-    return INDIAN_STATES.filter((s) =>
-      s.toLowerCase().includes(searchQuery.toLowerCase().trim())
+  // 1. Get cities based on selectedState
+  const citiesList = useMemo(() => {
+    if (!selectedState.trim()) return [];
+    
+    // Find matching state in India
+    const states = State.getStatesOfCountry('IN');
+    const matchedState = states.find(
+      (s) => s.name.toLowerCase() === selectedState.toLowerCase().trim()
     );
-  }, [searchQuery]);
 
-  const handleSelect = (state: string) => {
-    onSelect(state);
+    if (!matchedState) return [];
+
+    // Get cities
+    const cities = City.getCitiesOfState('IN', matchedState.isoCode);
+    return cities.map((c) => c.name);
+  }, [selectedState]);
+
+  // 2. Filter cities by search query
+  const filteredCities = useMemo(() => {
+    if (!searchQuery.trim()) return citiesList;
+    return citiesList.filter((c) =>
+      c.toLowerCase().includes(searchQuery.toLowerCase().trim())
+    );
+  }, [searchQuery, citiesList]);
+
+  const handleSelect = (city: string) => {
+    onSelect(city);
     setModalVisible(false);
     setSearchQuery('');
   };
+
+  const isDisabled = !selectedState.trim() || citiesList.length === 0;
 
   const borderColor = error
     ? theme.colors.error
@@ -56,7 +79,11 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
     ? theme.colors.inputFocus
     : theme.colors.inputBorder;
 
-  const bgColor = modalVisible ? theme.colors.surface : theme.colors.inputBg;
+  const bgColor = isDisabled
+    ? theme.colors.border + '30'
+    : modalVisible
+    ? theme.colors.surface
+    : theme.colors.inputBg;
 
   return (
     <View style={styles.wrapper}>
@@ -70,6 +97,8 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
               {
                 color: error
                   ? theme.colors.error
+                  : isDisabled
+                  ? theme.colors.textMuted
                   : modalVisible
                   ? theme.colors.primary
                   : theme.colors.textSecondary,
@@ -82,21 +111,23 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
         )}
         <TouchableOpacity
           activeOpacity={0.7}
+          disabled={isDisabled}
           onPress={() => setModalVisible(true)}
           style={[
             styles.selector,
             {
-              borderColor,
+              borderColor: isDisabled ? theme.colors.border : borderColor,
               backgroundColor: bgColor,
               borderRadius: theme.radius.md,
               borderWidth: 1.5,
+              opacity: isDisabled ? 0.6 : 1,
             },
           ]}
         >
           <Ionicons
-            name="location-outline"
+            name="business-outline"
             size={20}
-            color={modalVisible ? theme.colors.primary : theme.colors.placeholder}
+            color={isDisabled ? theme.colors.textMuted : modalVisible ? theme.colors.primary : theme.colors.placeholder}
             style={styles.leftIcon}
           />
           <Text
@@ -104,14 +135,18 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
               theme.typography.body,
               styles.selectedValue,
               {
-                color: selectedState
+                color: selectedCity
                   ? theme.colors.textPrimary
                   : theme.colors.placeholder,
               },
             ]}
             numberOfLines={1}
           >
-            {selectedState || placeholder}
+            {isDisabled
+              ? selectedState.trim()
+                ? 'No cities found for state'
+                : 'Select state first'
+              : selectedCity || placeholder}
           </Text>
           <Ionicons
             name={modalVisible ? 'chevron-up' : 'chevron-down'}
@@ -137,7 +172,7 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
         </View>
       )}
 
-      {/* States Picker Modal */}
+      {/* Cities Picker Modal */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -165,7 +200,7 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
               <Ionicons name="close-outline" size={26} color={theme.colors.textPrimary} />
             </TouchableOpacity>
             <Text style={[theme.typography.h3, { color: theme.colors.textPrimary }]}>
-              Select State
+              Select City ({selectedState})
             </Text>
             <View style={{ width: 26 }} />
           </View>
@@ -186,7 +221,7 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="Search state..."
+                placeholder="Search city..."
                 placeholderTextColor={theme.colors.placeholder}
                 style={[styles.searchInput, theme.typography.body, { color: theme.colors.textPrimary }]}
                 autoCapitalize="words"
@@ -204,20 +239,20 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
             </View>
           </View>
 
-          {/* States List */}
+          {/* Cities List */}
           <FlatList
-            data={filteredStates}
+            data={filteredCities}
             keyExtractor={(item) => item}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.listContent}
             renderItem={({ item }) => {
-              const isSelected = item === selectedState;
+              const isSelected = item === selectedCity;
               return (
                 <TouchableOpacity
                   activeOpacity={0.6}
                   onPress={() => handleSelect(item)}
                   style={[
-                    styles.stateRow,
+                    styles.cityRow,
                     { borderBottomColor: theme.colors.border },
                     isSelected && { backgroundColor: theme.colors.primaryLight },
                   ]}
@@ -250,7 +285,7 @@ const StateDropdown: React.FC<StateDropdownProps> = ({
                     { color: theme.colors.textSecondary, marginTop: 8 },
                   ]}
                 >
-                  No states match your search
+                  No cities match your search
                 </Text>
               </View>
             }
@@ -335,7 +370,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 24,
   },
-  stateRow: {
+  cityRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -350,4 +385,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(StateDropdown);
+export default React.memo(CityDropdown);

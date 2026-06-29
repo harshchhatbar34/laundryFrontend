@@ -25,8 +25,8 @@ interface Options {
 
 export function usePushNotifications({ onNotificationTap }: Options = {}) {
   const { isLoggedIn } = useSelector((s: RootState) => s.auth);
-  const notificationListener = useRef<Notifications.EventSubscription>();
-  const responseListener = useRef<Notifications.EventSubscription>();
+  const notificationListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
     if (!isLoggedIn) return;

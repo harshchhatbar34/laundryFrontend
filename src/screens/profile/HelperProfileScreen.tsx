@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '../../theme/ThemeContext';
 import { RootState } from '../../store';
-import { logout } from '../../store/slices/authSlice';
+import { logout, updateUser } from '../../store/slices/authSlice';
 import { setTheme, ThemePreference } from '../../store/slices/themeSlice';
 import { showToast } from '../../store/slices/uiSlice';
 import { updateProfile } from '../../api/user';
@@ -28,6 +28,7 @@ import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import FadeSlideIn from '../../animations/FadeSlideIn';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -159,6 +160,7 @@ const AVATAR_PALETTE = ['#F59E0B', '#10B981', '#6366F1', '#EC4899', '#8B5CF6'];
 
 export default function HelperProfileScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const user = useSelector((s: RootState) => s.auth.user);
   const themePreference = useSelector((s: RootState) => s.theme.preference);
@@ -212,6 +214,7 @@ export default function HelperProfileScreen({ navigation }: Props) {
     setSaving(true);
     try {
       await updateProfile({ name: editName.trim(), mobileNumber: editPhone.trim() });
+      dispatch(updateUser({ name: editName.trim(), mobileNumber: editPhone.trim() }));
       dispatch(showToast({ message: 'Profile updated successfully!', type: 'success' }));
       setEditing(false);
     } catch (err: any) {
@@ -270,7 +273,7 @@ export default function HelperProfileScreen({ navigation }: Props) {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: 120 },
+          { paddingBottom: 120 + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
       >

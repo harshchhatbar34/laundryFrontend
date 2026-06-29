@@ -171,103 +171,16 @@ export const updateOwnerProfile = async (data: { laundryName?: string; upiId?: s
 };
 
 export const getOwnerCustomers = async (params?: any): Promise<any> => {
-  try {
-    const response = await api.get(OWNER_CUSTOMERS, { params });
-    return response.data;
-  } catch (error: any) {
-    console.warn("Using mock owner customers fallback due to API error:", error.message);
-    const mockCustomers = [
-      {
-        _id: "cust1",
-        name: "John Doe",
-        email: "john@example.com",
-        mobileNumber: "1234567890",
-        role: "customer",
-        isActive: true,
-        createdAt: "2026-06-20T10:00:00.000Z"
-      },
-      {
-        _id: "cust4",
-        name: "Sarah Parker",
-        email: "sarah@parker.com",
-        mobileNumber: "9876543299",
-        role: "customer",
-        isActive: true,
-        createdAt: "2026-06-22T09:00:00.000Z"
-      }
-    ];
-
-    let filtered = mockCustomers;
-    if (params && params.search) {
-      const q = params.search.toLowerCase();
-      filtered = filtered.filter(c => 
-        c.name.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q) ||
-        c.mobileNumber.includes(q)
-      );
-    }
-
-    return {
-      success: true,
-      message: "Customers fetched successfully (Mock)",
-      data: {
-        customers: filtered,
-        total: filtered.length,
-        page: 1,
-        limit: 20,
-        totalPages: 1
-      }
-    };
-  }
+  const response = await api.get(OWNER_CUSTOMERS, { params });
+  return response.data;
 };
 
 export const getOwnerOrders = async (params?: Record<string, any>, config?: any): Promise<any> => {
-  try {
-    const response = await api.get(OWNER_ORDERS, { params, ...config });
-    return response.data;
-  } catch (error: any) {
-    console.warn("Using mock owner orders fallback due to API error:", error.message);
-    const mockOrders = [
-      {
-        _id: "order_mock_1",
-        orderNumber: "ORD-1718712345",
-        status: "pending",
-        pricing: { total: 150.00 },
-        createdAt: "2026-06-20T10:00:00.000Z",
-        customer: { _id: "cust1", name: "John Doe" },
-      },
-      {
-        _id: "order_mock_4",
-        orderNumber: "ORD-1718714999",
-        status: "delivered",
-        pricing: { total: 320.00 },
-        createdAt: "2026-06-22T11:30:00.000Z",
-        customer: { _id: "cust4", name: "Sarah Parker" },
-      }
-    ];
-    let filtered = mockOrders;
-    if (params) {
-      const { customerId, search, status } = params;
-      if (customerId) {
-        filtered = filtered.filter(o => o.customer._id === customerId);
-      }
-      if (status) {
-        filtered = filtered.filter(o => o.status === status);
-      }
-      if (search) {
-        filtered = filtered.filter(o => o.orderNumber.includes(search));
-      }
-    }
-    return {
-      success: true,
-      message: "Orders fetched successfully (Mock)",
-      data: {
-        orders: filtered,
-        total: filtered.length,
-        page: 1,
-        limit: 10,
-        totalPages: 1
-      }
-    };
-  }
+  const response = await api.get(OWNER_ORDERS, { params, ...config });
+  return response.data;
+};
+
+export const getOwnerReviews = async (params?: { branchId?: string; page?: number; limit?: number }): Promise<any> => {
+  const response = await api.get('/api/owner/ratings', { params });
+  return response.data;
 };

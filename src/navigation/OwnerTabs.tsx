@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { getOwnerOrders } from '../api/owner';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import OwnerDashboardScreen from '../screens/owner/OwnerDashboardScreen';
 import BranchListScreen from '../screens/owner/BranchListScreen';
@@ -43,7 +44,7 @@ export type OwnerSettingsStackParamList = {
   ProfileMain: undefined;
   HelperManagement: undefined;
   AddHelper: undefined;
-  OwnerStats: { branchId?: string } | undefined;
+  OwnerStats: { branchId?: string; activeTab?: 'overview' | 'reviews' } | undefined;
   CustomerManagement: undefined;
 };
 
@@ -112,6 +113,8 @@ function SettingsStackScreen() {
 
 export default function OwnerTabs() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 60 + insets.bottom;
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
@@ -154,7 +157,7 @@ export default function OwnerTabs() {
         tabBarStyle: { 
           backgroundColor: theme.colors.tabBar, 
           borderTopColor: theme.colors.border, 
-          paddingBottom: 8, paddingTop: 8, height: 60 
+          paddingBottom: 8 + insets.bottom, paddingTop: 8, height: tabBarHeight 
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
       })}

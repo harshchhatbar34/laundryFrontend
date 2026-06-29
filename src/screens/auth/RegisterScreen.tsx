@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDispatch } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { useTheme } from '../../theme/ThemeContext';
-import { register as registerApi } from '../../api/auth';
-import { TENANT_CODE } from '../../utils/constants';
-import { isValidEmail, isValidPassword, isStrongPassword } from '../../utils/helpers';
+import { TENANT_CODE, APP_NAME } from '../../utils/constants';
+import { isValidEmail, isStrongPassword } from '../../utils/helpers';
+import { register } from '../../store/slices/authSlice';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 import { AppDispatch } from '../../store';
@@ -45,10 +44,10 @@ export default function RegisterScreen({ navigation }: Props) {
     } = {};
 
     if (!name.trim()) e.name = 'Name is required';
-    
+
     if (!email.trim()) e.email = 'Email is required';
     else if (!isValidEmail(email)) e.email = 'Invalid email format';
-    
+
     if (!mobileNumber.trim()) {
       e.mobileNumber = 'Mobile number is required';
     } else if (!/^[0-9]{10}$/.test(mobileNumber.trim())) {
@@ -74,25 +73,19 @@ export default function RegisterScreen({ navigation }: Props) {
   const handleRegister = async () => {
     if (!validate()) return;
     setLoading(true);
+    setErrors({});
     try {
-      const res = await registerApi(
-        name.trim(),
-        email.trim().toLowerCase(),
-        password,
-        TENANT_CODE,
-        mobileNumber.trim()
-      );
-      if (res?.success && res.data) {
-        if (email.trim().toLowerCase() === 'harshchhatbar34@gmail.com') {
-          res.data.user.role = 'superadmin';
-        }
-        await AsyncStorage.setItem('@token', res.data.token);
-        await AsyncStorage.setItem('@user', JSON.stringify(res.data.user));
-        const { loadUser } = require('../../store/slices/authSlice');
-        dispatch(loadUser() as any);
-      }
-    } catch (e: any) {
-      setErrors({ general: e?.response?.data?.message || 'Registration failed' });
+      await dispatch(
+        register({
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          password,
+          tenantCode: TENANT_CODE,
+          mobileNumber: mobileNumber.trim(),
+        })
+      ).unwrap();
+    } catch (message) {
+      setErrors({ general: String(message) });
     } finally {
       setLoading(false);
     }
@@ -106,7 +99,7 @@ export default function RegisterScreen({ navigation }: Props) {
             <Text style={styles.emoji}>🧺</Text>
             <Text style={[theme.typography.displayMedium, { color: '#FFF' }]}>Create Account</Text>
             <Text style={[theme.typography.bodySmall, { color: 'rgba(255,255,255,0.7)', marginTop: 4 }]}>
-              Join FreshWash today
+              Join {APP_NAME} today
             </Text>
           </LinearGradient>
           <View style={[styles.form, { backgroundColor: theme.colors.background }]}>
