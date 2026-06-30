@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Header from '../../components/ui/Header';
 import Card from '../../components/ui/Card';
@@ -72,7 +72,11 @@ export default function OrderListScreen({ navigation }: Props) {
 
   return (
     <ScreenWrapper edges={[]}>
-      <Header title="My Orders" />
+      <Header 
+        title="My Orders" 
+        showBack={navigation.canGoBack()} 
+        onBack={() => navigation.goBack()} 
+      />
       <View style={styles.filterRow}>
         {FILTERS.map((f) => (
           <Chip key={f.value} label={f.label} selected={filter === f.value}

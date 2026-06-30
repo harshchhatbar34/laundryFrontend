@@ -182,7 +182,11 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
 
   return (
     <ScreenWrapper edges={[]}>
-      <Header title="Settings" />
+      <Header 
+        title="Settings" 
+        showBack={navigation.canGoBack()} 
+        onBack={() => navigation.goBack()} 
+      />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
 

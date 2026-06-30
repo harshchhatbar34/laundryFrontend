@@ -21,8 +21,17 @@ type Props = NativeStackScreenProps<OwnerOrderStackParamList, 'OwnerOrderList'>;
 const FILTERS = [
   { label: 'All', value: 'all' },
   { label: 'Pending', value: 'pending' },
-  { label: 'Active', value: 'active' },
+  { label: 'Accepted', value: 'accepted' },
+  { label: 'Rejected', value: 'rejected' },
+  { label: 'Pickup', value: 'pickup' },
+  { label: 'Picked Up', value: 'picked_up' },
+  { label: 'Processing', value: 'processing' },
+  { label: 'Ready', value: 'ready' },
+  { label: 'Out for Delivery', value: 'out_for_delivery' },
+  { label: 'Failed Delivery', value: 'failed_delivery' },
+  { label: 'Delivered', value: 'delivered' },
   { label: 'Completed', value: 'completed' },
+  { label: 'Cancelled', value: 'cancelled' },
 ];
 
 export default function OwnerOrderListScreen({ navigation }: Props) {

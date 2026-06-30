@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, RefreshControl, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Header from '../../components/ui/Header';
 import Card from '../../components/ui/Card';
@@ -49,11 +50,14 @@ const STATUS_FILTERS = [
   { label: 'Pending', value: 'pending' },
   { label: 'Processing', value: 'processing' },
   { label: 'Delivered', value: 'delivered' },
+  { label: 'Completed', value: 'completed' },
+  { label: 'Rejected', value: 'rejected' },
   { label: 'Cancelled', value: 'cancelled' },
 ];
 
 export default function AdminOrderListScreen() {
   const { theme } = useTheme();
+  const navigation = useNavigation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
@@ -173,7 +177,11 @@ export default function AdminOrderListScreen() {
 
   return (
     <ScreenWrapper edges={[]}>
-      <Header title="Platform Orders" />
+      <Header 
+        title="Platform Orders" 
+        showBack={navigation.canGoBack()} 
+        onBack={() => navigation.goBack()} 
+      />
       <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
         <SearchBar
           placeholder="Search order no., customer, shop..."
