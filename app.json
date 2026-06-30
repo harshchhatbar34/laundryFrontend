@@ -60,7 +60,8 @@
         {
           "androidGoogleMapsApiKey": "AIzaSyDCEYhigrz4dBSJm0FiV4_qXKoU-Ps6UIU"
         }
-      ]
+      ],
+      "@sentry/react-native"
     ]
   }
 }
