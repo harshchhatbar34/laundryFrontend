@@ -33,12 +33,7 @@
         "ACCESS_FINE_LOCATION",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE"
-      ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyDCEYhigrz4dBSJm0FiV4_qXKoU-Ps6UIU"
-        }
-      }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -58,6 +53,12 @@
           "color": "#6366F1",
           "sounds": [],
           "mode": "production"
+        }
+      ],
+      [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "AIzaSyDCEYhigrz4dBSJm0FiV4_qXKoU-Ps6UIU"
         }
       ]
     ]

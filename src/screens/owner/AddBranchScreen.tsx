@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import { useDispatch } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
@@ -12,7 +13,6 @@ import { useTheme } from '../../theme/ThemeContext';
 import { createBranch } from '../../api/owner';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { OwnerBranchStackParamList } from '../../navigation/OwnerTabs';
-import MapView from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -22,67 +22,48 @@ export default function AddBranchScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const dispatch = useDispatch();
   const mapRef = useRef<MapView>(null);
-  const geocodeTimeoutRef = useRef<any>(null);
-  
+  const geocodeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [form, setForm] = useState({ name: '', addressLine: '', landmark: '', city: '', phone: '', lat: '23.0225', lng: '72.5714' });
   const [selectedState, setSelectedState] = useState('');
   const [loading, setLoading] = useState(false);
-  const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
 
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
 
-  // Helper function to fetch address and city from coordinates (Reverse Geocoding)
+  // Reverse geocode coordinates → address string using OpenStreetMap Nominatim (free, no key needed)
   const handleReverseGeocode = async (latitude: number, longitude: number) => {
     if (latitude === 0 && longitude === 0) return;
     setGeocoding(true);
     try {
       const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'FreshWashApp/1.0'
-        }
-      });
+      const res = await fetch(url, { headers: { 'User-Agent': 'FreshWashApp/1.0' } });
       const data = await res.json();
-      
-      let addressLine = '';
-      let city = '';
-      
+
       if (data && !data.error) {
         const addr = data.address || {};
-        
-        // Build a readable address line (e.g. Road, Suburb, Town/Village)
         const road = addr.road || addr.pedestrian || '';
         const suburb = addr.suburb || addr.neighbourhood || '';
         const town = addr.town || addr.village || '';
-        const addressParts = [road, suburb, town].filter(Boolean);
-        
-        addressLine = addressParts.join(', ');
+        const parts = [road, suburb, town].filter(Boolean);
+        let addressLine = parts.join(', ');
         if (!addressLine && data.display_name) {
           addressLine = data.display_name.split(',').slice(0, 3).join(',').trim();
         }
-        
-        // Prioritize state_district (e.g. Ahmedabad) over town (e.g. Sarkhej) to get the correct major city name
-        city = addr.city || addr.state_district || addr.town || addr.municipality || addr.county || '';
+        const city = addr.city || addr.state_district || addr.town || addr.municipality || addr.county || '';
+        setForm(p => ({
+          ...p,
+          addressLine: addressLine || p.addressLine,
+          city: city || p.city,
+          lat: String(latitude),
+          lng: String(longitude),
+        }));
       }
-      
-      // ALWAYS update form coordinates and details, preserving old values if new ones are empty
-      setForm(p => ({
-        ...p,
-        addressLine: addressLine || p.addressLine,
-        city: city || p.city,
-        lat: String(latitude),
-        lng: String(longitude)
-      }));
     } catch (err) {
       console.log('Reverse geocoding failed:', err);
-      // Fallback: still update coordinates so the pin location is saved
-      setForm(p => ({
-        ...p,
-        lat: String(latitude),
-        lng: String(longitude)
-      }));
+      setForm(p => ({ ...p, lat: String(latitude), lng: String(longitude) }));
     } finally {
       setGeocoding(false);
     }
@@ -107,8 +88,6 @@ export default function AddBranchScreen({ navigation }: Props) {
               latitudeDelta: 0.01,
               longitudeDelta: 0.01,
             }, 500);
-            
-            // Auto-fill address for their current location
             handleReverseGeocode(latitude, longitude);
           }
         }
@@ -116,12 +95,8 @@ export default function AddBranchScreen({ navigation }: Props) {
         console.log('Error getting initial location:', err);
       }
     })();
-
-    // Cleanup timeout on unmount
     return () => {
-      if (geocodeTimeoutRef.current) {
-        clearTimeout(geocodeTimeoutRef.current);
-      }
+      if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
     };
   }, []);
 
@@ -134,11 +109,7 @@ export default function AddBranchScreen({ navigation }: Props) {
     try {
       const query = `${form.addressLine}, ${form.city}`;
       const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'FreshWashApp/1.0'
-        }
-      });
+      const res = await fetch(url, { headers: { 'User-Agent': 'FreshWashApp/1.0' } });
       const data = await res.json();
       if (data && data.length > 0) {
         const newLat = parseFloat(data[0].lat);
@@ -179,8 +150,6 @@ export default function AddBranchScreen({ navigation }: Props) {
         latitudeDelta: 0.005,
         longitudeDelta: 0.005,
       }, 1000);
-      
-      // Auto-geocode the GPS coordinates
       handleReverseGeocode(latitude, longitude);
     } catch (err) {
       dispatch(showToast({ type: 'error', message: 'Failed to get current GPS location' }));
@@ -189,17 +158,10 @@ export default function AddBranchScreen({ navigation }: Props) {
     }
   };
 
-  // Called when the map panning stops — updates the selected coordinates and geocodes
+  // Called when map panning stops — debounced reverse geocoding
   const handleRegionChangeComplete = (region: any) => {
-    // 1. Update the coordinates in state instantly so the user sees the numbers change
     setForm(p => ({ ...p, lat: String(region.latitude), lng: String(region.longitude) }));
-    
-    // 2. Clear any pending geocoding timeout
-    if (geocodeTimeoutRef.current) {
-      clearTimeout(geocodeTimeoutRef.current);
-    }
-    
-    // 3. Set a new timeout to execute the reverse geocoding after 1000ms of inactivity (Debounce rate-limit)
+    if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
     geocodeTimeoutRef.current = setTimeout(() => {
       handleReverseGeocode(region.latitude, region.longitude);
     }, 1000);
@@ -218,7 +180,7 @@ export default function AddBranchScreen({ navigation }: Props) {
         landmark: form.landmark,
         city: form.city,
         phone: form.phone,
-        location: { coordinates: [parseFloat(form.lng) || 72.5714, parseFloat(form.lat) || 23.0225] }
+        location: { coordinates: [parseFloat(form.lng) || 72.5714, parseFloat(form.lat) || 23.0225] },
       });
       navigation.goBack();
     } catch (e) {
@@ -254,15 +216,20 @@ export default function AddBranchScreen({ navigation }: Props) {
             onSelect={(selected) => set('city', selected)}
           />
           <Input label="Phone" value={form.phone} onChangeText={(v) => set('phone', v)} icon="call-outline" keyboardType="phone-pad" />
-          
-          <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, marginTop: 16, marginBottom: 8 }]}>
-            📍 Shop Location on Map
+
+          {/* Map Section */}
+          <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, marginTop: 16, marginBottom: 6 }]}>
+            📍 Pin Branch Location
           </Text>
-          
-          {/* Map Wrapper with fixed center pin */}
-          <View style={[styles.mapWrapper, { borderColor: theme.colors.border }]}>
+          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginBottom: 8 }]}>
+            Pan the map to position the pin exactly on your branch.
+          </Text>
+
+          {/* Map wrapper */}
+          <View style={[styles.mapWrapper, { borderColor: theme.colors.borderLight }]}>
             <MapView
               ref={mapRef}
+              provider={PROVIDER_GOOGLE}
               style={styles.map}
               initialRegion={{
                 latitude: currentLat,
@@ -271,36 +238,43 @@ export default function AddBranchScreen({ navigation }: Props) {
                 longitudeDelta: 0.01,
               }}
               onRegionChangeComplete={handleRegionChangeComplete}
+              showsUserLocation
+              showsMyLocationButton={false}
             />
-            
-            {/* Fixed center pin representing the shop */}
+
+            {/* Fixed center pin */}
             <View style={styles.centerPinContainer} pointerEvents="none">
               <View style={styles.customPin}>
                 <View style={[styles.pinBubble, { backgroundColor: theme.colors.primary }]}>
-                  <Ionicons name="storefront" size={18} color="#FFF" />
+                  <Ionicons name="location" size={20} color="#FFF" />
                 </View>
                 <View style={[styles.pinArrow, { borderTopColor: theme.colors.primary }]} />
               </View>
             </View>
+
+            {/* Geocoding overlay */}
+            {geocoding && (
+              <View style={[styles.geocodingOverlay, { backgroundColor: theme.colors.surface + 'CC' }]}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+                <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginLeft: 8 }]}>
+                  Getting address...
+                </Text>
+              </View>
+            )}
           </View>
 
-          <View style={[styles.coordBanner, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.border }]}>
-            {geocoding ? (
-              <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginRight: 8 }} />
-            ) : (
-              <Ionicons name="location" size={16} color={theme.colors.primary} />
-            )}
-            <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginLeft: 6, flex: 1 }]}>
-              {geocoding 
-                ? "Updating address from map pin..." 
-                : `Pinned: ${currentLat.toFixed(5)}, ${currentLng.toFixed(5)} (Drag map to adjust shop location)`
-              }
+          {/* Coordinates display */}
+          <View style={[styles.coordBanner, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.borderLight }]}>
+            <Ionicons name="pin-outline" size={16} color={theme.colors.primary} />
+            <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginLeft: 6 }]}>
+              {currentLat.toFixed(5)}, {currentLng.toFixed(5)}
             </Text>
           </View>
 
+          {/* Map action buttons */}
           <View style={styles.btnRow}>
-            <TouchableOpacity 
-              onPress={handleSearchAddress} 
+            <TouchableOpacity
+              onPress={handleSearchAddress}
               disabled={searching}
               style={[styles.mapActionBtn, { borderColor: theme.colors.primary, borderWidth: 1 }]}
             >
@@ -316,8 +290,8 @@ export default function AddBranchScreen({ navigation }: Props) {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              onPress={handleUseGPS} 
+            <TouchableOpacity
+              onPress={handleUseGPS}
               disabled={locating}
               style={[styles.mapActionBtn, { backgroundColor: theme.colors.primary }]}
             >
@@ -388,7 +362,7 @@ const styles = StyleSheet.create({
   customPin: {
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ translateY: -18 }], // Mathematically offsets pin so the bottom arrow tip points exactly at the map center
+    transform: [{ translateY: -18 }],
   },
   pinBubble: {
     borderRadius: 20,
@@ -412,5 +386,15 @@ const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     marginTop: -1,
+  },
+  geocodingOverlay: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    right: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 6,
+    borderRadius: 8,
   },
 });
