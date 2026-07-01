@@ -14,6 +14,7 @@ Expo / React Native mobile app for the LaundroFlow laundry marketplace (customer
 
 ```bash
 npm install
+
 ```
 
 2. Copy environment variables:
