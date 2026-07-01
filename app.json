@@ -61,7 +61,13 @@
           "androidGoogleMapsApiKey": "AIzaSyDCEYhigrz4dBSJm0FiV4_qXKoU-Ps6UIU"
         }
       ],
-      "@sentry/react-native"
+      [
+        "@sentry/react-native",
+        {
+          "organization": "qonsult-business-solution",
+          "project": "react-native"
+        }
+      ]
     ]
   }
 }
