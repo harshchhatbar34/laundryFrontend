@@ -2,6 +2,7 @@
 // Rich profile page: personal details + business info, all editable, no logout/theme
 
 import React, { useState, useCallback } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -55,6 +56,7 @@ function formatDate(dateStr?: string) {
 
 export default function OwnerProfileScreen({ navigation }: Props) {
   const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const user = useSelector((s: RootState) => s.auth.user);
 
@@ -147,10 +149,10 @@ export default function OwnerProfileScreen({ navigation }: Props) {
     <ScreenWrapper edges={[]}>
       <Header title="My Profile" showBack onBack={() => navigation.goBack()} />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 + insets.bottom }} showsVerticalScrollIndicator={false}>
 
         {/* ── Hero Banner ────────────────────────────────────────── */}
-        <LinearGradient colors={theme.gradients.ocean as any} style={styles.hero}>
+        <LinearGradient colors={(isDark ? theme.gradients.ocean : theme.gradients.primary) as any} style={styles.hero}>
           {/* Avatar circle */}
           <View style={[styles.avatarCircle, { backgroundColor: avatarColor + 'CC' }]}>
             <Text style={styles.avatarText}>{initials}</Text>
