@@ -3,7 +3,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import api from './client';
 import { USER_PUSH_TOKEN } from './endpoints';
 
@@ -33,7 +33,7 @@ export const registerForPushNotifications = async (): Promise<string | null> => 
   }
 
   if (finalStatus !== 'granted') {
-    console.log('[Push] Permission denied');
+    Alert.alert('Push Permission Denied', `Notification permission is not granted. Status: ${finalStatus}`);
     return null;
   }
 
@@ -55,8 +55,9 @@ export const registerForPushNotifications = async (): Promise<string | null> => 
     }
 
     return token;
-  } catch (e) {
+  } catch (e: any) {
     console.warn('[Push] Failed to get push token:', e);
+    Alert.alert('Push Token Fetch Error', e?.message || String(e));
     return null;
   }
 };
@@ -73,7 +74,8 @@ export const savePushToken = async (token: string): Promise<void> => {
       hideErrorToast: true,
     } as any);
     console.log('[Push] Token saved to backend');
-  } catch (e) {
+  } catch (e: any) {
     console.warn('[Push] Failed to save token to backend (non-critical):', e);
+    Alert.alert('Push Token Save Error', e?.message || String(e));
   }
 };
