@@ -115,7 +115,7 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <LinearGradient
-      colors={(isDark ? [theme.colors.surface, theme.colors.surfaceElevated] : theme.gradients.ocean) as any}
+      colors={(isDark ? [theme.colors.surface, theme.colors.surfaceElevated] : theme.gradients.primary) as any}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >

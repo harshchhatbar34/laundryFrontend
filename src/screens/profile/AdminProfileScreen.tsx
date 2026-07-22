@@ -3,7 +3,6 @@
 
 import React, { useState, useCallback } from 'react';
 import {
-  Alert,
   ScrollView,
   View,
   Text,
@@ -27,6 +26,7 @@ import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import FadeSlideIn from '../../animations/FadeSlideIn';
+import LogoutModal from '../../components/LogoutModal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -224,6 +224,7 @@ export default function AdminProfileScreen({ navigation }: Props) {
   const [editPhone, setEditPhone] = useState(user?.mobileNumber || '');
   const [editUpi, setEditUpi] = useState(user?.upiId || '');
   const [saving, setSaving] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
 
   // ── Derived data ────────────────────────────────────────────────────────────
 
@@ -286,20 +287,8 @@ export default function AdminProfileScreen({ navigation }: Props) {
   }, [editName, editPhone, editUpi, dispatch]);
 
   const handleLogout = useCallback(() => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out of the SuperAdmin panel?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: () => dispatch(logout() as any),
-        },
-      ],
-      { cancelable: true }
-    );
-  }, [dispatch]);
+    setShowLogoutModal(true);
+  }, []);
 
   const c = theme.colors;
 
@@ -632,6 +621,14 @@ export default function AdminProfileScreen({ navigation }: Props) {
           </View>
         </FadeSlideIn>
       </ScrollView>
+      <LogoutModal
+        visible={showLogoutModal}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          dispatch(logout() as any);
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </ScreenWrapper>
   );
 }

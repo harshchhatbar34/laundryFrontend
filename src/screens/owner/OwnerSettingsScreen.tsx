@@ -24,9 +24,9 @@ import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import FadeSlideIn from '../../animations/FadeSlideIn';
+import LogoutModal from '../../components/LogoutModal';
 import { useTheme } from '../../theme/ThemeContext';
 import { showToast } from '../../store/slices/uiSlice';
-import { setTheme, ThemePreference } from '../../store/slices/themeSlice';
 import { logout } from '../../store/slices/authSlice';
 import { getOwnerProfile, updateOwnerProfile } from '../../api/owner';
 
@@ -34,16 +34,9 @@ interface Props {
   navigation: any;
 }
 
-const THEME_OPTIONS: { label: string; value: ThemePreference; icon: 'sunny-outline' | 'moon-outline' | 'phone-portrait-outline' }[] = [
-  { label: 'Light', value: 'light', icon: 'sunny-outline' },
-  { label: 'Dark', value: 'dark', icon: 'moon-outline' },
-  { label: 'System', value: 'system', icon: 'phone-portrait-outline' },
-];
-
 export default function OwnerSettingsScreen({ navigation }: Props) {
   const { theme, isDark } = useTheme();
   const dispatch = useDispatch();
-  const themePreference = useSelector((state: any) => state.theme.preference);
 
   // Display state (persisted from server)
   const [laundryName, setLaundryName] = useState('');
@@ -56,6 +49,7 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingUpi, setEditingUpi] = useState(false);
   const [qrModalVisible, setQrModalVisible] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
 
   // Draft inputs
   const [draftLaundryName, setDraftLaundryName] = useState('');
@@ -149,21 +143,10 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
 
   // ── Logout ────────────────────────────────────────────────────────────
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: () => dispatch(logout() as any),
-      },
-    ]);
+    setShowLogoutModal(true);
   };
 
   // ── Theme toggle ──────────────────────────────────────────────────────
-  const handleThemeChange = (val: ThemePreference) => {
-    dispatch(setTheme(val) as any);
-  };
-
   // QR code uses theme-aware colors: dark background in dark mode, white in light
   const qrBgColor = isDark ? '#1E2A3A' : '#FFFFFF';
   const qrFgColor = isDark ? '#E2F0FF' : '#111111';
@@ -400,56 +383,6 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
             ))}
           </FadeSlideIn>
 
-          {/* ── Theme Toggle ─────────────────────────────────────────── */}
-          <FadeSlideIn delay={220}>
-            <Card padding="medium" style={{ marginTop: 8, marginBottom: 16 }}>
-              <View style={styles.sectionHeader}>
-                <View style={[styles.sectionIcon, { backgroundColor: '#8B5CF618' }]}>
-                  <Ionicons name="color-palette-outline" size={20} color="#8B5CF6" />
-                </View>
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[theme.typography.h4, { color: theme.colors.textPrimary }]}>Appearance</Text>
-                  <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 2 }]}>Choose your theme</Text>
-                </View>
-              </View>
-              <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-                {THEME_OPTIONS.map((opt) => {
-                  const active = themePreference === opt.value;
-                  return (
-                    <TouchableOpacity
-                      key={opt.value}
-                      onPress={() => handleThemeChange(opt.value)}
-                      style={[
-                        styles.themeChip,
-                        {
-                          backgroundColor: active ? theme.colors.primary : theme.colors.surfaceVariant,
-                          borderColor: active ? theme.colors.primary : theme.colors.borderLight,
-                          flex: 1,
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={opt.icon}
-                        size={16}
-                        color={active ? '#FFF' : theme.colors.textSecondary}
-                      />
-                      <Text style={[
-                        theme.typography.caption,
-                        {
-                          color: active ? '#FFF' : theme.colors.textSecondary,
-                          marginTop: 4,
-                          fontWeight: active ? '700' : '400',
-                        }
-                      ]}>
-                        {opt.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </Card>
-          </FadeSlideIn>
-
           {/* ── Logout ───────────────────────────────────────────────── */}
           <FadeSlideIn delay={280}>
             <TouchableOpacity
@@ -501,6 +434,14 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
         </TouchableOpacity>
       </Modal>
 
+      <LogoutModal
+        visible={showLogoutModal}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          dispatch(logout() as any);
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </ScreenWrapper>
   );
 }

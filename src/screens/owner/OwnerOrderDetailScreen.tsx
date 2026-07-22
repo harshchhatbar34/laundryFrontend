@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal, TextInput, KeyboardAvoidingView, Platform, Clipboard } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
@@ -155,7 +155,7 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
       item: selectedItem._id,
       itemName: selectedItem.name,
       quantity: selectedQty,
-      price: (selectedMaterial.price || 0) + (selectedItem.price || 0),
+      price: (selectedService.price || 0) + (selectedMaterial.price || 0) + (selectedItem.price || 0), // display-only estimate; backend recalculates from DB
     };
 
     setDraftItems((prev) => [...prev, newItem]);
@@ -356,36 +356,77 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
         
         {/* Customer Details */}
         <Card padding="medium" style={{ marginBottom: 12 }}>
-          <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, marginBottom: 8 }]}>👤 Customer Details</Text>
-          <Text style={[theme.typography.body, { color: theme.colors.textPrimary }]}>{order.customer?.name || 'N/A'}</Text>
-          <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary }]}>{order.customer?.email}</Text>
+          <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, marginBottom: 12 }]}>👤 Customer Details</Text>
+
+          {/* Name + Avatar */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: theme.colors.primary + '20', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: theme.colors.primary }}>
+                {(order.customer?.name || 'N').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[theme.typography.body, { color: theme.colors.textPrimary, fontWeight: '700' }]}>
+                {order.customer?.name || 'N/A'}
+              </Text>
+              {order.customer?.email && (
+                <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 1 }]}>
+                  {order.customer.email}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* Phone with Copy Button */}
           {order.customer?.mobileNumber && (
-            <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary, marginTop: 2 }]}>
-              📞 {order.customer.mobileNumber}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surfaceVariant, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10 }}>
+              <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#10B98120', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                <Ionicons name="call" size={15} color="#10B981" />
+              </View>
+              <Text style={[theme.typography.body, { color: theme.colors.textPrimary, flex: 1, fontWeight: '600' }]}>
+                {order.customer.mobileNumber}
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  Clipboard.setString(order.customer.mobileNumber);
+                  dispatch(showToast({ type: 'success', message: 'Phone number copied!' }));
+                }}
+                style={{ padding: 6, backgroundColor: theme.colors.primary + '15', borderRadius: 8 }}
+              >
+                <Ionicons name="copy-outline" size={16} color={theme.colors.primary} />
+              </TouchableOpacity>
+            </View>
           )}
 
+          {/* Pickup Slot */}
           {order.scheduledPickup && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, marginBottom: 4 }}>
-              <Ionicons name="calendar" size={16} color={theme.colors.primary} />
-              <Text style={[theme.typography.bodySmall, { color: theme.colors.textPrimary, marginLeft: 6, fontWeight: '600' }]}>
-                Pickup Slot: {formatDate(order.scheduledPickup.date)} ({order.scheduledPickup.slot})
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+              <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: theme.colors.primary + '15', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                <Ionicons name="calendar" size={15} color={theme.colors.primary} />
+              </View>
+              <Text style={[theme.typography.bodySmall, { color: theme.colors.textPrimary, fontWeight: '600', flex: 1 }]}>
+                {formatDate(order.scheduledPickup.date)} · {order.scheduledPickup.slot}
               </Text>
             </View>
           )}
 
+          {/* Address */}
           {(order.address || order.deliveryAddress) && (
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 10, borderTopWidth: 1, borderTopColor: theme.colors.borderLight, paddingTop: 10 }}>
-              <Ionicons name="location" size={18} color={theme.colors.primary} style={{ marginTop: 2 }} />
-              <View style={{ marginLeft: 6, flex: 1 }}>
-                <Text style={[theme.typography.labelSmall, { color: theme.colors.textPrimary }]}>
-                  {(order.address || order.deliveryAddress).label || 'Delivery Address'}
-                </Text>
-                <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary, marginTop: 2 }]}>
-                  {(order.address || order.deliveryAddress).addressLine1}
-                  {(order.address || order.deliveryAddress).addressLine2 ? `, ${(order.address || order.deliveryAddress).addressLine2}` : ''}
-                  {`\n`}{(order.address || order.deliveryAddress).city}, {(order.address || order.deliveryAddress).state} - {(order.address || order.deliveryAddress).pincode}
-                </Text>
+            <View style={{ borderTopWidth: 1, borderTopColor: theme.colors.borderLight, paddingTop: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#EF444420', alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: 1 }}>
+                  <Ionicons name="location" size={15} color="#EF4444" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[theme.typography.label, { color: theme.colors.textPrimary, marginBottom: 2 }]}>
+                    {(order.address || order.deliveryAddress).label || 'Pickup Address'}
+                  </Text>
+                  <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary, lineHeight: 20 }]}>
+                    {(order.address || order.deliveryAddress).addressLine1}
+                    {(order.address || order.deliveryAddress).addressLine2 ? `, ${(order.address || order.deliveryAddress).addressLine2}` : ''}
+                    {`\n`}{(order.address || order.deliveryAddress).city}, {(order.address || order.deliveryAddress).state} — {(order.address || order.deliveryAddress).pincode}
+                  </Text>
+                </View>
               </View>
             </View>
           )}

@@ -33,11 +33,11 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
   const materials = useMemo(() => (masters?.materials || []).filter((m: any) => m.isActive), [masters]);
   const items = useMemo(() => (masters?.items || []).filter((i: any) => i.isActive), [masters]);
 
-  // Calculate combination price: Item price + Material price
-  const calculatedPrice = useMemo(() => {
-    if (!selectedItem || !selectedMaterial) return 0;
-    return (selectedItem.price || 0) + (selectedMaterial.price || 0);
-  }, [selectedItem, selectedMaterial]);
+  // Display-only estimated price (for chip labels). Real price is calculated by backend on order creation.
+  const estimatedPrice = useMemo(() => {
+    if (!selectedItem || !selectedMaterial || !selectedService) return 0;
+    return (selectedItem.price || 0) + (selectedMaterial.price || 0) + (selectedService.price || 0);
+  }, [selectedItem, selectedMaterial, selectedService]);
 
   const handleAddToCart = () => {
     if (!selectedService) {
@@ -62,7 +62,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
         material: selectedMaterial._id,
         materialName: selectedMaterial.name,
         quantity,
-        price: calculatedPrice,
+        price: estimatedPrice, // display-only estimate; backend recalculates real price from DB
         name: selectedItem.name,
       })
     );
@@ -101,7 +101,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
             return (
               <Chip
                 key={s._id}
-                label={`${emoji} ${s.name}`}
+                label={`${emoji} ${s.name} (+₹${s.price || 0})`}
                 selected={isSelected}
                 onPress={() => setSelectedService(s)}
                 style={styles.chip}
@@ -118,7 +118,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
             return (
               <Chip
                 key={m._id}
-                label={m.name}
+                label={`${m.name} (+₹${m.price || 0})`}
                 selected={isSelected}
                 onPress={() => setSelectedMaterial(m)}
                 style={styles.chip}
@@ -158,7 +158,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
                 </Text>
               </View>
               <Text style={[theme.typography.price, { color: theme.colors.primary }]}>
-                {formatPrice(calculatedPrice * quantity)}
+                {formatPrice(estimatedPrice * quantity)}
               </Text>
             </View>
 

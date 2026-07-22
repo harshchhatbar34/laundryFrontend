@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { View, Text } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
@@ -123,9 +124,33 @@ export default function CustomerTabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused, color }) => {
+          if (route.name === 'Cart') {
+            return (
+              <View style={{ width: 28, height: 28, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name={focused ? 'cart' : 'cart-outline'} size={24} color={color} />
+                {cartItemCount > 0 && (
+                  <Text style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -4,
+                    minWidth: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    backgroundColor: 'transparent',
+                    color: color,
+                    fontSize: 11,
+                    fontWeight: '800',
+                    textAlign: 'center',
+                    lineHeight: 16,
+                  }}>
+                    {cartItemCount > 99 ? '99+' : cartItemCount}
+                  </Text>
+                )}
+              </View>
+            );
+          }
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = { 
             Home: focused ? 'home' : 'home-outline', 
-            Cart: focused ? 'cart' : 'cart-outline',
             Orders: focused ? 'receipt' : 'receipt-outline', 
             Profile: focused ? 'person' : 'person-outline' 
           };
@@ -155,8 +180,7 @@ export default function CustomerTabs() {
         name="Cart" 
         component={CartScreen} 
         options={{
-          tabBarBadge: cartItemCount > 0 ? cartItemCount : undefined,
-          tabBarBadgeStyle: { backgroundColor: theme.colors.primary, color: '#FFF' }
+          tabBarBadge: undefined,
         }}
       />
       <Tab.Screen 

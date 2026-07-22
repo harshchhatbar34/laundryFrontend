@@ -143,6 +143,82 @@ export default function OrderDetailScreen({ route, navigation }: Props) {
           </Card>
         )}
 
+        {/* Assigned Pickup Person Card — shown when helper/owner is assigned */}
+        {order.helper && order.status !== 'pending' && order.status !== 'cancelled' && order.status !== 'rejected' && (
+          <Card style={{ marginTop: 16, borderWidth: 1, borderColor: theme.colors.primary + '40' }} padding="medium">
+            <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, marginBottom: 12 }]}>
+              👤 Pickup Person Assigned
+            </Text>
+
+            {/* Avatar + Name row */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <View style={{
+                width: 48, height: 48, borderRadius: 24,
+                backgroundColor: theme.colors.primary + '20',
+                alignItems: 'center', justifyContent: 'center',
+                marginRight: 12,
+              }}>
+                <Text style={{ fontSize: 20, fontWeight: '700', color: theme.colors.primary }}>
+                  {(order.helper.name || 'H').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[theme.typography.body, { color: theme.colors.textPrimary, fontWeight: '700' }]}>
+                  {order.helper.name || 'Assigned Staff'}
+                </Text>
+                <View style={{
+                  flexDirection: 'row', alignItems: 'center',
+                  backgroundColor: theme.colors.primary + '15',
+                  paddingHorizontal: 8, paddingVertical: 3,
+                  borderRadius: 12, alignSelf: 'flex-start', marginTop: 4,
+                }}>
+                  <Ionicons name="person-outline" size={11} color={theme.colors.primary} />
+                  <Text style={{ fontSize: 11, color: theme.colors.primary, fontWeight: '600', marginLeft: 4 }}>
+                    {order.helper.role === 'owner' ? 'Shop Owner' : 'Helper'}
+                  </Text>
+                </View>
+              </View>
+              {/* Status pill */}
+              <View style={{
+                backgroundColor: '#10B98120', paddingHorizontal: 10,
+                paddingVertical: 4, borderRadius: 20,
+              }}>
+                <Text style={{ fontSize: 12, color: '#059669', fontWeight: '600' }}>● On the way</Text>
+              </View>
+            </View>
+
+            <View style={{ height: 1, backgroundColor: theme.colors.divider, marginBottom: 12 }} />
+
+            {/* Contact info */}
+            {order.helper.mobileNumber && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                <View style={{
+                  width: 30, height: 30, borderRadius: 15,
+                  backgroundColor: '#10B98118', alignItems: 'center', justifyContent: 'center', marginRight: 10,
+                }}>
+                  <Ionicons name="call-outline" size={15} color="#10B981" />
+                </View>
+                <Text style={[theme.typography.bodySmall, { color: theme.colors.textPrimary }]}>
+                  {order.helper.mobileNumber}
+                </Text>
+              </View>
+            )}
+            {order.helper.email && (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{
+                  width: 30, height: 30, borderRadius: 15,
+                  backgroundColor: theme.colors.primary + '18', alignItems: 'center', justifyContent: 'center', marginRight: 10,
+                }}>
+                  <Ionicons name="mail-outline" size={15} color={theme.colors.primary} />
+                </View>
+                <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary }]}>
+                  {order.helper.email}
+                </Text>
+              </View>
+            )}
+          </Card>
+        )}
+
         {/* Pickup Details & Address */}
         {(order.scheduledPickup || order.address) && (
           <Card style={{ marginTop: 16 }} padding="medium">

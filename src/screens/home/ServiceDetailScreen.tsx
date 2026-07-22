@@ -38,7 +38,8 @@ export default function ServiceDetailScreen({ route, navigation }: Props) {
     }
   }, [materials]);
 
-  // Compute all combinations of items and materials with prices
+  // Build display combinations — prices are display-only estimates from master data.
+  // Real price is recalculated by backend using IDs on order creation.
   const itemsWithPrices = useMemo(() => {
     if (!masters) return [];
     const { items = [] } = masters;
@@ -46,18 +47,19 @@ export default function ServiceDetailScreen({ route, navigation }: Props) {
     items.forEach((item: any) => {
       if (!item.isActive) return;
       materials.forEach((material: any) => {
-        const price = (item.price || 0) + (material.price || 0);
+        // Estimate: item + material + service price for display only
+        const estimatedPrice = (item.price || 0) + (material.price || 0) + (service.price || 0);
         result.push({
           item: item._id,
           itemName: item.name,
           material: material._id,
           materialName: material.name,
-          price: price,
+          price: estimatedPrice, // display estimate only
         });
       });
     });
     return result;
-  }, [masters, materials]);
+  }, [masters, materials, service]);
 
   // Filter items to show only the ones for the selected material
   const visibleItems = useMemo(() => {
@@ -95,7 +97,7 @@ export default function ServiceDetailScreen({ route, navigation }: Props) {
           material: p.material,
           materialName: p.materialName,
           quantity: qty,
-          price: p.price,
+          price: p.price, // display-only estimate; backend recalculates real price from DB
           name: p.itemName,
         }));
       }

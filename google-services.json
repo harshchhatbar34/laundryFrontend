@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "261106791037",
+    "project_id": "laundryflow-9d3b7",
+    "storage_bucket": "laundryflow-9d3b7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261106791037:android:e9419a79a123798b09f714",
+        "android_client_info": {
+          "package_name": "com.laundroflow.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTQG_lm1yRVkkIC0O7Id12cacPB5zMOnE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

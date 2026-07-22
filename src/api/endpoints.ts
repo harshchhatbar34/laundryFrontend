@@ -1,6 +1,8 @@
 // ── Auth ─────────────────────────────────────────────────────────────
 export const AUTH_LOGIN = '/api/auth/login';
 export const AUTH_REGISTER = '/api/auth/register';
+export const AUTH_VERIFY_OTP = '/api/auth/verify-otp';
+export const AUTH_RESEND_OTP = '/api/auth/resend-otp';
 
 // ── Branches ─────────────────────────────────────────────────────────
 export const BRANCHES_NEAREST = '/api/branches/nearest';

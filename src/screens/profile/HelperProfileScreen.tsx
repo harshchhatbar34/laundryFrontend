@@ -4,7 +4,6 @@
 
 import React, { useState, useCallback } from 'react';
 import {
-  Alert,
   ScrollView,
   View,
   Text,
@@ -18,7 +17,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/ThemeContext';
 import { RootState } from '../../store';
 import { logout, updateUser } from '../../store/slices/authSlice';
-import { setTheme, ThemePreference } from '../../store/slices/themeSlice';
 import { showToast } from '../../store/slices/uiSlice';
 import { updateProfile } from '../../api/user';
 
@@ -29,6 +27,7 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import FadeSlideIn from '../../animations/FadeSlideIn';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LogoutModal from '../../components/LogoutModal';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -159,17 +158,17 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, iconBg, label, value, valueColo
 const AVATAR_PALETTE = ['#F59E0B', '#10B981', '#6366F1', '#EC4899', '#8B5CF6'];
 
 export default function HelperProfileScreen({ navigation }: Props) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const user = useSelector((s: RootState) => s.auth.user);
-  const themePreference = useSelector((s: RootState) => s.theme.preference);
 
   // Edit state
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(user?.name || '');
   const [editPhone, setEditPhone] = useState(user?.mobileNumber || '');
   const [saving, setSaving] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
 
   // ── Derived values ──────────────────────────────────────────────────────────
   const name = user?.name || 'Helper';
@@ -193,7 +192,7 @@ export default function HelperProfileScreen({ navigation }: Props) {
   const assignedDisplay = tenantId ? tenantId.slice(-6).toUpperCase() : 'Laundry';
 
   const gradientColors: [string, string, ...string[]] = (
-    (theme.gradients as any).sunset ?? theme.gradients.ocean
+    isDark ? theme.gradients.ocean : theme.gradients.primary
   ) as [string, string, ...string[]];
 
   // ── Handlers ────────────────────────────────────────────────────────────────
@@ -230,34 +229,8 @@ export default function HelperProfileScreen({ navigation }: Props) {
   }, [editName, editPhone, dispatch]);
 
   const handleLogout = useCallback(() => {
-    Alert.alert(
-      'Confirm Logout',
-      'Are you sure you want to log out of your account?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => dispatch(logout() as any),
-        },
-      ],
-      { cancelable: true }
-    );
-  }, [dispatch]);
-
-  const handleSetTheme = useCallback(
-    (pref: ThemePreference) => {
-      dispatch(setTheme(pref) as any);
-    },
-    [dispatch]
-  );
-
-  // ── Theme option config ─────────────────────────────────────────────────────
-  const themeOptions: { value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-    { value: 'light', label: 'Light', icon: 'sunny-outline' },
-    { value: 'dark', label: 'Dark', icon: 'moon-outline' },
-    { value: 'system', label: 'System', icon: 'phone-portrait-outline' },
-  ];
+    setShowLogoutModal(true);
+  }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -452,70 +425,8 @@ export default function HelperProfileScreen({ navigation }: Props) {
           </Card>
         </FadeSlideIn>
 
-        {/* ── Appearance Card ───────────────────────────────────────────────── */}
-        <FadeSlideIn delay={220}>
-          <Card variant="elevated" padding="medium" style={styles.card}>
-            <SectionHeader
-              icon="color-palette-outline"
-              iconBg="#8B5CF6"
-              title="Appearance"
-              subtitle="Choose your preferred theme"
-            />
-
-            <View style={styles.cardDivider} />
-
-            <View style={styles.themeRow}>
-              {themeOptions.map(({ value, label, icon }) => {
-                const isSelected = themePreference === value;
-                return (
-                  <TouchableOpacity
-                    key={value}
-                    onPress={() => handleSetTheme(value)}
-                    activeOpacity={0.7}
-                    style={[
-                      styles.themeBtn,
-                      {
-                        backgroundColor: isSelected
-                          ? theme.colors.primary + '18'
-                          : theme.colors.surfaceVariant,
-                        borderColor: isSelected ? theme.colors.primary : theme.colors.border,
-                        borderWidth: isSelected ? 1.5 : 1,
-                      },
-                    ]}
-                  >
-                    <Ionicons
-                      name={icon}
-                      size={20}
-                      color={isSelected ? theme.colors.primary : theme.colors.textSecondary}
-                    />
-                    <Text
-                      style={[
-                        theme.typography.caption,
-                        {
-                          color: isSelected ? theme.colors.primary : theme.colors.textSecondary,
-                          marginTop: 4,
-                          fontWeight: isSelected ? '700' : '500',
-                        },
-                      ]}
-                    >
-                      {label}
-                    </Text>
-                    {isSelected && (
-                      <View
-                        style={[
-                          styles.themeCheckDot,
-                          { backgroundColor: theme.colors.primary },
-                        ]}
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </Card>
-        </FadeSlideIn>
-
         {/* ── Logout Button ─────────────────────────────────────────────────── */}
+
         <FadeSlideIn delay={280}>
           <View style={styles.logoutSection}>
             <Button
@@ -537,6 +448,14 @@ export default function HelperProfileScreen({ navigation }: Props) {
           </View>
         </FadeSlideIn>
       </ScrollView>
+      <LogoutModal
+        visible={showLogoutModal}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          dispatch(logout() as any);
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </ScreenWrapper>
   );
 }

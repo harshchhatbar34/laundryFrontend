@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Linking } from 'react-native';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { loadUser } from '../store/slices/authSlice';
@@ -28,6 +28,32 @@ export default function AppNavigator() {
       dispatch(loadUser() as any),
     ]).finally(() => setIsReady(true));
   }, [dispatch]);
+
+  // Handle deep links — laundroflow://register?code=XXXX
+  const handleDeepLink = useCallback((url: string | null) => {
+    if (!url) return;
+    try {
+      const queryString = url.includes('?') ? url.split('?')[1] : '';
+      const params = new URLSearchParams(queryString);
+      const code = params.get('code');
+      const path = url.replace(/^[a-zA-Z0-9+\-.]+:\/\//, '').split('?')[0];
+
+      if ((path === 'register' || path.endsWith('/register')) && code && navigationRef.current) {
+        // If not logged in, navigate to Register with code
+        navigationRef.current.navigate('Register' as never, { tenantCode: code } as never);
+      }
+    } catch (e) {
+      if (__DEV__) console.warn('Error parsing deep link:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Handle link that opened the app from cold start
+    Linking.getInitialURL().then((url) => { if (url) handleDeepLink(url); });
+    // Handle links while app is open
+    const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
+    return () => sub.remove();
+  }, [handleDeepLink]);
 
   // Handle notification taps — navigate to the right order detail screen
   const handleNotificationTap = useCallback((notification: Notifications.Notification) => {

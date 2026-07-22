@@ -3,7 +3,6 @@
 
 import React, { useState, useCallback } from 'react';
 import {
-  Alert,
   ScrollView,
   View,
   Text,
@@ -18,7 +17,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/ThemeContext';
 import { RootState } from '../../store';
 import { logout, updateUser } from '../../store/slices/authSlice';
-import { setTheme, ThemePreference } from '../../store/slices/themeSlice';
 import { showToast } from '../../store/slices/uiSlice';
 import { updateProfile, getAddresses } from '../../api/user';
 
@@ -28,6 +26,7 @@ import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import FadeSlideIn from '../../animations/FadeSlideIn';
+import LogoutModal from '../../components/LogoutModal';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -165,15 +164,16 @@ function SectionHeader({ icon, iconBg, title, subtitle, onEdit, editActive }: Se
 
 export default function CustomerProfileScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const isDark = theme.mode === 'dark';
   const dispatch = useDispatch();
   const user = useSelector((s: RootState) => s.auth.user);
-  const themePreference = useSelector((s: RootState) => s.theme.preference);
 
   // Personal info edit state
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(user?.name || '');
   const [editPhone, setEditPhone] = useState(user?.mobileNumber || '');
   const [saving, setSaving] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
 
   // Addresses
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -225,6 +225,7 @@ export default function CustomerProfileScreen({ navigation }: Props) {
 
   const initials = getInitials(name);
   const avatarColor = getAvatarColor(initials);
+  const heroGradient = (isDark ? theme.gradients.ocean : theme.gradients.primary) as [string, string, ...string[]];
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
@@ -256,38 +257,23 @@ export default function CustomerProfileScreen({ navigation }: Props) {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out of your account?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: () => dispatch(logout() as any),
-        },
-      ],
-      { cancelable: true }
-    );
+    setShowLogoutModal(true);
   };
 
-  const handleThemeChange = (pref: ThemePreference) => {
-    dispatch(setTheme(pref) as any);
-  };
-
-  const themeOptions: { value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-    { value: 'light', label: 'Light', icon: 'sunny-outline' },
-    { value: 'dark', label: 'Dark', icon: 'moon-outline' },
-    { value: 'system', label: 'System', icon: 'phone-portrait-outline' },
-  ];
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <ScreenWrapper edges={[]} statusBarStyle="light-content">
+      {/* ── Single Scrollable Page ───────────────────────────────────────────── */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ backgroundColor: theme.colors.background }}
+        showsVerticalScrollIndicator={false}
+      >
       {/* ── Hero Banner ─────────────────────────────────────────────────────── */}
       <LinearGradient
-        colors={theme.gradients.primary as any}
+        colors={heroGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.hero}
@@ -329,11 +315,7 @@ export default function CustomerProfileScreen({ navigation }: Props) {
       </LinearGradient>
 
       {/* ── Scrollable Content ───────────────────────────────────────────────── */}
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.colors.background }]}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={[styles.scrollContent, { backgroundColor: theme.colors.background }]}>
         {/* ── Personal Information Card ──────────────────────────────────────── */}
         <FadeSlideIn delay={0} style={styles.fadeSlide}>
           <Card variant="elevated" padding="none" style={styles.card}>
@@ -517,60 +499,10 @@ export default function CustomerProfileScreen({ navigation }: Props) {
           </Card>
         </FadeSlideIn>
 
-        {/* ── Appearance Card ────────────────────────────────────────────────── */}
-        <FadeSlideIn delay={160} style={styles.fadeSlide}>
-          <Card variant="elevated" padding="none" style={styles.card}>
-            <View style={styles.cardInner}>
-              <SectionHeader
-                icon="color-palette-outline"
-                iconBg="#8B5CF6"
-                title="Appearance"
-                subtitle="Customize the app look"
-              />
-
-              <View style={styles.divider} />
-
-              <View style={styles.themeRow}>
-                {themeOptions.map((opt) => {
-                  const isActive = themePreference === opt.value;
-                  return (
-                    <TouchableOpacity
-                      key={opt.value}
-                      onPress={() => handleThemeChange(opt.value)}
-                      activeOpacity={0.75}
-                      style={[
-                        styles.themeBtn,
-                        {
-                          backgroundColor: isActive ? theme.colors.primary : theme.colors.surfaceVariant,
-                          borderColor: isActive ? theme.colors.primary : theme.colors.border,
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={opt.icon}
-                        size={18}
-                        color={isActive ? '#FFFFFF' : theme.colors.textSecondary}
-                      />
-                      <Text
-                        style={[
-                          styles.themeBtnText,
-                          { color: isActive ? '#FFFFFF' : theme.colors.textSecondary },
-                        ]}
-                      >
-                        {opt.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          </Card>
-        </FadeSlideIn>
-
         {/* ── Logout Button ──────────────────────────────────────────────────── */}
         <FadeSlideIn delay={240} style={styles.fadeSlide}>
           <Button
-            title="Sign Out"
+            title="Logout"
             onPress={handleLogout}
             variant="danger"
             icon="log-out-outline"
@@ -581,7 +513,16 @@ export default function CustomerProfileScreen({ navigation }: Props) {
         </FadeSlideIn>
 
 
+      </View>
       </ScrollView>
+      <LogoutModal
+        visible={showLogoutModal}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          dispatch(logout() as any);
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </ScreenWrapper>
   );
 }

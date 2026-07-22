@@ -85,7 +85,7 @@ export const login = createAsyncThunk<
 });
 
 export const register = createAsyncThunk<
-  { token: string; user: User },
+  { userId: string; email: string },
   { name: string; email: string; password: string; tenantCode: string; mobileNumber?: string },
   { rejectValue: string }
 >('auth/register', async (payload, { rejectWithValue }) => {
@@ -103,16 +103,14 @@ export const register = createAsyncThunk<
       return rejectWithValue(data?.message || 'Registration failed');
     }
 
-    const { token, user } = data.data;
-    await Promise.all([
-      AsyncStorage.setItem('@token', token),
-      AsyncStorage.setItem('@user', JSON.stringify(user)),
-    ]);
-    return { token, user };
+    // Backend now returns { userId, email } — OTP must be verified before login
+    const { userId, email } = data.data;
+    return { userId, email };
   } catch (error: any) {
     return rejectWithValue(error.response?.data?.message || error.message || 'Registration failed');
   }
 });
+
 
 export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
   'auth/logout',
@@ -139,6 +137,16 @@ const authSlice = createSlice({
           if (__DEV__) console.warn('Failed to save updated user to AsyncStorage:', e);
         });
       }
+    },
+    // Used after OTP verification — sets token+user without going through login thunk
+    loginSuccess(state, action: { payload: { token: string; user: any } }) {
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      state.isLoggedIn = true;
+      state.loading = false;
+      state.error = null;
+      AsyncStorage.setItem('@token', action.payload.token).catch(() => {});
+      AsyncStorage.setItem('@user', JSON.stringify(action.payload.user)).catch(() => {});
     },
   },
   extraReducers: (builder) => {
@@ -182,11 +190,10 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(register.fulfilled, (state, action) => {
+      .addCase(register.fulfilled, (state) => {
+        // Registration started — user must verify OTP before login
+        // loginSuccess action handles the actual state update
         state.loading = false;
-        state.token = action.payload.token;
-        state.user = action.payload.user;
-        state.isLoggedIn = true;
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
@@ -211,5 +218,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuthError, updateUser } = authSlice.actions;
+export const { clearAuthError, updateUser, loginSuccess } = authSlice.actions;
 export default authSlice.reducer;

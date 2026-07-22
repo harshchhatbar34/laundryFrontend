@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Alert, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Avatar from '../../components/ui/Avatar';
@@ -8,6 +8,7 @@ import Button from '../../components/ui/Button';
 import Chip from '../../components/ui/Chip';
 import Divider from '../../components/ui/Divider';
 import Input from '../../components/ui/Input';
+import LogoutModal from '../../components/LogoutModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/ThemeContext';
 import { setTheme, ThemePreference } from '../../store/slices/themeSlice';
@@ -32,6 +33,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const { user } = useSelector((s: RootState) => s.auth);
   const themePreference = useSelector((s: RootState) => s.theme.preference);
   const [editing, setEditing] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
   const [name, setName] = useState(user?.name || '');
 
   const handleSaveName = async () => {
@@ -39,10 +41,7 @@ export default function ProfileScreen({ navigation }: Props) {
   };
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel' },
-      { text: 'Logout', style: 'destructive', onPress: () => dispatch(logout() as any) },
-    ]);
+    setShowLogoutModal(true);
   };
 
   const MenuItem = ({ icon, label, onPress, color }: MenuItemProps) => (
@@ -107,6 +106,14 @@ export default function ProfileScreen({ navigation }: Props) {
 
         <Button title="Logout" onPress={handleLogout} variant="danger" icon="log-out-outline" />
       </ScrollView>
+      <LogoutModal
+        visible={showLogoutModal}
+        onConfirm={() => {
+          setShowLogoutModal(false);
+          dispatch(logout() as any);
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </ScreenWrapper>
   );
 }
