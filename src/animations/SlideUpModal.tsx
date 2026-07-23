@@ -15,7 +15,7 @@ import {
   PanResponder,
 } from 'react-native';
 import { palette } from '../theme/colors';
-import { useTheme } from '../theme/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -35,6 +35,7 @@ const SlideUpModal = memo<SlideUpModalProps>(({
   dragZoneHeight = 180,
 }) => {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(height)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
@@ -180,7 +181,7 @@ const SlideUpModal = memo<SlideUpModalProps>(({
           </View>
 
           {/* Content */}
-          <View style={styles.content}>{children}</View>
+          <View style={[styles.content, { paddingBottom: Math.max(insets.bottom + 16, 20) }]}>{children}</View>
 
           {/* Absolute positioned Drag Zone over the top of the sheet */}
           <View
@@ -240,7 +241,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
   },
 });
 
