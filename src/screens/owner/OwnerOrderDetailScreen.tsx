@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal, TextInput, KeyboardAvoidingView, Platform, Clipboard } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal, TextInput, KeyboardAvoidingView, Platform, Clipboard, Linking } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
@@ -348,6 +348,30 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
     return <Button title={a.label} onPress={onPress} loading={loading} icon={a.icon} style={{ marginTop: 16 }} />;
   };
 
+  const openCustomerNavigation = (addrObj: any) => {
+    if (!addrObj) return;
+    const lat = addrObj.latitude || addrObj.lat || (addrObj.location?.coordinates && addrObj.location.coordinates[1]);
+    const lng = addrObj.longitude || addrObj.lng || (addrObj.location?.coordinates && addrObj.location.coordinates[0]);
+
+    let url = '';
+    if (lat && lng) {
+      url = Platform.OS === 'ios'
+        ? `maps://app?daddr=${lat},${lng}`
+        : `google.navigation:q=${lat},${lng}`;
+    } else {
+      const addressString = encodeURIComponent(
+        `${addrObj.addressLine1 || ''}, ${addrObj.addressLine2 || ''}, ${addrObj.city || ''}, ${addrObj.pincode || ''}`
+      );
+      url = Platform.OS === 'ios'
+        ? `maps://app?daddr=${addressString}`
+        : `https://www.google.com/maps/search/?api=1&query=${addressString}`;
+    }
+
+    Linking.openURL(url).catch(() => {
+      dispatch(showToast({ type: 'error', message: 'Could not open maps application' }));
+    });
+  };
+
   return (
     <ScreenWrapper edges={[]}>
       <Header title={order.orderNumber || 'Order'} showBack onBack={() => navigation.goBack()} />
@@ -410,7 +434,7 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
             </View>
           )}
 
-          {/* Address */}
+          {/* Address + Navigation Button */}
           {(order.address || order.deliveryAddress) && (
             <View style={{ borderTopWidth: 1, borderTopColor: theme.colors.borderLight, paddingTop: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
@@ -418,9 +442,26 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
                   <Ionicons name="location" size={15} color="#EF4444" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[theme.typography.label, { color: theme.colors.textPrimary, marginBottom: 2 }]}>
-                    {(order.address || order.deliveryAddress).label || 'Pickup Address'}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                    <Text style={[theme.typography.label, { color: theme.colors.textPrimary }]}>
+                      {(order.address || order.deliveryAddress).label || 'Pickup Address'}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => openCustomerNavigation(order.address || order.deliveryAddress)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: '#3B82F615',
+                        paddingHorizontal: 10,
+                        paddingVertical: 5,
+                        borderRadius: 8,
+                        gap: 4,
+                      }}
+                    >
+                      <Ionicons name="navigate-outline" size={14} color="#3B82F6" />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#3B82F6' }}>Navigate</Text>
+                    </TouchableOpacity>
+                  </View>
                   <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary, lineHeight: 20 }]}>
                     {(order.address || order.deliveryAddress).addressLine1}
                     {(order.address || order.deliveryAddress).addressLine2 ? `, ${(order.address || order.deliveryAddress).addressLine2}` : ''}
