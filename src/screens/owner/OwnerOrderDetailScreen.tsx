@@ -352,22 +352,20 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
   const openCustomerNavigation = (addrObj: any) => {
     if (!addrObj) return;
 
-    const lat = addrObj.latitude || addrObj.lat || (addrObj.location?.coordinates && addrObj.location.coordinates[1]);
-    const lng = addrObj.longitude || addrObj.lng || (addrObj.location?.coordinates && addrObj.location.coordinates[0]);
+    const lat = Number(addrObj.latitude || addrObj.lat || (addrObj.location?.coordinates && addrObj.location.coordinates[1]));
+    const lng = Number(addrObj.longitude || addrObj.lng || (addrObj.location?.coordinates && addrObj.location.coordinates[0]));
 
-    // Build a clean, full address string — Google Maps resolves this reliably
-    const fullAddress = [
-      addrObj.addressLine1,
-      addrObj.addressLine2,
-      addrObj.landmark,
-      addrObj.city,
-      addrObj.state,
-      addrObj.pincode,
-      'India',
-    ].filter(Boolean).join(', ');
+    const addressLine = addrObj.addressLine1 || addrObj.line1 || addrObj.streetAddress || addrObj.addressLine || addrObj.address || '';
+    const addressLine2 = addrObj.addressLine2 || addrObj.line2 || '';
+    const landmark = addrObj.landmark ? `Near ${addrObj.landmark}` : '';
+    const city = addrObj.city || '';
+    const state = addrObj.state || '';
+    const pincode = addrObj.pincode || '';
 
-    // Always pass address so Google Maps shows location name, not raw coordinates
-    openGoogleMapsNavigation(lat, lng, fullAddress);
+    const parts = [addressLine, addressLine2, landmark, city, state, pincode, 'India'].filter(Boolean);
+    const fullAddress = parts.length > 0 ? parts.join(', ') : (addrObj.fullAddress || '');
+
+    openGoogleMapsNavigation(isNaN(lat) ? undefined : lat, isNaN(lng) ? undefined : lng, fullAddress);
   };
 
   return (
