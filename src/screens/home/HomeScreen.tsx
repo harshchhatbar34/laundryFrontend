@@ -54,15 +54,53 @@ export default function HomeScreen({ navigation }: Props) {
     return `${dist.toFixed(1)}km`;
   };
 
+  /**
+   * Opens Google Maps (Android) or Apple Maps (iOS) with turn-by-turn directions
+   * to the branch. Falls back to address search if no coordinates available.
+   */
+  const openDirections = (b: any) => {
+    const lat = b.location?.coordinates?.[1];
+    const lng = b.location?.coordinates?.[0];
+    const label = encodeURIComponent(b.name || 'Laundry Branch');
+    const address = encodeURIComponent(`${b.addressLine}, ${b.city}`);
+
+    let url = '';
+    if (lat && lng) {
+      // Google Maps deep link — works on both Android and iOS
+      // Android: opens Google Maps app; iOS: opens Google Maps if installed, else Apple Maps
+      url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${label}&travelmode=driving`;
+    } else {
+      // Fallback: search by address
+      url = `https://www.google.com/maps/search/?api=1&query=${address}`;
+    }
+
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(url);
+        }
+        // Fallback to geo URI for native maps app
+        const geoUrl = lat && lng
+          ? `geo:${lat},${lng}?q=${lat},${lng}(${label})`
+          : `geo:0,0?q=${address}`;
+        return Linking.openURL(geoUrl);
+      })
+      .catch((err) => console.log('Error opening maps:', err));
+  };
+
   const handleBranchPress = (b: any) => {
     Alert.alert(
       b.name,
       `Address: ${b.addressLine}\n${b.landmark ? `Landmark: ${b.landmark}\n` : ''}City: ${b.city}\nPhone: ${b.phone || 'N/A'}`,
       [
+        {
+          text: '🗺️ Get Directions',
+          onPress: () => openDirections(b),
+        },
         ...(b.phone
           ? [
               {
-                text: 'Call Branch',
+                text: '📞 Call Branch',
                 onPress: () => {
                   Linking.openURL(`tel:${b.phone}`).catch((err) =>
                     console.log('Error opening dialer:', err)
@@ -189,6 +227,15 @@ export default function HomeScreen({ navigation }: Props) {
                           {distanceStr}
                         </Text>
                       </View>
+                      {/* Get Directions button */}
+                      <TouchableOpacity
+                        onPress={() => openDirections(b)}
+                        style={[styles.directionsBtn, { backgroundColor: theme.colors.primary + '18' }]}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Ionicons name="navigate" size={14} color={theme.colors.primary} />
+                        <Text style={[styles.directionsBtnText, { color: theme.colors.primary }]}>Navigate</Text>
+                      </TouchableOpacity>
                       <Ionicons name="chevron-forward" size={18} color={theme.colors.textMuted} style={{ marginLeft: 6 }} />
                     </View>
                   </View>
@@ -215,4 +262,17 @@ const styles = StyleSheet.create({
   heroSubtitle: { fontSize: 13, color: 'rgba(255, 255, 255, 0.85)', marginTop: 4, lineHeight: 18 },
   branchListItem: { marginBottom: 8, borderWidth: 1.5, borderColor: 'transparent' },
   branchRightCol: { flexDirection: 'row', alignItems: 'center' },
+  directionsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  directionsBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginLeft: 3,
+  },
 });

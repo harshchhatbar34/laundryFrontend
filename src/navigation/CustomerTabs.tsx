@@ -21,11 +21,13 @@ import CustomerProfileScreen from '../screens/profile/CustomerProfileScreen';
 import AddressListScreen from '../screens/address/AddressListScreen';
 import AddAddressScreen from '../screens/address/AddAddressScreen';
 import NotificationListScreen from '../screens/notifications/NotificationListScreen';
+import BranchNavigationScreen from '../screens/navigation/BranchNavigationScreen';
 import { PremiumTabBarItem } from '../components/ui/PremiumTabBarItem';
 
 export type HomeStackParamList = {
   HomeMain: undefined;
   BranchCatalog: { branch: any; masters: any };
+  BranchNavigation: { branch: any };
   ServiceDetail: { service: any; masters: any; branch?: any };
   Cart: undefined;
   Notifications: undefined;
@@ -61,6 +63,7 @@ function HomeStackScreen() {
     <HomeStack.Navigator id="HomeStack" screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="BranchCatalog" component={BranchCatalogScreen} />
+      <HomeStack.Screen name="BranchNavigation" component={BranchNavigationScreen} />
       <HomeStack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
       <HomeStack.Screen name="Cart" component={CartScreen} />
       <HomeStack.Screen name="Notifications" component={NotificationListScreen} />

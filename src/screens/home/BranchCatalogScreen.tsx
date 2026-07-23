@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch } from 'react-redux';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
@@ -82,13 +82,29 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
   };
 
   return (
-    <ScreenWrapper edges={[]}>
+    <ScreenWrapper edges={[]}>      
       <Header
         title={branch?.name || 'Branch Catalog'}
         subtitle={`${branch?.addressLine || ''}, ${branch?.city || ''}`}
         showBack
         onBack={() => navigation.goBack()}
       />
+
+      {/* Navigate to Branch Banner */}
+      <TouchableOpacity
+        style={[styles.navigateBanner, { backgroundColor: theme.colors.primary + '12', borderColor: theme.colors.primary + '30' }]}
+        onPress={() => navigation.navigate('BranchNavigation', { branch })}
+        activeOpacity={0.75}
+      >
+        <Ionicons name="navigate-circle" size={22} color={theme.colors.primary} />
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={[styles.navigateTitle, { color: theme.colors.primary }]}>Navigate to this branch</Text>
+          <Text style={[styles.navigateSub, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+            {branch?.addressLine}, {branch?.city}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
+      </TouchableOpacity>
       
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         
@@ -199,6 +215,18 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 15, fontWeight: '700', marginBottom: 10, fontFamily: 'System' },
   horizontalScroll: { paddingBottom: 4 },
   chip: { marginRight: 8, height: 40, borderRadius: 20 },
+  navigateBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 4,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  navigateTitle: { fontSize: 13, fontWeight: '700' },
+  navigateSub: { fontSize: 11, marginTop: 1 },
   summaryCard: {
     marginTop: 24,
     borderWidth: 2,
