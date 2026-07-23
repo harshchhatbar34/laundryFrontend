@@ -3,6 +3,9 @@ export const AUTH_LOGIN = '/api/auth/login';
 export const AUTH_REGISTER = '/api/auth/register';
 export const AUTH_VERIFY_OTP = '/api/auth/verify-otp';
 export const AUTH_RESEND_OTP = '/api/auth/resend-otp';
+export const AUTH_FORGOT_PASSWORD = '/api/auth/forgot-password';
+export const AUTH_RESET_PASSWORD = '/api/auth/reset-password';
+export const AUTH_SET_PASSWORD = '/api/auth/set-password';
 
 // ── Branches ─────────────────────────────────────────────────────────
 export const BRANCHES_NEAREST = '/api/branches/nearest';

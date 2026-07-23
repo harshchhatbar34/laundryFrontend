@@ -310,23 +310,24 @@ export default function HelperOrderDetailScreen({ route, navigation }: Props) {
             </View>
           </View>
 
-          {/* Phone with Copy */}
+          {/* Phone number with small copy icon beside number */}
           {order.customer?.mobileNumber && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surfaceVariant, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
               <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#10B98120', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
                 <Ionicons name="call" size={15} color="#10B981" />
               </View>
-              <Text style={[theme.typography.body, { color: theme.colors.textPrimary, flex: 1, fontWeight: '600' }]}>
-                {order.customer.mobileNumber}
+              <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary }]}>
+                Phone number: <Text style={{ color: theme.colors.textPrimary, fontWeight: '700' }}>{order.customer.mobileNumber}</Text>
               </Text>
               <TouchableOpacity
                 onPress={() => {
                   Clipboard.setString(order.customer.mobileNumber);
                   dispatch(showToast({ type: 'success', message: 'Phone number copied!' }));
                 }}
-                style={{ padding: 6, backgroundColor: theme.colors.primary + '15', borderRadius: 8 }}
+                style={{ marginLeft: 6, padding: 2 }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Ionicons name="copy-outline" size={16} color={theme.colors.primary} />
+                <Ionicons name="copy-outline" size={14} color={theme.colors.primary} />
               </TouchableOpacity>
             </View>
           )}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -74,7 +75,9 @@ export default function SetPasswordScreen({ navigation, route }: Props) {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <LinearGradient colors={theme.gradients.ocean as any} style={styles.header}>
-            <Text style={styles.emoji}>🔑</Text>
+            <View style={styles.iconCircle}>
+              <Ionicons name="key-outline" size={34} color="#FFF" />
+            </View>
             <Text style={[theme.typography.displayMedium, { color: '#FFF' }]}>{APP_NAME}</Text>
             <Text style={[theme.typography.bodySmall, { color: 'rgba(255,255,255,0.7)', marginTop: 4 }]}>
               Password Configuration
@@ -148,7 +151,17 @@ export default function SetPasswordScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   scroll: { flexGrow: 1 },
   header: { paddingTop: 60, paddingBottom: 50, alignItems: 'center', borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
-  emoji: { fontSize: 56, marginBottom: 8 },
+  iconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+  },
   form: { flex: 1, paddingHorizontal: 24, paddingTop: 32, marginTop: -20, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
   errorBanner: { padding: 12, borderRadius: 10, marginBottom: 16 },
   successContainer: { flex: 1, alignItems: 'center', paddingTop: 20 },

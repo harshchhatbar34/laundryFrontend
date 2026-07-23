@@ -14,7 +14,7 @@ import { loginSuccess } from '../../store/slices/authSlice';
 import { AppDispatch } from '../../store';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
-import api from '../../api/client';
+import { verifyOtp, resendOtp } from '../../api/auth';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'VerifyOTP'>;
 
@@ -99,8 +99,8 @@ export default function VerifyOTPScreen({ navigation, route }: Props) {
     setLoading(true);
     setError('');
     try {
-      const res = await api.post('/api/auth/verify-otp', { userId, otp: code });
-      const { token, user } = res.data?.data || {};
+      const res = await verifyOtp(userId, code);
+      const { token, user } = res?.data || {};
       if (!token || !user) throw new Error('Verification failed. Please try again.');
 
       // Animate success
@@ -128,7 +128,7 @@ export default function VerifyOTPScreen({ navigation, route }: Props) {
     setResending(true);
     setError('');
     try {
-      await api.post('/api/auth/resend-otp', { userId });
+      await resendOtp(userId);
       setOtp(Array(OTP_LENGTH).fill(''));
       setCountdown(RESEND_COUNTDOWN);
       setCanResend(false);
@@ -150,8 +150,10 @@ export default function VerifyOTPScreen({ navigation, route }: Props) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.emoji}>📧</Text>
-          <Text style={[theme.typography.displayMedium, { color: '#FFF', marginTop: 8 }]}>
+          <View style={styles.iconCircle}>
+            <Ionicons name="mail-open-outline" size={34} color="#FFF" />
+          </View>
+          <Text style={[theme.typography.displayMedium, { color: '#FFF', marginTop: 4 }]}>
             Verify Email
           </Text>
           <Text style={[theme.typography.bodySmall, { color: 'rgba(255,255,255,0.75)', marginTop: 6, textAlign: 'center' }]}>
@@ -278,7 +280,17 @@ const styles = StyleSheet.create({
     left: 20,
     padding: 4,
   },
-  emoji: { fontSize: 52 },
+  iconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+  },
   body: {
     flex: 1,
     paddingHorizontal: 28,
