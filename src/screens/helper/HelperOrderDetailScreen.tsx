@@ -13,6 +13,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { getHelperOrderDetail, acceptOrder, updateOrderStatus, failDelivery, updateBill } from '../../api/helper';
 import { getServices as getOwnerServices } from '../../api/owner';
 import { formatPrice, formatDate, getStatusLabel, getStatusColorKey } from '../../utils/helpers';
+import { openGoogleMapsNavigation } from '../../utils/routing';
 import { ORDER_STATUS_FLOW } from '../../utils/constants';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HelperStackParamList } from '../../navigation/HelperStack';
@@ -262,23 +263,22 @@ export default function HelperOrderDetailScreen({ route, navigation }: Props) {
     const lat = addrObj.latitude || addrObj.lat || (addrObj.location?.coordinates && addrObj.location.coordinates[1]);
     const lng = addrObj.longitude || addrObj.lng || (addrObj.location?.coordinates && addrObj.location.coordinates[0]);
 
-    let url = '';
-    if (lat && lng) {
-      url = Platform.OS === 'ios'
-        ? `maps://app?daddr=${lat},${lng}`
-        : `google.navigation:q=${lat},${lng}`;
-    } else {
-      const addressString = encodeURIComponent(
-        `${addrObj.addressLine1 || ''}, ${addrObj.addressLine2 || ''}, ${addrObj.city || ''}, ${addrObj.pincode || ''}`
-      );
-      url = Platform.OS === 'ios'
-        ? `maps://app?daddr=${addressString}`
-        : `https://www.google.com/maps/search/?api=1&query=${addressString}`;
-    }
+    // Build a clean, full address string — Google Maps resolves this reliably
+    const fullAddress = [
+      addrObj.addressLine1,
+      addrObj.addressLine2,
+      addrObj.landmark,
+      addrObj.city,
+      addrObj.state,
+      addrObj.pincode,
+      'India',
+    ].filter(Boolean).join(', ');
 
-    Linking.openURL(url).catch(() => {
-      dispatch(showToast({ type: 'error', message: 'Could not open maps application' }));
-    });
+    const lat = addrObj.latitude || addrObj.lat || (addrObj.location?.coordinates && addrObj.location.coordinates[1]);
+    const lng = addrObj.longitude || addrObj.lng || (addrObj.location?.coordinates && addrObj.location.coordinates[0]);
+
+    // Always pass address so Google Maps shows location name, not raw coordinates
+    openGoogleMapsNavigation(lat, lng, fullAddress);
   };
 
   return (

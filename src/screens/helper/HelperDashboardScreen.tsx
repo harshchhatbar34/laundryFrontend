@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl, StyleSheet, TouchableOpacity, Linking, Platform } from 'react-native';
+import { View, Text, FlatList, RefreshControl, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
@@ -13,6 +13,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import FadeSlideIn from '../../animations/FadeSlideIn';
 import { useTheme } from '../../theme/ThemeContext';
 import { getHelperOrders, acceptOrder } from '../../api/helper';
+import { openGoogleMapsNavigation } from '../../utils/routing';
 import { getGreeting, formatDate, formatPrice } from '../../utils/helpers';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HelperStackParamList } from '../../navigation/HelperStack';
@@ -71,26 +72,22 @@ export default function HelperDashboardScreen({ navigation }: Props) {
 
   const openCustomerNavigation = (addrObj: any) => {
     if (!addrObj) return;
+    // Build a clean, full address string — Google Maps resolves this reliably
+    const fullAddress = [
+      addrObj.addressLine1,
+      addrObj.addressLine2,
+      addrObj.landmark,
+      addrObj.city,
+      addrObj.state,
+      addrObj.pincode,
+      'India',
+    ].filter(Boolean).join(', ');
+
     const lat = addrObj.latitude || addrObj.lat || (addrObj.location?.coordinates && addrObj.location.coordinates[1]);
     const lng = addrObj.longitude || addrObj.lng || (addrObj.location?.coordinates && addrObj.location.coordinates[0]);
 
-    let url = '';
-    if (lat && lng) {
-      url = Platform.OS === 'ios'
-        ? `maps://app?daddr=${lat},${lng}`
-        : `google.navigation:q=${lat},${lng}`;
-    } else {
-      const addressString = encodeURIComponent(
-        `${addrObj.addressLine1 || ''}, ${addrObj.addressLine2 || ''}, ${addrObj.city || ''}, ${addrObj.pincode || ''}`
-      );
-      url = Platform.OS === 'ios'
-        ? `maps://app?daddr=${addressString}`
-        : `https://www.google.com/maps/search/?api=1&query=${addressString}`;
-    }
-
-    Linking.openURL(url).catch(() => {
-      dispatch(showToast({ type: 'error', message: 'Could not open maps application' }));
-    });
+    // Always pass address so Google Maps shows location name, not raw coordinates
+    openGoogleMapsNavigation(lat, lng, fullAddress);
   };
 
   const renderOrder = ({ item, index }: { item: any; index: number }) => (

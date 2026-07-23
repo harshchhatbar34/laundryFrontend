@@ -158,18 +158,56 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
- * Opens Google Maps (or Apple Maps on iOS) with turn-by-turn navigation to the destination.
+ * Opens Google Maps (or Apple Maps on iOS) with turn-by-turn navigation.
+ *
+ * Pass `destAddress` (the human-readable address string) so Google Maps
+ * shows a proper location name instead of raw "23.0225, 72.5714" coordinates.
+ * Coordinates are still used for pin accuracy; address is used for display.
+ *
+ * Priority:
+ *  1. If coords + address → use coords for accuracy, address as display label
+ *  2. If coords only     → use coords (Google Maps shows lat,lng — less readable)
+ *  3. If address only    → search by address text
  */
-export function openGoogleMapsNavigation(destLat: number, destLng: number): void {
-  // Use the universal maps URL. Android and iOS will automatically open this
-  // directly in the native Google Maps app, which is 100% reliable.
-  const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
-  const appleMaps = `maps://app?daddr=${destLat},${destLng}`;
+export function openGoogleMapsNavigation(
+  destLat: number | null | undefined,
+  destLng: number | null | undefined,
+  destAddress?: string,
+): void {
+  const hasCoords = destLat != null && destLng != null && destLat !== 0 && destLng !== 0;
+  const hasAddress = destAddress && destAddress.trim().length > 3;
+
+  let googleMapsUrl: string;
+  let appleMapsUrl: string;
+  let googleIOSUrl: string;
+
+  if (hasCoords && hasAddress) {
+    // ✅ BEST: Coords for pin accuracy + address label for human readability
+    const encodedAddress = encodeURIComponent(destAddress!.trim());
+    googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}&travelmode=driving`;
+    appleMapsUrl  = `maps://app?daddr=${encodeURIComponent(destAddress!.trim())}`;
+    googleIOSUrl  = `comgooglemaps://?daddr=${encodeURIComponent(destAddress!.trim())}&directionsmode=driving`;
+  } else if (hasCoords) {
+    // ✅ Coords only — less readable but accurate
+    googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
+    appleMapsUrl  = `maps://app?daddr=${destLat},${destLng}`;
+    googleIOSUrl  = `comgooglemaps://?daddr=${destLat},${destLng}&directionsmode=driving`;
+  } else if (hasAddress) {
+    // ✅ Address only — search by text
+    const encodedAddress = encodeURIComponent(destAddress!.trim());
+    googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+    appleMapsUrl  = `maps://app?q=${encodedAddress}`;
+    googleIOSUrl  = `comgooglemaps://?q=${encodedAddress}`;
+  } else {
+    if (__DEV__) console.warn('[Routing] openGoogleMapsNavigation: no coords or address provided');
+    return;
+  }
 
   if (Platform.OS === 'ios') {
-    const googleIOS = `comgooglemaps://?daddr=${destLat},${destLng}&directionsmode=driving`;
-    Linking.canOpenURL(googleIOS).then((supported) => {
-      Linking.openURL(supported ? googleIOS : appleMaps);
+    Linking.canOpenURL(googleIOSUrl).then((supported) => {
+      Linking.openURL(supported ? googleIOSUrl : appleMapsUrl).catch((err) => {
+        if (__DEV__) console.warn('[Routing] Failed to open maps on iOS:', err);
+      });
     });
   } else {
     Linking.openURL(googleMapsUrl).catch((err) => {
