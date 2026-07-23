@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { getOrders } from '../api/orders';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 
 import HomeScreen from '../screens/home/HomeScreen';
 import ServiceDetailScreen from '../screens/home/ServiceDetailScreen';
@@ -21,6 +19,7 @@ import CustomerProfileScreen from '../screens/profile/CustomerProfileScreen';
 import AddressListScreen from '../screens/address/AddressListScreen';
 import AddAddressScreen from '../screens/address/AddAddressScreen';
 import NotificationListScreen from '../screens/notifications/NotificationListScreen';
+import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
 
 export type HomeStackParamList = {
   HomeMain: undefined;
@@ -88,8 +87,6 @@ function ProfileStackScreen() {
   );
 }
 
-import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
-
 export default function CustomerTabs() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -115,57 +112,41 @@ export default function CustomerTabs() {
     return () => clearInterval(interval);
   }, []);
 
-  const getTabConfig = (routeName: string) => {
-    switch (routeName) {
-      case 'Home':
-        return { label: 'Home', icon: 'home-outline' as const, filled: 'home' as const };
-      case 'Cart':
-        return { label: 'Cart', icon: 'cart-outline' as const, filled: 'cart' as const, badge: cartItemCount };
-      case 'Orders':
-        return { label: 'Orders', icon: 'receipt-outline' as const, filled: 'receipt' as const, badge: updateCount };
-      case 'Profile':
-      default:
-        return { label: 'Profile', icon: 'person-outline' as const, filled: 'person' as const };
-    }
-  };
-
   return (
     <Tab.Navigator
       id="CustomerTabs"
-      screenOptions={({ route }) => {
-        const config = getTabConfig(route.name);
-        return {
-          headerShown: false,
-          tabBarActiveTintColor: theme.colors.tabBarActive,
-          tabBarInactiveTintColor: theme.colors.tabBarInactive,
-          tabBarButton: (props) => {
-            const focused = props.accessibilityState?.selected ?? false;
-            return (
-              <AnimatedTabBarItem
-                label={config.label}
-                iconName={config.icon}
-                iconFilledName={config.filled}
-                focused={focused}
-                onPress={props.onPress}
-                activeColor={theme.colors.tabBarActive}
-                inactiveColor={theme.colors.tabBarInactive}
-                badgeCount={config.badge}
-              />
-            );
-          },
-          tabBarStyle: {
-            backgroundColor: theme.colors.tabBar,
-            borderTopColor: theme.colors.border,
-            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-            paddingTop: 6,
-            height: tabBarHeight,
-          },
-        };
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: theme.colors.tabBar,
+          borderTopColor: theme.colors.border,
+          paddingBottom: 0,
+          paddingTop: 0,
+          height: tabBarHeight,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+        },
       }}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeStackScreen} 
+      <Tab.Screen
+        name="Home"
+        component={HomeStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Home"
+              iconName="home-outline"
+              iconFilledName="home"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             (e as any).preventDefault();
@@ -173,19 +154,38 @@ export default function CustomerTabs() {
           },
         })}
       />
-      <Tab.Screen 
-        name="Cart" 
-        component={CartScreen} 
+      <Tab.Screen
+        name="Cart"
+        component={CartScreen}
         options={{
-          tabBarBadge: undefined,
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Cart"
+              iconName="cart-outline"
+              iconFilledName="cart"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+              badgeCount={cartItemCount}
+            />
+          ),
         }}
       />
-      <Tab.Screen 
-        name="Orders" 
-        component={OrderStackScreen} 
+      <Tab.Screen
+        name="Orders"
+        component={OrderStackScreen}
         options={{
-          tabBarBadge: updateCount > 0 ? updateCount : undefined,
-          tabBarBadgeStyle: { backgroundColor: theme.colors.error, color: '#FFF' }
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Orders"
+              iconName="receipt-outline"
+              iconFilledName="receipt"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+              badgeCount={updateCount}
+            />
+          ),
         }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
@@ -194,10 +194,21 @@ export default function CustomerTabs() {
           },
         })}
       />
-
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileStackScreen} 
+      <Tab.Screen
+        name="Profile"
+        component={ProfileStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Profile"
+              iconName="person-outline"
+              iconFilledName="person"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             (e as any).preventDefault();

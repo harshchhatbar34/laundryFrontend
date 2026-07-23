@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { getOwnerOrders } from '../api/owner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -132,64 +131,45 @@ export default function OwnerTabs() {
     };
 
     fetchPendingCount(false);
-
-    // Poll every 15 seconds silently to keep the badge fresh
     const interval = setInterval(() => fetchPendingCount(true), 15000);
     return () => clearInterval(interval);
   }, []);
 
-  const getTabConfig = (routeName: string) => {
-    switch (routeName) {
-      case 'Dashboard':
-        return { label: 'Dashboard', icon: 'grid-outline' as const, filled: 'grid' as const };
-      case 'Branches':
-        return { label: 'Branches', icon: 'storefront-outline' as const, filled: 'storefront' as const };
-      case 'Services':
-        return { label: 'Services', icon: 'layers-outline' as const, filled: 'layers' as const };
-      case 'Orders':
-        return { label: 'Orders', icon: 'receipt-outline' as const, filled: 'receipt' as const };
-      case 'Settings':
-      default:
-        return { label: 'Settings', icon: 'settings-outline' as const, filled: 'settings' as const };
-    }
-  };
-
   return (
     <Tab.Navigator
       id="OwnerTabs"
-      screenOptions={({ route }) => {
-        const config = getTabConfig(route.name);
-        return {
-          headerShown: false,
-          tabBarActiveTintColor: theme.colors.tabBarActive,
-          tabBarInactiveTintColor: theme.colors.tabBarInactive,
-          tabBarButton: (props) => {
-            const focused = props.accessibilityState?.selected ?? false;
-            return (
-              <AnimatedTabBarItem
-                label={config.label}
-                iconName={config.icon}
-                iconFilledName={config.filled}
-                focused={focused}
-                onPress={props.onPress}
-                activeColor={theme.colors.tabBarActive}
-                inactiveColor={theme.colors.tabBarInactive}
-              />
-            );
-          },
-          tabBarStyle: {
-            backgroundColor: theme.colors.tabBar,
-            borderTopColor: theme.colors.border,
-            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-            paddingTop: 6,
-            height: tabBarHeight,
-          },
-        };
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: theme.colors.tabBar,
+          borderTopColor: theme.colors.border,
+          paddingBottom: 0,
+          paddingTop: 0,
+          height: tabBarHeight,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+        },
       }}
     >
-      <Tab.Screen 
-        name="Dashboard" 
-        component={DashStackScreen} 
+      <Tab.Screen
+        name="Dashboard"
+        component={DashStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Dashboard"
+              iconName="grid-outline"
+              iconFilledName="grid"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
         listeners={({ navigation }) => ({
           tabPress: (e: any) => {
             e.preventDefault();
@@ -197,9 +177,21 @@ export default function OwnerTabs() {
           },
         })}
       />
-      <Tab.Screen 
-        name="Branches" 
-        component={BranchStackScreen} 
+      <Tab.Screen
+        name="Branches"
+        component={BranchStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Branches"
+              iconName="storefront-outline"
+              iconFilledName="storefront"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
         listeners={({ navigation }) => ({
           tabPress: (e: any) => {
             e.preventDefault();
@@ -207,9 +199,21 @@ export default function OwnerTabs() {
           },
         })}
       />
-      <Tab.Screen 
-        name="Services" 
-        component={ServiceStackScreen} 
+      <Tab.Screen
+        name="Services"
+        component={ServiceStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Services"
+              iconName="layers-outline"
+              iconFilledName="layers"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
         listeners={({ navigation }) => ({
           tabPress: (e: any) => {
             e.preventDefault();
@@ -217,12 +221,21 @@ export default function OwnerTabs() {
           },
         })}
       />
-      <Tab.Screen 
-        name="Orders" 
-        component={OrderStackScreen} 
+      <Tab.Screen
+        name="Orders"
+        component={OrderStackScreen}
         options={{
-          tabBarBadge: pendingCount > 0 ? pendingCount : undefined,
-          tabBarBadgeStyle: { backgroundColor: theme.colors.error, color: '#FFF' }
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Orders"
+              iconName="receipt-outline"
+              iconFilledName="receipt"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+              badgeCount={pendingCount}
+            />
+          ),
         }}
         listeners={({ navigation }) => ({
           tabPress: (e: any) => {
@@ -234,6 +247,18 @@ export default function OwnerTabs() {
       <Tab.Screen
         name="Settings"
         component={SettingsStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Settings"
+              iconName="settings-outline"
+              iconFilledName="settings"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
         listeners={({ navigation }) => ({
           tabPress: (e: any) => {
             e.preventDefault();

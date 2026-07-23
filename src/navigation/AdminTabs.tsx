@@ -1,9 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
 
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import OwnerManagementScreen from '../screens/admin/OwnerManagementScreen';
@@ -115,69 +115,110 @@ function SettingsStackScreen() {
   );
 }
 
-import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
-
 export default function AdminTabs() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 60 + insets.bottom;
 
-  const getTabConfig = (routeName: string) => {
-    switch (routeName) {
-      case 'Dashboard':
-        return { label: 'Dashboard', icon: 'grid-outline' as const, filled: 'grid' as const };
-      case 'Owners':
-        return { label: 'Owners', icon: 'business-outline' as const, filled: 'business' as const };
-      case 'Customers':
-        return { label: 'Customers', icon: 'people-outline' as const, filled: 'people' as const };
-      case 'Orders':
-        return { label: 'Orders', icon: 'receipt-outline' as const, filled: 'receipt' as const };
-      case 'Settings':
-      default:
-        return { label: 'Settings', icon: 'settings-outline' as const, filled: 'settings' as const };
-    }
-  };
-
   return (
     <Tab.Navigator
       id="AdminTabs"
-      screenOptions={({ route }) => {
-        const config = getTabConfig(route.name);
-        return {
-          headerShown: false,
-          tabBarActiveTintColor: theme.colors.tabBarActive,
-          tabBarInactiveTintColor: theme.colors.tabBarInactive,
-          tabBarButton: (props) => {
-            const focused = props.accessibilityState?.selected ?? false;
-            return (
-              <AnimatedTabBarItem
-                label={config.label}
-                iconName={config.icon}
-                iconFilledName={config.filled}
-                focused={focused}
-                onPress={props.onPress}
-                activeColor={theme.colors.tabBarActive}
-                inactiveColor={theme.colors.tabBarInactive}
-              />
-            );
-          },
-          tabBarStyle: {
-            backgroundColor: theme.colors.tabBar,
-            borderTopColor: theme.colors.border,
-            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-            paddingTop: 6,
-            height: tabBarHeight,
-          },
-        };
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: theme.colors.tabBar,
+          borderTopColor: theme.colors.border,
+          paddingBottom: 0,
+          paddingTop: 0,
+          height: tabBarHeight,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+        },
       }}
     >
-      <Tab.Screen name="Dashboard" component={DashStackScreen} />
-      <Tab.Screen name="Owners" component={OwnerStackScreen} />
-      <Tab.Screen name="Customers" component={CustomerStackScreen} />
-      <Tab.Screen name="Orders" component={OrderStackScreen} />
+      <Tab.Screen
+        name="Dashboard"
+        component={DashStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Dashboard"
+              iconName="grid-outline"
+              iconFilledName="grid"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Owners"
+        component={OwnerStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Owners"
+              iconName="business-outline"
+              iconFilledName="business"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Customers"
+        component={CustomerStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Customers"
+              iconName="people-outline"
+              iconFilledName="people"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Orders"
+        component={OrderStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Orders"
+              iconName="receipt-outline"
+              iconFilledName="receipt"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
+      />
       <Tab.Screen
         name="Settings"
         component={SettingsStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarItem
+              label="Settings"
+              iconName="settings-outline"
+              iconFilledName="settings"
+              focused={focused}
+              activeColor={theme.colors.tabBarActive}
+              inactiveColor={theme.colors.tabBarInactive}
+            />
+          ),
+        }}
         listeners={({ navigation }) => ({
           tabPress: (e: any) => {
             e.preventDefault();
