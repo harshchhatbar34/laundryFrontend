@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl, StyleSheet } from 'react-native';
+import { View, Text, FlatList, RefreshControl, StyleSheet, TouchableOpacity, Linking, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { showToast } from '../../store/slices/uiSlice';
@@ -69,6 +69,30 @@ export default function HelperDashboardScreen({ navigation }: Props) {
     }
   };
 
+  const openCustomerNavigation = (addrObj: any) => {
+    if (!addrObj) return;
+    const lat = addrObj.latitude || addrObj.lat || (addrObj.location?.coordinates && addrObj.location.coordinates[1]);
+    const lng = addrObj.longitude || addrObj.lng || (addrObj.location?.coordinates && addrObj.location.coordinates[0]);
+
+    let url = '';
+    if (lat && lng) {
+      url = Platform.OS === 'ios'
+        ? `maps://app?daddr=${lat},${lng}`
+        : `google.navigation:q=${lat},${lng}`;
+    } else {
+      const addressString = encodeURIComponent(
+        `${addrObj.addressLine1 || ''}, ${addrObj.addressLine2 || ''}, ${addrObj.city || ''}, ${addrObj.pincode || ''}`
+      );
+      url = Platform.OS === 'ios'
+        ? `maps://app?daddr=${addressString}`
+        : `https://www.google.com/maps/search/?api=1&query=${addressString}`;
+    }
+
+    Linking.openURL(url).catch(() => {
+      dispatch(showToast({ type: 'error', message: 'Could not open maps application' }));
+    });
+  };
+
   const renderOrder = ({ item, index }: { item: any; index: number }) => (
     <FadeSlideIn delay={index * 60}>
       <Card onPress={() => navigation.navigate('HelperOrderDetail', { orderId: item._id })} style={{ marginBottom: 12 }} padding="medium">
@@ -80,13 +104,25 @@ export default function HelperDashboardScreen({ navigation }: Props) {
             <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary, marginTop: 2 }]}>
               {item.customer?.name || 'Customer'} · {formatDate(item.createdAt)}
             </Text>
-            {item.deliveryAddress && (
-              <Text style={[theme.typography.caption, { color: theme.colors.textMuted, marginTop: 4 }]} numberOfLines={1}>
-                📍 {item.deliveryAddress.addressLine1 || item.deliveryAddress.city || ''}
-              </Text>
+            {(item.address || item.deliveryAddress) && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                <Text style={[theme.typography.caption, { color: theme.colors.textMuted, flex: 1 }]} numberOfLines={1}>
+                  📍 {(item.address || item.deliveryAddress).addressLine1 || (item.address || item.deliveryAddress).city || ''}
+                </Text>
+                <TouchableOpacity
+                  onPress={(e: any) => {
+                    e.stopPropagation?.();
+                    openCustomerNavigation(item.address || item.deliveryAddress);
+                  }}
+                  style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#3B82F615', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, gap: 3, marginLeft: 6 }}
+                >
+                  <Ionicons name="navigate-outline" size={12} color="#3B82F6" />
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#3B82F6' }}>Navigate</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
-          <View style={{ alignItems: 'flex-end' }}>
+          <View style={{ alignItems: 'flex-end', marginLeft: 8 }}>
             <Badge status={item.status} size="small" />
             <Text style={[theme.typography.priceSmall, { color: theme.colors.primary, marginTop: 6 }]}>
               {formatPrice(item.pricing?.total || 0)}
