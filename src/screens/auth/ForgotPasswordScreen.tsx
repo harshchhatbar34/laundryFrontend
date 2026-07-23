@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { useDispatch } from 'react-redux';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -8,6 +10,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { isValidEmail } from '../../utils/helpers';
 import { APP_NAME } from '../../utils/constants';
 import { forgotPassword } from '../../api/auth';
+import { showToast } from '../../store/slices/uiSlice';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/AuthStack';
 
@@ -15,10 +18,10 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
 
 export default function ForgotPasswordScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const validate = () => {
     if (!email.trim()) {
@@ -33,21 +36,26 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
   };
 
   const handleSendLink = async () => {
+    Keyboard.dismiss();
     setError('');
-    setSuccess('');
     if (!validate()) return;
 
     setLoading(true);
     try {
       const res = await forgotPassword(email.trim().toLowerCase());
       if (res?.success) {
-        setSuccess(res?.message || 'Verification link sent to your email.');
-        setEmail('');
+        dispatch(
+          showToast({
+            type: 'success',
+            message: res?.message || 'Password reset link sent to your email.',
+          })
+        );
+        navigation.navigate('Login');
       } else {
         setError(res?.message || 'Failed to send reset link.');
       }
     } catch (err: any) {
-      setError(err?.message || 'An unexpected error occurred.');
+      setError(err?.response?.data?.message || err?.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
@@ -56,9 +64,14 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
   return (
     <ScreenWrapper edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="always">
           <LinearGradient colors={theme.gradients.ocean as any} style={styles.header}>
-            <Text style={styles.emoji}>✉️</Text>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={22} color="#FFF" />
+            </TouchableOpacity>
+            <View style={styles.iconCircle}>
+              <Ionicons name="mail-unread-outline" size={34} color="#FFF" />
+            </View>
             <Text style={[theme.typography.displayMedium, { color: '#FFF' }]}>{APP_NAME}</Text>
             <Text style={[theme.typography.bodySmall, { color: 'rgba(255,255,255,0.7)', marginTop: 4 }]}>
               Reset your password
@@ -69,12 +82,6 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
             {error ? (
               <View style={[styles.banner, { backgroundColor: theme.colors.errorBg }]}>
                 <Text style={[theme.typography.bodySmall, { color: theme.colors.error }]}>{error}</Text>
-              </View>
-            ) : null}
-
-            {success ? (
-              <View style={[styles.banner, { backgroundColor: '#ECFDF5' }]}>
-                <Text style={[theme.typography.bodySmall, { color: '#047857', fontWeight: '500' }]}>{success}</Text>
               </View>
             ) : null}
 
@@ -116,7 +123,18 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   scroll: { flexGrow: 1 },
   header: { paddingTop: 60, paddingBottom: 50, alignItems: 'center', borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
-  emoji: { fontSize: 56, marginBottom: 8 },
+  backBtn: { position: 'absolute', top: 56, left: 20, padding: 4 },
+  iconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+  },
   form: { flex: 1, paddingHorizontal: 24, paddingTop: 32, marginTop: -20, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
   banner: { padding: 12, borderRadius: 10, marginBottom: 16 },
   link: { alignItems: 'center', marginTop: 24, paddingVertical: 12 },
