@@ -29,18 +29,22 @@ export default function AppNavigator() {
     ]).finally(() => setIsReady(true));
   }, [dispatch]);
 
-  // Handle deep links — laundroflow://register?code=XXXX
+  // Handle deep links — laundroflow://register?code=XXXX or laundroflow://set-password?token=XXXX
   const handleDeepLink = useCallback((url: string | null) => {
     if (!url) return;
     try {
       const queryString = url.includes('?') ? url.split('?')[1] : '';
       const params = new URLSearchParams(queryString);
       const code = params.get('code');
+      const token = params.get('token');
       const path = url.replace(/^[a-zA-Z0-9+\-.]+:\/\//, '').split('?')[0];
 
       if ((path === 'register' || path.endsWith('/register')) && code && navigationRef.current) {
         // If not logged in, navigate to Register with code
         navigationRef.current.navigate('Register' as never, { tenantCode: code } as never);
+      } else if ((path === 'set-password' || path === 'reset-password' || path.endsWith('/set-password') || path.endsWith('/reset-password')) && token && navigationRef.current) {
+        // Navigate to SetPassword screen with reset token
+        navigationRef.current.navigate('SetPassword' as never, { token } as never);
       }
     } catch (e) {
       if (__DEV__) console.warn('Error parsing deep link:', e);
