@@ -20,7 +20,7 @@ import CustomerProfileScreen from '../screens/profile/CustomerProfileScreen';
 import AddressListScreen from '../screens/address/AddressListScreen';
 import AddAddressScreen from '../screens/address/AddAddressScreen';
 import NotificationListScreen from '../screens/notifications/NotificationListScreen';
-import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
+import { AnimatedLottieTabIcon } from '../components/ui/AnimatedLottieTabIcon';
 
 export type HomeStackParamList = {
   HomeMain: undefined;
@@ -91,7 +91,7 @@ function ProfileStackScreen() {
 export default function CustomerTabs() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 62 + insets.bottom;
+  const tabBarHeight = 72 + insets.bottom;
   const cart = useSelector((s: RootState) => s.orders.cart);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const [updateCount, setUpdateCount] = useState(0);
@@ -122,7 +122,7 @@ export default function CustomerTabs() {
         tabBarItemStyle: {
           alignItems: 'center',
           justifyContent: 'center',
-          paddingBottom: insets.bottom > 0 ? 0 : 4,
+          paddingBottom: 0,
         },
         tabBarStyle: {
           backgroundColor: theme.colors.tabBar,
@@ -144,13 +144,13 @@ export default function CustomerTabs() {
         component={HomeStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Home"
-              iconName="home-outline"
-              iconFilledName="home"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/home.json')}
               focused={focused}
+              label="Home"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}
@@ -166,13 +166,13 @@ export default function CustomerTabs() {
         component={CartScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Cart"
-              iconName="cart-outline"
-              iconFilledName="cart"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/cart.json')}
               focused={focused}
+              label="Cart"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
               badgeCount={cartItemCount}
             />
           ),
@@ -183,13 +183,13 @@ export default function CustomerTabs() {
         component={OrderStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Orders"
-              iconName="receipt-outline"
-              iconFilledName="receipt"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/orders.json')}
               focused={focused}
+              label="Orders"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
               badgeCount={updateCount}
             />
           ),
@@ -206,13 +206,13 @@ export default function CustomerTabs() {
         component={ProfileStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Profile"
-              iconName="person-outline"
-              iconFilledName="person"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/profile.json')}
               focused={focused}
+              label="Profile"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}

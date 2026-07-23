@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
+import { AnimatedLottieTabIcon } from '../components/ui/AnimatedLottieTabIcon';
 
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import OwnerManagementScreen from '../screens/admin/OwnerManagementScreen';
@@ -119,7 +119,7 @@ function SettingsStackScreen() {
 export default function AdminTabs() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 62 + insets.bottom;
+  const tabBarHeight = 72 + insets.bottom;
 
   return (
     <Tab.Navigator
@@ -130,7 +130,7 @@ export default function AdminTabs() {
         tabBarItemStyle: {
           alignItems: 'center',
           justifyContent: 'center',
-          paddingBottom: insets.bottom > 0 ? 0 : 4,
+          paddingBottom: 0,
         },
         tabBarStyle: {
           backgroundColor: theme.colors.tabBar,
@@ -152,13 +152,13 @@ export default function AdminTabs() {
         component={DashStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Dashboard"
-              iconName="grid-outline"
-              iconFilledName="grid"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/dashboard.json')}
               focused={focused}
+              label="Dashboard"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}
@@ -168,13 +168,13 @@ export default function AdminTabs() {
         component={OwnerStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Owners"
-              iconName="business-outline"
-              iconFilledName="business"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/store.json')}
               focused={focused}
+              label="Owners"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}
@@ -184,13 +184,13 @@ export default function AdminTabs() {
         component={CustomerStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Customers"
-              iconName="people-outline"
-              iconFilledName="people"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/profile.json')}
               focused={focused}
+              label="Customers"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}
@@ -200,13 +200,13 @@ export default function AdminTabs() {
         component={OrderStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Orders"
-              iconName="receipt-outline"
-              iconFilledName="receipt"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/orders.json')}
               focused={focused}
+              label="Orders"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}
@@ -216,13 +216,13 @@ export default function AdminTabs() {
         component={SettingsStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Settings"
-              iconName="settings-outline"
-              iconFilledName="settings"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/settings.json')}
               focused={focused}
+              label="Settings"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}

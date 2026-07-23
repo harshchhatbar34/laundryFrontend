@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
+import { AnimatedLottieTabIcon } from '../components/ui/AnimatedLottieTabIcon';
 
 import HelperDashboardScreen from '../screens/helper/HelperDashboardScreen';
 import HelperOrderDetailScreen from '../screens/helper/HelperOrderDetailScreen';
@@ -28,7 +28,7 @@ const Stack = createNativeStackNavigator<HelperStackParamList>();
 function HelperTabNavigator() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 62 + insets.bottom;
+  const tabBarHeight = 72 + insets.bottom;
 
   return (
     <Tab.Navigator
@@ -38,7 +38,7 @@ function HelperTabNavigator() {
         tabBarItemStyle: {
           alignItems: 'center',
           justifyContent: 'center',
-          paddingBottom: insets.bottom > 0 ? 0 : 4,
+          paddingBottom: 0,
         },
         tabBarStyle: {
           backgroundColor: theme.colors.tabBar,
@@ -60,13 +60,13 @@ function HelperTabNavigator() {
         component={HelperDashboardScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Dashboard"
-              iconName="speedometer-outline"
-              iconFilledName="speedometer"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/dashboard.json')}
               focused={focused}
+              label="Dashboard"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}
@@ -76,13 +76,13 @@ function HelperTabNavigator() {
         component={HelperReportScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Orders"
-              iconName="receipt-outline"
-              iconFilledName="receipt"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/orders.json')}
               focused={focused}
+              label="Orders"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}
@@ -92,13 +92,13 @@ function HelperTabNavigator() {
         component={HelperProfileScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedTabBarItem
-              label="Profile"
-              iconName="person-outline"
-              iconFilledName="person"
+            <AnimatedLottieTabIcon
+              source={require('../assets/lottie/profile.json')}
               focused={focused}
+              label="Profile"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
+              size={44}
             />
           ),
         }}
