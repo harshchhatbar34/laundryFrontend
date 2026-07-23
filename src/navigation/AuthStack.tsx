@@ -12,7 +12,7 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: { tenantCode?: string } | undefined;
   ForgotPassword: undefined;
-  SetPassword: undefined;
+  SetPassword: { token?: string } | undefined;
   VerifyOTP: { userId: string; email: string };
 };
 

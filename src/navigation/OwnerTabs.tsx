@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
 import { getOwnerOrders } from '../api/owner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AnimatedLottieTabIcon } from '../components/ui/AnimatedLottieTabIcon';
+import { PremiumTabBarItem } from '../components/ui/PremiumTabBarItem';
 
 import OwnerDashboardScreen from '../screens/owner/OwnerDashboardScreen';
 import BranchListScreen from '../screens/owner/BranchListScreen';
@@ -115,7 +115,7 @@ function SettingsStackScreen() {
 export default function OwnerTabs() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 72 + insets.bottom;
+  const tabBarHeight = 62 + insets.bottom;
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
@@ -167,13 +167,12 @@ export default function OwnerTabs() {
         component={DashStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedLottieTabIcon
-              source={require('../assets/lottie/dashboard.json')}
+            <PremiumTabBarItem
+              iconName="grid"
               focused={focused}
               label="Dashboard"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
-              size={44}
             />
           ),
         }}
@@ -189,13 +188,12 @@ export default function OwnerTabs() {
         component={BranchStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedLottieTabIcon
-              source={require('../assets/lottie/store.json')}
+            <PremiumTabBarItem
+              iconName="storefront"
               focused={focused}
               label="Branches"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
-              size={44}
             />
           ),
         }}
@@ -211,13 +209,12 @@ export default function OwnerTabs() {
         component={ServiceStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedLottieTabIcon
-              source={require('../assets/lottie/services.json')}
+            <PremiumTabBarItem
+              iconName="layers"
               focused={focused}
               label="Services"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
-              size={44}
             />
           ),
         }}
@@ -233,13 +230,12 @@ export default function OwnerTabs() {
         component={OrderStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedLottieTabIcon
-              source={require('../assets/lottie/orders.json')}
+            <PremiumTabBarItem
+              iconName="receipt"
               focused={focused}
               label="Orders"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
-              size={44}
               badgeCount={pendingCount}
             />
           ),
@@ -256,13 +252,12 @@ export default function OwnerTabs() {
         component={SettingsStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <AnimatedLottieTabIcon
-              source={require('../assets/lottie/settings.json')}
+            <PremiumTabBarItem
+              iconName="settings"
               focused={focused}
               label="Settings"
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
-              size={44}
             />
           ),
         }}
