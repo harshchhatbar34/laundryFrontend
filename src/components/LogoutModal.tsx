@@ -6,14 +6,12 @@ import {
   Modal,
   StyleSheet,
   Animated,
-  Dimensions,
   TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface LogoutModalProps {
   visible: boolean;
@@ -23,23 +21,23 @@ interface LogoutModalProps {
 
 const LogoutModal: React.FC<LogoutModalProps> = ({ visible, onConfirm, onCancel }) => {
   const { theme } = useTheme();
-  const isDark = theme.mode === 'dark';
+  const insets = useSafeAreaInsets();
 
   const slideAnim = useRef(new Animated.Value(300)).current;
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const iconScale = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     if (visible) {
       Animated.parallel([
         Animated.spring(slideAnim, { toValue: 0, damping: 22, stiffness: 200, useNativeDriver: true }),
-        Animated.timing(fadeAnim,  { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
         Animated.spring(iconScale, { toValue: 1, damping: 14, stiffness: 160, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, { toValue: 300, duration: 180, useNativeDriver: true }),
-        Animated.timing(fadeAnim,  { toValue: 0,   duration: 180, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
       ]).start(() => {
         slideAnim.setValue(300);
         iconScale.setValue(0.8);
@@ -49,6 +47,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ visible, onConfirm, onCancel 
 
   // Theme-aware gradient: use primary gradient from theme
   const gradientColors = theme.gradients.primary as [string, string, ...string[]];
+  const bottomPadding = Math.max(insets.bottom + 16, 28);
 
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
@@ -61,7 +60,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ visible, onConfirm, onCancel 
                 {
                   backgroundColor: theme.colors.surface,
                   transform: [{ translateY: slideAnim }],
-                  maxHeight: SCREEN_HEIGHT * 0.35,
+                  paddingBottom: bottomPadding,
                 },
               ]}
             >
@@ -95,7 +94,10 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ visible, onConfirm, onCancel 
                 {/* Cancel */}
                 <TouchableOpacity
                   onPress={onCancel}
-                  style={[styles.cancelBtn, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.border }]}
+                  style={[
+                    styles.cancelBtn,
+                    { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.border },
+                  ]}
                   activeOpacity={0.75}
                 >
                   <Text style={[styles.cancelText, { color: theme.colors.textPrimary }]}>Cancel</Text>
@@ -133,8 +135,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 28,
     alignItems: 'center',
+    width: '100%',
   },
   closeBtn: {
     position: 'absolute',
@@ -145,6 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
   },
   iconWrap: {
     marginBottom: 12,
