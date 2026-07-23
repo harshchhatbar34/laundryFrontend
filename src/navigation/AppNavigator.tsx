@@ -8,7 +8,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { USER_ROLES } from '../utils/constants';
 import AuthStack from './AuthStack';
 import CustomerTabs from './CustomerTabs';
-import HelperStack from './HelperStack';
+import HelperTabs from './HelperTabs';
 import OwnerTabs from './OwnerTabs';
 import AdminTabs from './AdminTabs';
 import { AppDispatch, RootState } from '../store';
@@ -103,7 +103,7 @@ export default function AppNavigator() {
 
     switch (user?.role) {
       case USER_ROLES.HELPER:
-        return <HelperStack />;
+        return <HelperTabs />;
       case USER_ROLES.OWNER:
         return <OwnerTabs />;
       case USER_ROLES.SUPERADMIN:
