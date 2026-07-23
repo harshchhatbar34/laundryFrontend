@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
@@ -118,7 +119,7 @@ function SettingsStackScreen() {
 export default function AdminTabs() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 60 + insets.bottom;
+  const tabBarHeight = 62 + insets.bottom;
 
   return (
     <Tab.Navigator
@@ -126,17 +127,23 @@ export default function AdminTabs() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
+        tabBarItemStyle: {
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingBottom: insets.bottom > 0 ? 0 : 4,
+        },
         tabBarStyle: {
           backgroundColor: theme.colors.tabBar,
           borderTopColor: theme.colors.border,
-          paddingBottom: 0,
-          paddingTop: 0,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
+          paddingTop: 6,
           height: tabBarHeight,
-          elevation: 8,
+          elevation: 12,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.08,
-          shadowRadius: 8,
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
         },
       }}
     >

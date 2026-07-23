@@ -1,6 +1,16 @@
+/**
+ * AnimatedTabBarItem — Premium, modern bottom tab icon + label.
+ *
+ * Design goals (Instagram / WhatsApp style):
+ *  • No giant pill background — instead a thin coloured dot/line indicator
+ *  • Icon springs up slightly when active
+ *  • Label is always visible, never truncated (short labels only)
+ *  • Subtle press-down scale for tactile feel
+ *  • 100% GPU-driven via useNativeDriver
+ */
+
 import React, { useEffect, useRef } from 'react';
 import {
-  TouchableOpacity,
   Animated,
   StyleSheet,
   View,
@@ -13,12 +23,13 @@ export interface AnimatedTabBarItemProps {
   label: string;
   iconName: keyof typeof Ionicons.glyphMap;
   iconFilledName?: keyof typeof Ionicons.glyphMap;
-  /** Passed directly from React Navigation's tabBarIcon({ focused }) */
+  /** Directly from React Navigation tabBarIcon({ focused }) — always reliable */
   focused: boolean;
-  onPress?: () => void;
   activeColor?: string;
   inactiveColor?: string;
   badgeCount?: number;
+  /** Unused when rendered inside tabBarIcon — kept for API compatibility */
+  onPress?: () => void;
 }
 
 export const AnimatedTabBarItem: React.FC<AnimatedTabBarItemProps> = ({
@@ -26,199 +37,145 @@ export const AnimatedTabBarItem: React.FC<AnimatedTabBarItemProps> = ({
   iconName,
   iconFilledName,
   focused,
-  onPress,
   activeColor,
   inactiveColor,
   badgeCount,
 }) => {
   const { theme } = useTheme();
-  const colorActive = activeColor ?? theme.colors.primary;
-  const colorInactive = inactiveColor ?? theme.colors.textMuted;
+  const colorActive = activeColor ?? theme.colors.tabBarActive;
+  const colorInactive = inactiveColor ?? theme.colors.tabBarInactive;
   const iconColor = focused ? colorActive : colorInactive;
 
-  // Spring scale: icon bounces up when focused
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  // Icon bounce up when focused
   const translateYAnim = useRef(new Animated.Value(0)).current;
-  // Pill glow behind the active icon
-  const pillOpacityAnim = useRef(new Animated.Value(0)).current;
+  // Icon scale
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  // Dot indicator under the icon (width expands)
+  const dotScaleXAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
+  const dotOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
+  // Label opacity — always visible but slightly dimmed when inactive
+  const labelOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0.55)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: focused ? 1.12 : 1,
-        friction: 5,
-        tension: 140,
-        useNativeDriver: true,
-      }),
       Animated.spring(translateYAnim, {
-        toValue: focused ? -2 : 0,
+        toValue: focused ? -3 : 0,
         friction: 6,
         tension: 120,
         useNativeDriver: true,
       }),
-      Animated.timing(pillOpacityAnim, {
+      Animated.spring(scaleAnim, {
+        toValue: focused ? 1.15 : 1,
+        friction: 6,
+        tension: 140,
+        useNativeDriver: true,
+      }),
+      Animated.timing(dotScaleXAnim, {
         toValue: focused ? 1 : 0,
-        duration: 200,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+      Animated.timing(dotOpacityAnim, {
+        toValue: focused ? 1 : 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(labelOpacityAnim, {
+        toValue: focused ? 1 : 0.5,
+        duration: 180,
         useNativeDriver: true,
       }),
     ]).start();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focused]);
 
-  // Press-down tactile scale
-  const pressScaleAnim = useRef(new Animated.Value(1)).current;
-  const handlePressIn = () =>
-    Animated.spring(pressScaleAnim, { toValue: 0.88, friction: 4, tension: 200, useNativeDriver: true }).start();
-  const handlePressOut = () =>
-    Animated.spring(pressScaleAnim, { toValue: 1, friction: 5, tension: 130, useNativeDriver: true }).start();
-
   const iconToRender = focused && iconFilledName ? iconFilledName : iconName;
 
-  // When used inside tabBarIcon, onPress is not provided — navigation handles it.
-  // When used standalone (e.g. tabBarButton), onPress is provided.
-  if (onPress) {
-    return (
-      <TouchableOpacity
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={1}
-        style={styles.touchable}
-        accessibilityRole="tab"
-        accessibilityState={{ selected: focused }}
-      >
-        <AnimatedContent
-          scaleAnim={scaleAnim}
-          pressScaleAnim={pressScaleAnim}
-          translateYAnim={translateYAnim}
-          pillOpacityAnim={pillOpacityAnim}
-          colorActive={colorActive}
-          iconToRender={iconToRender}
-          iconColor={iconColor}
-          label={label}
-          focused={focused}
-          badgeCount={badgeCount}
-          badgeColor={theme.colors.error}
-        />
-      </TouchableOpacity>
-    );
-  }
-
-  // Inside tabBarIcon — no wrapping TouchableOpacity needed
   return (
-    <Animated.View
-      style={[
-        styles.iconModeWrapper,
-        {
-          transform: [
-            { scale: Animated.multiply(scaleAnim, pressScaleAnim) },
-            { translateY: translateYAnim },
-          ],
-        },
-      ]}
-    >
-      {/* Pill glow */}
+    <View style={styles.container}>
+      {/* Icon + optional badge */}
       <Animated.View
         style={[
-          styles.pill,
-          { backgroundColor: colorActive + '20', opacity: pillOpacityAnim },
+          styles.iconRow,
+          {
+            transform: [
+              { translateY: translateYAnim },
+              { scale: scaleAnim },
+            ],
+          },
         ]}
-      />
-      {/* Icon */}
-      <View style={styles.iconWrap}>
-        <Ionicons name={iconToRender} size={22} color={iconColor} />
+      >
+        <Ionicons name={iconToRender} size={23} color={iconColor} />
         {badgeCount !== undefined && badgeCount > 0 && (
           <View style={[styles.badge, { backgroundColor: theme.colors.error }]}>
-            <Text style={styles.badgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>
+            <Text style={styles.badgeText}>{badgeCount > 99 ? '99+' : String(badgeCount)}</Text>
           </View>
         )}
-      </View>
+      </Animated.View>
+
       {/* Label */}
-      <Text
-        style={[styles.label, { color: iconColor, fontWeight: focused ? '700' : '500' }]}
+      <Animated.Text
+        style={[
+          styles.label,
+          {
+            color: iconColor,
+            fontWeight: focused ? '700' : '500',
+            opacity: labelOpacityAnim,
+          },
+        ]}
         numberOfLines={1}
       >
         {label}
-      </Text>
-    </Animated.View>
+      </Animated.Text>
+
+      {/* Active dot indicator */}
+      <Animated.View
+        style={[
+          styles.dot,
+          {
+            backgroundColor: colorActive,
+            opacity: dotOpacityAnim,
+            transform: [{ scaleX: dotScaleXAnim }],
+          },
+        ]}
+      />
+    </View>
   );
 };
 
-/** Shared animated content block used both for touchable and icon-mode */
-function AnimatedContent({
-  scaleAnim, pressScaleAnim, translateYAnim, pillOpacityAnim,
-  colorActive, iconToRender, iconColor, label, focused, badgeCount, badgeColor,
-}: any) {
-  return (
-    <Animated.View
-      style={[
-        styles.iconModeWrapper,
-        {
-          transform: [
-            { scale: Animated.multiply(scaleAnim, pressScaleAnim) },
-            { translateY: translateYAnim },
-          ],
-        },
-      ]}
-    >
-      <Animated.View
-        style={[
-          styles.pill,
-          { backgroundColor: colorActive + '20', opacity: pillOpacityAnim },
-        ]}
-      />
-      <View style={styles.iconWrap}>
-        <Ionicons name={iconToRender} size={22} color={iconColor} />
-        {badgeCount !== undefined && badgeCount > 0 && (
-          <View style={[styles.badge, { backgroundColor: badgeColor }]}>
-            <Text style={styles.badgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>
-          </View>
-        )}
-      </View>
-      <Text style={[styles.label, { color: iconColor, fontWeight: focused ? '700' : '500' }]} numberOfLines={1}>
-        {label}
-      </Text>
-    </Animated.View>
-  );
-}
-
 const styles = StyleSheet.create({
-  touchable: {
-    flex: 1,
+  container: {
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 52,
+    paddingTop: 6,
+    paddingBottom: 2,
+    width: 64,
   },
-  iconModeWrapper: {
+  iconRow: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 18,
-    minWidth: 52,
-  },
-  pill: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 18,
-  },
-  iconWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 26,
-    minWidth: 26,
+    width: 32,
+    height: 28,
   },
   label: {
-    fontSize: 11,
+    fontSize: 10,
     marginTop: 3,
-    letterSpacing: -0.1,
+    letterSpacing: 0.1,
     textAlign: 'center',
+    width: 64,
+  },
+  dot: {
+    marginTop: 4,
+    width: 18,
+    height: 3,
+    borderRadius: 2,
   },
   badge: {
     position: 'absolute',
-    top: -5,
-    right: -9,
-    minWidth: 16,
-    height: 16,
+    top: -4,
+    right: -8,
+    minWidth: 15,
+    height: 15,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -226,8 +183,8 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
-    lineHeight: 12,
+    lineHeight: 11,
   },
 });
