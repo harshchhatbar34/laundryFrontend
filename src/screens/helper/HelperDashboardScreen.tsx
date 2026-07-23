@@ -139,9 +139,26 @@ export default function HelperDashboardScreen({ navigation }: Props) {
 
   return (
     <ScreenWrapper>
-      <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}>
-        <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary }]}>{getGreeting()}</Text>
-        <Text style={[theme.typography.h2, { color: theme.colors.textPrimary }]}>{user?.name || 'Helper'} 🛵</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}>
+        <View>
+          <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary }]}>{getGreeting()}</Text>
+          <Text style={[theme.typography.h2, { color: theme.colors.textPrimary }]}>{user?.name || 'Helper'} 🛵</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Profile')}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 21,
+            backgroundColor: theme.colors.primary + '15',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: theme.colors.primary + '30',
+          }}
+        >
+          <Ionicons name="person-outline" size={20} color={theme.colors.primary} />
+        </TouchableOpacity>
       </View>
       <View style={styles.filterRow}>
         {FILTERS.map((f) => (
