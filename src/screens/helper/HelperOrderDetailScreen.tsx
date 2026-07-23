@@ -260,6 +260,7 @@ export default function HelperOrderDetailScreen({ route, navigation }: Props) {
 
   const openCustomerNavigation = (addrObj: any) => {
     if (!addrObj) return;
+
     const lat = addrObj.latitude || addrObj.lat || (addrObj.location?.coordinates && addrObj.location.coordinates[1]);
     const lng = addrObj.longitude || addrObj.lng || (addrObj.location?.coordinates && addrObj.location.coordinates[0]);
 
@@ -273,9 +274,6 @@ export default function HelperOrderDetailScreen({ route, navigation }: Props) {
       addrObj.pincode,
       'India',
     ].filter(Boolean).join(', ');
-
-    const lat = addrObj.latitude || addrObj.lat || (addrObj.location?.coordinates && addrObj.location.coordinates[1]);
-    const lng = addrObj.longitude || addrObj.lng || (addrObj.location?.coordinates && addrObj.location.coordinates[0]);
 
     // Always pass address so Google Maps shows location name, not raw coordinates
     openGoogleMapsNavigation(lat, lng, fullAddress);
