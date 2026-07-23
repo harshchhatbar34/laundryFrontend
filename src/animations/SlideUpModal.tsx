@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { palette } from '../theme/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

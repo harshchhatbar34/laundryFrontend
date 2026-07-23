@@ -70,3 +70,12 @@ export const updateBill = async (id: string, items: any[]): Promise<any> => {
     throw error;
   }
 };
+
+export const getHelperStats = async (params?: Record<string, any>, config?: any): Promise<any> => {
+  try {
+    const response = await api.get('/helper/stats', { params, ...config });
+    return response.data;
+  } catch (error) {
+    return { data: { totalOrders: 0, totalRevenue: 0, cashCollected: 0, upiCollected: 0 } };
+  }
+};

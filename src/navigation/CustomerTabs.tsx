@@ -88,6 +88,8 @@ function ProfileStackScreen() {
   );
 }
 
+import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
+
 export default function CustomerTabs() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -100,71 +102,66 @@ export default function CustomerTabs() {
     const fetchUpdateCount = async (isSilent = false) => {
       try {
         const res = await getOrders(undefined, isSilent ? { hideLoader: true } : undefined);
-        if (res?.data) {
-          const list = Array.isArray(res.data) ? res.data : res.data.orders || [];
-          const count = list.filter((order: any) => order.billUpdated && !order.billConfirmed).length;
-          setUpdateCount(count);
-        }
+        const orders = Array.isArray(res?.data) ? res.data : res?.data?.orders || [];
+        const count = orders.filter((o: any) => o.billUpdated && !o.billConfirmed).length;
+        setUpdateCount(count);
       } catch (e) {
-        console.log('Error fetching order update count:', e);
+        console.log(e);
       }
     };
 
     fetchUpdateCount(false);
-
-    // Poll every 15 seconds silently to keep the badge fresh
     const interval = setInterval(() => fetchUpdateCount(true), 15000);
     return () => clearInterval(interval);
   }, []);
 
+  const getTabConfig = (routeName: string) => {
+    switch (routeName) {
+      case 'Home':
+        return { label: 'Home', icon: 'home-outline' as const, filled: 'home' as const };
+      case 'Cart':
+        return { label: 'Cart', icon: 'cart-outline' as const, filled: 'cart' as const, badge: cartItemCount };
+      case 'Orders':
+        return { label: 'Orders', icon: 'receipt-outline' as const, filled: 'receipt' as const, badge: updateCount };
+      case 'Profile':
+      default:
+        return { label: 'Profile', icon: 'person-outline' as const, filled: 'person' as const };
+    }
+  };
 
   return (
     <Tab.Navigator
       id="CustomerTabs"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarIcon: ({ focused, color }) => {
-          if (route.name === 'Cart') {
+      screenOptions={({ route }) => {
+        const config = getTabConfig(route.name);
+        return {
+          headerShown: false,
+          tabBarActiveTintColor: theme.colors.tabBarActive,
+          tabBarInactiveTintColor: theme.colors.tabBarInactive,
+          tabBarButton: (props) => {
+            const focused = props.accessibilityState?.selected ?? false;
             return (
-              <View style={{ width: 28, height: 28, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={focused ? 'cart' : 'cart-outline'} size={24} color={color} />
-                {cartItemCount > 0 && (
-                  <Text style={{
-                    position: 'absolute',
-                    top: -6,
-                    right: -4,
-                    minWidth: 16,
-                    height: 16,
-                    borderRadius: 8,
-                    backgroundColor: 'transparent',
-                    color: color,
-                    fontSize: 11,
-                    fontWeight: '800',
-                    textAlign: 'center',
-                    lineHeight: 16,
-                  }}>
-                    {cartItemCount > 99 ? '99+' : cartItemCount}
-                  </Text>
-                )}
-              </View>
+              <AnimatedTabBarItem
+                label={config.label}
+                iconName={config.icon}
+                iconFilledName={config.filled}
+                focused={focused}
+                onPress={props.onPress}
+                activeColor={theme.colors.tabBarActive}
+                inactiveColor={theme.colors.tabBarInactive}
+                badgeCount={config.badge}
+              />
             );
-          }
-          const icons: Record<string, keyof typeof Ionicons.glyphMap> = { 
-            Home: focused ? 'home' : 'home-outline', 
-            Orders: focused ? 'receipt' : 'receipt-outline', 
-            Profile: focused ? 'person' : 'person-outline' 
-          };
-          return <Ionicons name={icons[route.name]} size={22} color={color} />;
-        },
-        tabBarActiveTintColor: theme.colors.tabBarActive,
-        tabBarInactiveTintColor: theme.colors.tabBarInactive,
-        tabBarStyle: {
-          backgroundColor: theme.colors.tabBar,
-          borderTopColor: theme.colors.border,
-          paddingBottom: 8 + insets.bottom, paddingTop: 8, height: tabBarHeight,
-        },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-      })}
+          },
+          tabBarStyle: {
+            backgroundColor: theme.colors.tabBar,
+            borderTopColor: theme.colors.border,
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+            paddingTop: 6,
+            height: tabBarHeight,
+          },
+        };
+      }}
     >
       <Tab.Screen 
         name="Home" 

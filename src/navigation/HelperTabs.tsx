@@ -27,52 +27,65 @@ export type HelperTabParamList = {
 const Tab = createBottomTabNavigator<HelperTabParamList>();
 const Stack = createNativeStackNavigator<HelperStackParamList>();
 
+import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
+
 function HelperTabNavigator() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const isDark = theme.mode === 'dark';
 
+  const getTabConfig = (routeName: string) => {
+    switch (routeName) {
+      case 'Dashboard':
+        return { label: 'Dashboard', icon: 'speedometer-outline' as const, filled: 'speedometer' as const };
+      case 'Orders':
+        return { label: 'Orders', icon: 'receipt-outline' as const, filled: 'receipt' as const };
+      case 'Profile':
+      default:
+        return { label: 'Profile', icon: 'person-outline' as const, filled: 'person' as const };
+    }
+  };
+
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.borderLight,
-          height: 60 + (insets.bottom > 0 ? insets.bottom : 10),
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
-          paddingTop: 8,
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: isDark ? 0.3 : 0.08,
-          shadowRadius: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-          marginTop: 2,
-        },
-        tabBarIcon: ({ color, size, focused }) => {
-          let iconName: keyof typeof Ionicons.glyphMap = 'ellipse-outline';
-
-          if (route.name === 'Dashboard') {
-            iconName = focused ? 'speedometer' : 'speedometer-outline';
-          } else if (route.name === 'Orders') {
-            iconName = focused ? 'receipt' : 'receipt-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-
-          return <Ionicons name={iconName} size={size || 22} color={color} />;
-        },
-      })}
+      screenOptions={({ route }) => {
+        const config = getTabConfig(route.name);
+        return {
+          headerShown: false,
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.textMuted,
+          tabBarButton: (props) => {
+            const focused = props.accessibilityState?.selected ?? false;
+            return (
+              <AnimatedTabBarItem
+                label={config.label}
+                iconName={config.icon}
+                iconFilledName={config.filled}
+                focused={focused}
+                onPress={props.onPress}
+                activeColor={theme.colors.primary}
+                inactiveColor={theme.colors.textMuted}
+              />
+            );
+          },
+          tabBarStyle: {
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.borderLight,
+            height: 60 + (insets.bottom > 0 ? insets.bottom : 10),
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+            paddingTop: 6,
+            elevation: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: isDark ? 0.3 : 0.08,
+            shadowRadius: 8,
+          },
+        };
+      }}
     >
-      <Tab.Screen name="Dashboard" component={HelperDashboardScreen} options={{ tabBarLabel: 'Dashboard' }} />
-      <Tab.Screen name="Orders" component={HelperReportScreen} options={{ tabBarLabel: 'Orders' }} />
-      <Tab.Screen name="Profile" component={HelperProfileScreen} options={{ tabBarLabel: 'Profile' }} />
+      <Tab.Screen name="Dashboard" component={HelperDashboardScreen as any} options={{ tabBarLabel: 'Dashboard' }} />
+      <Tab.Screen name="Orders" component={HelperReportScreen as any} options={{ tabBarLabel: 'Orders' }} />
+      <Tab.Screen name="Profile" component={HelperProfileScreen as any} options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>
   );
 }

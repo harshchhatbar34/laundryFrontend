@@ -115,34 +115,61 @@ function SettingsStackScreen() {
   );
 }
 
+import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
+
 export default function AdminTabs() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 60 + insets.bottom;
+
+  const getTabConfig = (routeName: string) => {
+    switch (routeName) {
+      case 'Dashboard':
+        return { label: 'Dashboard', icon: 'grid-outline' as const, filled: 'grid' as const };
+      case 'Owners':
+        return { label: 'Owners', icon: 'business-outline' as const, filled: 'business' as const };
+      case 'Customers':
+        return { label: 'Customers', icon: 'people-outline' as const, filled: 'people' as const };
+      case 'Orders':
+        return { label: 'Orders', icon: 'receipt-outline' as const, filled: 'receipt' as const };
+      case 'Settings':
+      default:
+        return { label: 'Settings', icon: 'settings-outline' as const, filled: 'settings' as const };
+    }
+  };
+
   return (
     <Tab.Navigator
       id="AdminTabs"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarIcon: ({ focused, color }) => {
-          const icons: Record<string, keyof typeof Ionicons.glyphMap> = { 
-            Dashboard: focused ? 'grid' : 'grid-outline', 
-            Owners: focused ? 'business' : 'business-outline',
-            Customers: focused ? 'people' : 'people-outline', 
-            Orders: focused ? 'receipt' : 'receipt-outline',
-            Settings: focused ? 'settings' : 'settings-outline' 
-          };
-          return <Ionicons name={icons[route.name]} size={22} color={color} />;
-        },
-        tabBarActiveTintColor: theme.colors.tabBarActive, 
-        tabBarInactiveTintColor: theme.colors.tabBarInactive,
-        tabBarStyle: { 
-          backgroundColor: theme.colors.tabBar, 
-          borderTopColor: theme.colors.border, 
-          paddingBottom: 8 + insets.bottom, paddingTop: 8, height: tabBarHeight 
-        },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
-      })}
+      screenOptions={({ route }) => {
+        const config = getTabConfig(route.name);
+        return {
+          headerShown: false,
+          tabBarActiveTintColor: theme.colors.tabBarActive,
+          tabBarInactiveTintColor: theme.colors.tabBarInactive,
+          tabBarButton: (props) => {
+            const focused = props.accessibilityState?.selected ?? false;
+            return (
+              <AnimatedTabBarItem
+                label={config.label}
+                iconName={config.icon}
+                iconFilledName={config.filled}
+                focused={focused}
+                onPress={props.onPress}
+                activeColor={theme.colors.tabBarActive}
+                inactiveColor={theme.colors.tabBarInactive}
+              />
+            );
+          },
+          tabBarStyle: {
+            backgroundColor: theme.colors.tabBar,
+            borderTopColor: theme.colors.border,
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+            paddingTop: 6,
+            height: tabBarHeight,
+          },
+        };
+      }}
     >
       <Tab.Screen name="Dashboard" component={DashStackScreen} />
       <Tab.Screen name="Owners" component={OwnerStackScreen} />

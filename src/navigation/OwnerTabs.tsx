@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { getOwnerOrders } from '../api/owner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnimatedTabBarItem } from '../components/ui/AnimatedTabBarItem';
 
 import OwnerDashboardScreen from '../screens/owner/OwnerDashboardScreen';
 import BranchListScreen from '../screens/owner/BranchListScreen';
@@ -137,30 +138,54 @@ export default function OwnerTabs() {
     return () => clearInterval(interval);
   }, []);
 
+  const getTabConfig = (routeName: string) => {
+    switch (routeName) {
+      case 'Dashboard':
+        return { label: 'Dashboard', icon: 'grid-outline' as const, filled: 'grid' as const };
+      case 'Branches':
+        return { label: 'Branches', icon: 'storefront-outline' as const, filled: 'storefront' as const };
+      case 'Services':
+        return { label: 'Services', icon: 'layers-outline' as const, filled: 'layers' as const };
+      case 'Orders':
+        return { label: 'Orders', icon: 'receipt-outline' as const, filled: 'receipt' as const };
+      case 'Settings':
+      default:
+        return { label: 'Settings', icon: 'settings-outline' as const, filled: 'settings' as const };
+    }
+  };
+
   return (
     <Tab.Navigator
       id="OwnerTabs"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarIcon: ({ focused, color }) => {
-          const icons: Record<string, keyof typeof Ionicons.glyphMap> = { 
-            Dashboard: focused ? 'grid' : 'grid-outline', 
-            Branches: focused ? 'storefront' : 'storefront-outline',
-            Services: focused ? 'layers' : 'layers-outline', 
-            Orders: focused ? 'receipt' : 'receipt-outline', 
-            Settings: focused ? 'settings' : 'settings-outline' 
-          };
-          return <Ionicons name={icons[route.name]} size={22} color={color} />;
-        },
-        tabBarActiveTintColor: theme.colors.tabBarActive, 
-        tabBarInactiveTintColor: theme.colors.tabBarInactive,
-        tabBarStyle: { 
-          backgroundColor: theme.colors.tabBar, 
-          borderTopColor: theme.colors.border, 
-          paddingBottom: 8 + insets.bottom, paddingTop: 8, height: tabBarHeight 
-        },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
-      })}
+      screenOptions={({ route }) => {
+        const config = getTabConfig(route.name);
+        return {
+          headerShown: false,
+          tabBarActiveTintColor: theme.colors.tabBarActive,
+          tabBarInactiveTintColor: theme.colors.tabBarInactive,
+          tabBarButton: (props) => {
+            const focused = props.accessibilityState?.selected ?? false;
+            return (
+              <AnimatedTabBarItem
+                label={config.label}
+                iconName={config.icon}
+                iconFilledName={config.filled}
+                focused={focused}
+                onPress={props.onPress}
+                activeColor={theme.colors.tabBarActive}
+                inactiveColor={theme.colors.tabBarInactive}
+              />
+            );
+          },
+          tabBarStyle: {
+            backgroundColor: theme.colors.tabBar,
+            borderTopColor: theme.colors.border,
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+            paddingTop: 6,
+            height: tabBarHeight,
+          },
+        };
+      }}
     >
       <Tab.Screen 
         name="Dashboard" 
