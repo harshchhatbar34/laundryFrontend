@@ -7,27 +7,24 @@
  *  - Amazon/LinkedIn: bold filled icons (same weight active & inactive)
  *  - Zepto: colored active state with smooth transition
  *
- * Design:
- *  - FILLED icons at 25px for BOTH states (bold, not outline)
- *  - Active: brand pill background + white icon + colored label
- *  - Inactive: grey icon at 55% opacity, no background
- *  - Spring-physics pill width animation (expand/collapse)
- *  - Icon scale bounce on tab press
- *  - Zero dependency on Lottie or external animation libs
+ * Platform enhancements:
+ *  - iOS: Haptic feedback (ImpactFeedbackStyle.Light) on tab focus
+ *  - Android: No haptics — zero impact on Android behaviour or build
  */
 
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 export interface PremiumTabBarItemProps {
-  /** Filled icon name (NO -outline suffix — we use filled for both states) */
+  /** Filled icon name (NO -outline suffix) */
   iconName: keyof typeof Ionicons.glyphMap;
   label: string;
   focused: boolean;
   activeColor: string;
   inactiveColor: string;
-  /** Pill background color. Defaults to activeColor at 15% opacity */
+  /** Pill background color. Defaults to activeColor at 13% opacity */
   pillColor?: string;
   badgeCount?: number;
 }
@@ -41,6 +38,8 @@ export const PremiumTabBarItem: React.FC<PremiumTabBarItemProps> = ({
   pillColor,
   badgeCount,
 }) => {
+  const isFirstRender = useRef(true);
+
   // Pill expand/shrink
   const pillWidthAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
   const pillOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
@@ -48,33 +47,36 @@ export const PremiumTabBarItem: React.FC<PremiumTabBarItemProps> = ({
   // Icon scale bounce
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  // Icon colour interpolation (grey ↔ white)
-  const iconColorAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
-
   // Label opacity
-  const labelOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0.55)).current;
+  const labelOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0.5)).current;
 
   useEffect(() => {
-    // Pill expand/collapse
+    // Skip haptics on first render (initial mount)
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    // ✅ iOS-ONLY haptic feedback — zero effect on Android build or runtime
+    if (focused && Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {
+        // Silently ignore if haptics not available
+      });
+    }
+
+    // Pill expand/collapse with spring physics
     Animated.parallel([
       Animated.spring(pillWidthAnim, {
         toValue: focused ? 1 : 0,
         friction: 7,
         tension: 100,
-        useNativeDriver: false, // width cannot use native driver
+        useNativeDriver: false,
       }),
       Animated.timing(pillOpacityAnim, {
         toValue: focused ? 1 : 0,
-        duration: 200,
+        duration: 180,
         useNativeDriver: true,
       }),
-      // Icon colour
-      Animated.timing(iconColorAnim, {
-        toValue: focused ? 1 : 0,
-        duration: 200,
-        useNativeDriver: false,
-      }),
-      // Label
       Animated.timing(labelOpacityAnim, {
         toValue: focused ? 1 : 0.5,
         duration: 180,
@@ -83,7 +85,7 @@ export const PremiumTabBarItem: React.FC<PremiumTabBarItemProps> = ({
     ]).start();
 
     if (focused) {
-      // Bounce the icon when becoming active
+      // Spring bounce icon on focus
       Animated.sequence([
         Animated.spring(scaleAnim, {
           toValue: 1.22,
@@ -99,17 +101,18 @@ export const PremiumTabBarItem: React.FC<PremiumTabBarItemProps> = ({
         }),
       ]).start();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focused]);
 
   const pillWidth = pillWidthAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [36, 64],
+    // iOS: slightly larger pill breathing room
+    outputRange: [36, Platform.OS === 'ios' ? 68 : 64],
   });
 
   const pillHeight = pillWidthAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 30],
+    outputRange: [0, Platform.OS === 'ios' ? 32 : 28],
   });
 
   const pillBg = pillColor ?? activeColor + '22'; // 13% opacity
@@ -117,7 +120,7 @@ export const PremiumTabBarItem: React.FC<PremiumTabBarItemProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Pill background */}
+      {/* Animated pill background */}
       <Animated.View
         style={[
           styles.pill,
@@ -131,7 +134,7 @@ export const PremiumTabBarItem: React.FC<PremiumTabBarItemProps> = ({
         ]}
       />
 
-      {/* Icon on top of pill */}
+      {/* Icon with spring scale bounce */}
       <Animated.View
         style={[
           styles.iconWrap,
@@ -143,7 +146,7 @@ export const PremiumTabBarItem: React.FC<PremiumTabBarItemProps> = ({
           size={25}
           color={iconColor}
         />
-        {/* Badge */}
+        {/* Badge count */}
         {badgeCount !== undefined && badgeCount > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>

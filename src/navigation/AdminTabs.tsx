@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
@@ -132,8 +133,9 @@ export default function AdminTabs() {
           justifyContent: 'center',
           paddingBottom: 0,
         },
+        // iOS: transparent so BlurView shows through; Android: solid background
         tabBarStyle: {
-          backgroundColor: theme.colors.tabBar,
+          backgroundColor: Platform.OS === 'ios' ? 'transparent' : theme.colors.tabBar,
           borderTopColor: theme.colors.border,
           borderTopWidth: StyleSheet.hairlineWidth,
           paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
@@ -142,9 +144,19 @@ export default function AdminTabs() {
           elevation: 12,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
+          shadowOpacity: Platform.OS === 'ios' ? 0.18 : 0.1,
+          shadowRadius: Platform.OS === 'ios' ? 16 : 10,
+          position: Platform.OS === 'ios' ? 'absolute' : 'relative',
         },
+        tabBarBackground: Platform.OS === 'ios'
+          ? () => (
+              <BlurView
+                intensity={85}
+                tint={theme.dark ? 'dark' : 'light'}
+                style={StyleSheet.absoluteFill}
+              />
+            )
+          : undefined,
       }}
     >
       <Tab.Screen
