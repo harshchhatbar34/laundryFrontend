@@ -61,13 +61,13 @@ export const ReportsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, s
     <View style={[styles.wrap, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         {/* Baseline */}
-        <Path d="M3 20H21" stroke={color} strokeWidth="2" strokeLinecap="round" />
+        <Path d="M3 20H21" stroke={color} strokeWidth="1.1" strokeLinecap="round" />
 
         {/* Bar 1 */}
         <G x={5.75} y={20}>
           <AnimatedG style={{ transform: [{ scaleY: bar1Scale }] }}>
             <G x={-5.75} y={-20}>
-              <Rect x="4" y="13" width="3.5" height="7" rx="1.5" fill={softFill} stroke={color} strokeWidth="1.8" />
+              <Rect x="4" y="13" width="3.5" height="7" rx="1.5" fill={softFill} stroke={color} strokeWidth="1.1" />
             </G>
           </AnimatedG>
         </G>
@@ -76,7 +76,7 @@ export const ReportsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, s
         <G x={12} y={20}>
           <AnimatedG style={{ transform: [{ scaleY: bar2Scale }] }}>
             <G x={-12} y={-20}>
-              <Rect x="10.25" y="8" width="3.5" height="12" rx="1.5" fill={softFill} stroke={color} strokeWidth="1.8" />
+              <Rect x="10.25" y="8" width="3.5" height="12" rx="1.5" fill={softFill} stroke={color} strokeWidth="1.1" />
             </G>
           </AnimatedG>
         </G>
@@ -85,14 +85,14 @@ export const ReportsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, s
         <G x={18.25} y={20}>
           <AnimatedG style={{ transform: [{ scaleY: bar3Scale }] }}>
             <G x={-18.25} y={-20}>
-              <Rect x="16.5" y="4" width="3.5" height="16" rx="1.5" fill={softFill} stroke={color} strokeWidth="1.8" />
+              <Rect x="16.5" y="4" width="3.5" height="16" rx="1.5" fill={softFill} stroke={color} strokeWidth="1.1" />
             </G>
           </AnimatedG>
         </G>
 
         {/* Trend Arrow */}
         <AnimatedG style={{ opacity: trendOpacity }}>
-          <Path d="M4 11L10 6L16 9L21 3" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <Path d="M4 11L10 6L16 9L21 3" stroke="#10B981" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
           <Path d="M17.5 3H21V6.5" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </AnimatedG>
       </Svg>

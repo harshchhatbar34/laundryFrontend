@@ -1,4 +1,6 @@
 export { DashboardLivingIcon } from './DashboardLivingIcon';
+export { HomeLivingIcon } from './HomeLivingIcon';
+export { ProfileLivingIcon } from './ProfileLivingIcon';
 export { BranchesLivingIcon } from './BranchesLivingIcon';
 export { ServicesLivingIcon } from './ServicesLivingIcon';
 export { OrdersLivingIcon } from './OrdersLivingIcon';

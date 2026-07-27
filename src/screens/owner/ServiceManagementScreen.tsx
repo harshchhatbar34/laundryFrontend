@@ -23,11 +23,23 @@ export default function ServiceManagementScreen({ navigation }: Props) {
   const [tab, setTab] = useState('Services');
   const [data, setData] = useState<{ services: any[]; materials: any[]; items: any[]; prices: any[] }>({ services: [], materials: [], items: [], prices: [] });
 
-  const fetch = async () => {
-    try { const r = await getOwnerServices(); if (r?.data) setData(r.data); } catch (e) { console.log(e); }
+  const fetch = async (isSilent = false) => {
+    try {
+      const r = await getOwnerServices(isSilent ? { hideLoader: true } : undefined);
+      if (r?.data) setData(r.data);
+    } catch (e) {
+      console.log(e);
+    }
   };
-  useEffect(() => { fetch(); }, []);
-  useEffect(() => { const u = navigation.addListener('focus', fetch); return u; }, [navigation, fetch]);
+
+  useEffect(() => {
+    const hasData = data.services.length > 0 || data.materials.length > 0 || data.items.length > 0;
+    fetch(hasData);
+    const u = navigation.addListener('focus', () => {
+      fetch(true); // silent fetch on menu focus
+    });
+    return u;
+  }, [navigation]);
 
   const handleDelete = (id: string, type: string) => {
     Alert.alert('Delete', 'Are you sure?', [

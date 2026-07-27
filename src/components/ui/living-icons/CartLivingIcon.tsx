@@ -1,8 +1,14 @@
+/**
+ * CartLivingIcon — Zomato-Style Cart Micro-Interaction (Fixed Layout)
+ *
+ * All animation contained within size×size bounds using overflow:hidden.
+ * Animated.View wrappers on native thread (useNativeDriver: true).
+ * No layout breaking — speed lines clipped within icon boundary.
+ */
+
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
-import Svg, { Path, Circle, G } from 'react-native-svg';
-
-const AnimatedG = Animated.createAnimatedComponent(G as any);
+import Svg, { Path, Circle } from 'react-native-svg';
 
 interface LivingIconProps {
   focused: boolean;
@@ -11,110 +17,173 @@ interface LivingIconProps {
 }
 
 export const CartLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 24 }) => {
-  const rollX = useRef(new Animated.Value(0)).current;
-  const compressY = useRef(new Animated.Value(0)).current;
-  const wheelRot = useRef(new Animated.Value(0)).current;
-  const frontWheelIdleRot = useRef(new Animated.Value(0)).current;
+  const cartX = useRef(new Animated.Value(0)).current;
+  const cartRotate = useRef(new Animated.Value(0)).current;
+  const linesOpacity = useRef(new Animated.Value(0)).current;
+  const linesX = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (focused) {
-      Animated.sequence([
-        Animated.timing(compressY, { toValue: 1.5, duration: 40, useNativeDriver: true }),
-        Animated.parallel([
-          Animated.spring(compressY, { toValue: 0, friction: 5, tension: 180, useNativeDriver: true }),
-          Animated.sequence([
-            Animated.timing(rollX, { toValue: 4, duration: 130, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-            Animated.spring(rollX, { toValue: 0, friction: 4, tension: 150, useNativeDriver: true }),
-          ]),
-          Animated.sequence([
-            Animated.timing(wheelRot, { toValue: 1, duration: 130, useNativeDriver: true }),
-            Animated.spring(wheelRot, { toValue: 0, friction: 5, tension: 140, useNativeDriver: true }),
-          ]),
-        ]),
-      ]).start();
-    } else {
-      rollX.setValue(0);
-      compressY.setValue(0);
-      wheelRot.setValue(0);
+    if (!focused) {
+      cartX.setValue(0);
+      cartRotate.setValue(0);
+      linesOpacity.setValue(0);
+      linesX.setValue(0);
+      return;
     }
-  }, [focused, rollX, compressY, wheelRot]);
 
-  // Idle Animation: Front wheel rotates 30°
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    const triggerWheelTwitch = () => {
-      if (!focused) {
+    cartX.setValue(0);
+    cartRotate.setValue(0);
+    linesOpacity.setValue(0);
+    linesX.setValue(0);
+
+    const NT = { useNativeDriver: true };
+
+    Animated.sequence([
+      // Phase 1: Anticipation — lean back (0–40ms)
+      Animated.timing(cartRotate, {
+        toValue: -1,
+        duration: 40,
+        easing: Easing.out(Easing.quad),
+        ...NT,
+      }),
+
+      // Phase 2+3: Roll forward + speed lines (40–180ms)
+      Animated.parallel([
+        Animated.timing(cartX, {
+          toValue: 5,
+          duration: 130,
+          easing: Easing.out(Easing.cubic),
+          ...NT,
+        }),
+        Animated.timing(cartRotate, {
+          toValue: 1.5,
+          duration: 100,
+          easing: Easing.out(Easing.quad),
+          ...NT,
+        }),
+        // Speed lines: flash in then slide left and fade
         Animated.sequence([
-          Animated.timing(frontWheelIdleRot, { toValue: 1, duration: 200, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-          Animated.timing(frontWheelIdleRot, { toValue: 0, duration: 300, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        ]).start();
-      }
-      timer = setTimeout(triggerWheelTwitch, 5500 + Math.random() * 2000);
+          Animated.parallel([
+            Animated.timing(linesOpacity, { toValue: 1, duration: 25, ...NT }),
+            Animated.timing(linesX, {
+              toValue: -6,
+              duration: 120,
+              easing: Easing.out(Easing.quad),
+              ...NT,
+            }),
+          ]),
+          Animated.timing(linesOpacity, {
+            toValue: 0,
+            duration: 80,
+            easing: Easing.in(Easing.quad),
+            ...NT,
+          }),
+        ]),
+      ]),
+
+      // Phase 4+5: Spring back with overshoot (180–300ms)
+      Animated.parallel([
+        Animated.spring(cartX, { toValue: 0, friction: 4, tension: 200, ...NT }),
+        Animated.spring(cartRotate, { toValue: 0, friction: 5, tension: 180, ...NT }),
+      ]),
+    ]).start();
+  }, [focused, cartX, cartRotate, linesOpacity, linesX]);
+
+  // Gentle idle nudge every 6–8s while focused
+  useEffect(() => {
+    if (!focused) return;
+    let timer: NodeJS.Timeout;
+    const NT = { useNativeDriver: true };
+    const nudge = () => {
+      Animated.sequence([
+        Animated.timing(cartRotate, {
+          toValue: 0.4,
+          duration: 120,
+          easing: Easing.out(Easing.quad),
+          ...NT,
+        }),
+        Animated.spring(cartRotate, { toValue: 0, friction: 5, tension: 200, ...NT }),
+      ]).start();
+      timer = setTimeout(nudge, 6000 + Math.random() * 2000);
     };
-
-    timer = setTimeout(triggerWheelTwitch, 3800);
+    timer = setTimeout(nudge, 6500);
     return () => clearTimeout(timer);
-  }, [focused, frontWheelIdleRot]);
+  }, [focused, cartRotate]);
 
-  const wheelRotateInterpolate = wheelRot.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const frontWheelIdleInterpolate = frontWheelIdleRot.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '45deg'],
+  const rotateDeg = cartRotate.interpolate({
+    inputRange: [-1, 0, 1.5],
+    outputRange: ['-2.5deg', '0deg', '1.5deg'],
   });
 
   const softFill = focused ? color + '22' : 'none';
 
   return (
+    // Outer container — clips all children to prevent layout breaking
     <View style={[styles.wrap, { width: size, height: size }]}>
-      {/* Expanded viewBox="-1 -1 26 25" so forward rolling cart never clips */}
-      <Svg width={size} height={size} viewBox="-1 -1 26 25" fill="none">
-        {/* Main Cart Body */}
-        <AnimatedG style={{ transform: [{ translateX: rollX }, { translateY: compressY }] }}>
-          {/* Cart basket */}
+
+      {/* Speed lines — inside the icon bounds, left-anchored */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.lines,
+          {
+            opacity: linesOpacity,
+            transform: [{ translateX: linesX }],
+          },
+        ]}
+      >
+        <Svg width={10} height={size} viewBox={`0 0 10 ${size}`} fill="none">
+          <Path d="M1 7 H10" stroke={color} strokeWidth="1" strokeLinecap="round" />
+          <Path d="M0 12 H10" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+          <Path d="M1 17 H10" stroke={color} strokeWidth="1" strokeLinecap="round" />
+        </Svg>
+      </Animated.View>
+
+      {/* Cart icon — rolls forward and tilts on native thread */}
+      <Animated.View
+        style={{
+          transform: [
+            { translateX: cartX },
+            { rotate: rotateDeg },
+          ],
+        }}
+      >
+        <Svg width={size} height={size} viewBox="1 2 22 21" fill="none">
+          {/* Basket */}
           <Path
             d="M2 3H4.5L7.1 14.3C7.2 14.7 7.6 15 8 15H18.4C18.8 15 19.2 14.7 19.3 14.3L21.5 6H6"
             stroke={color}
-            strokeWidth="2"
+            strokeWidth="1.1"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill={softFill}
           />
+          {/* Handle */}
+          <Path d="M17 9H22" stroke={color} strokeWidth="1.1" strokeLinecap="round" />
+          {/* Rear wheel */}
+          <Circle cx="8.5" cy="19.5" r="2" stroke={color} strokeWidth="1.1" fill={softFill} />
+          <Path d="M8.5 17.5V21.5 M6.5 19.5H10.5" stroke={color} strokeWidth="0.9" />
+          {/* Front wheel */}
+          <Circle cx="17.5" cy="19.5" r="2" stroke={color} strokeWidth="1.1" fill={softFill} />
+          <Path d="M17.5 17.5V21.5 M15.5 19.5H19.5" stroke={color} strokeWidth="0.9" />
+        </Svg>
+      </Animated.View>
 
-          <Path d="M16 9H21" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-
-          {/* Rear Wheel */}
-          <G x={8.5} y={19.5}>
-            <AnimatedG style={{ transform: [{ rotate: wheelRotateInterpolate }] }}>
-              <G x={-8.5} y={-19.5}>
-                <Circle cx="8.5" cy="19.5" r="2" fill={softFill} stroke={color} strokeWidth="2" />
-                <Path d="M8.5 17.5V21.5" stroke={color} strokeWidth="1" />
-              </G>
-            </AnimatedG>
-          </G>
-
-          {/* Front Wheel */}
-          <G x={17.5} y={19.5}>
-            <AnimatedG
-              style={{
-                transform: [{ rotate: focused ? wheelRotateInterpolate : frontWheelIdleInterpolate }],
-              }}
-            >
-              <G x={-17.5} y={-19.5}>
-                <Circle cx="17.5" cy="19.5" r="2" fill={softFill} stroke={color} strokeWidth="2" />
-                <Path d="M17.5 17.5V21.5" stroke={color} strokeWidth="1" />
-              </G>
-            </AnimatedG>
-          </G>
-        </AnimatedG>
-      </Svg>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', justifyContent: 'center' },
+  wrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden', // prevents any child from breaking layout
+  },
+  lines: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+  } as any,
 });

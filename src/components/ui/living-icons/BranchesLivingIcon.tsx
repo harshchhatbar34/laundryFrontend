@@ -68,21 +68,21 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
       <Svg width={size} height={size} viewBox="-1 -3 26 27" fill="none">
         {/* Left Store Building */}
         <AnimatedG style={{ transform: [{ translateX: bldgLeftX }] }}>
-          <Rect x="2" y="11" width="7" height="10" rx="1.5" fill={softFill} stroke={color} strokeWidth="2" />
-          <Path d="M1.5 11L5.5 8L9.5 11" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <Rect x="2" y="11" width="7" height="10" rx="1.5" fill={softFill} stroke={color} strokeWidth="1.1" />
+          <Path d="M1.5 11L5.5 8L9.5 11" stroke={color} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
         </AnimatedG>
 
         {/* Right Store Building */}
         <AnimatedG style={{ transform: [{ translateX: bldgRightX }] }}>
-          <Rect x="15" y="11" width="7" height="10" rx="1.5" fill={softFill} stroke={color} strokeWidth="2" />
-          <Path d="M14.5 11L18.5 8L22.5 11" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <Rect x="15" y="11" width="7" height="10" rx="1.5" fill={softFill} stroke={color} strokeWidth="1.1" />
+          <Path d="M14.5 11L18.5 8L22.5 11" stroke={color} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
         </AnimatedG>
 
         {/* Connecting Line */}
         <AnimatedPath
           d="M9 16H15"
           stroke={color}
-          strokeWidth="1.8"
+          strokeWidth="1.1"
           strokeDasharray="2 2"
           strokeLinecap="round"
           style={{ opacity: lineScale }}
@@ -94,7 +94,7 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
             d="M12 2C10.3 2 9 3.3 9 5C9 7.2 12 10.5 12 10.5C12 10.5 15 7.2 15 5C15 3.3 13.7 2 12 2Z"
             fill={color}
             stroke={color}
-            strokeWidth="1"
+            strokeWidth="1.1"
           />
           <Circle cx="12" cy="5" r="1.2" fill="#FFF" />
         </AnimatedG>

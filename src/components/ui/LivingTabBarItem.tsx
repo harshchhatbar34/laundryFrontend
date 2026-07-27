@@ -1,8 +1,8 @@
 /**
  * LivingTabBarItem — Next-Gen Living Navigation Icon System
  *
- * Active capsule pill encloses BOTH the living icon and the label word
- * together inside a unified rounded pill container.
+ * Wide Zomato-style active capsule pill (~90% slot width, borderRadius 22)
+ * + high-contrast slate text (#334155, 11.5px, 600 weight) for unselected tabs.
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -11,6 +11,8 @@ import * as Haptics from 'expo-haptics';
 
 import {
   DashboardLivingIcon,
+  HomeLivingIcon,
+  ProfileLivingIcon,
   BranchesLivingIcon,
   ServicesLivingIcon,
   OrdersLivingIcon,
@@ -21,6 +23,8 @@ import {
 
 export type LivingIconType =
   | 'dashboard'
+  | 'home'
+  | 'profile'
   | 'branches'
   | 'services'
   | 'orders'
@@ -49,12 +53,11 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
 }) => {
   const isFirstRender = useRef(true);
 
-  // Pill scale and opacity
+  // Pill scale
   const pillScaleAnim = useRef(new Animated.Value(focused ? 1 : 0.95)).current;
-  const pillOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
   // Label opacity
-  const labelOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0.65)).current;
+  const labelOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0.9)).current;
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -67,7 +70,7 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     }
 
-    // Expand/collapse pill container wrapping BOTH icon & label
+    // Expand/collapse pill container
     Animated.parallel([
       Animated.spring(pillScaleAnim, {
         toValue: focused ? 1 : 0.95,
@@ -75,52 +78,54 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
         tension: 160,
         useNativeDriver: true,
       }),
-      Animated.timing(pillOpacityAnim, {
-        toValue: focused ? 1 : 0,
-        duration: 180,
-        useNativeDriver: true,
-      }),
       Animated.timing(labelOpacityAnim, {
-        toValue: focused ? 1 : 0.65,
+        toValue: focused ? 1 : 0.9,
         duration: 180,
         useNativeDriver: true,
       }),
     ]).start();
-  }, [focused, pillScaleAnim, pillOpacityAnim, labelOpacityAnim]);
+  }, [focused, pillScaleAnim, labelOpacityAnim]);
 
-  const pillBg = pillColor ?? activeColor + '18'; // 10% primary tint pill
+  // Soft tint background when focused
+  const pillBg = pillColor ?? activeColor + '18';
+
   const iconColor = focused ? activeColor : inactiveColor;
+  const textColor = focused ? activeColor : inactiveColor;
 
   const renderIcon = () => {
+    const iconKey = `${name}-${focused ? 'active' : 'inactive'}`;
     switch (name) {
       case 'dashboard':
-        return <DashboardLivingIcon focused={focused} color={iconColor} size={22} />;
+        return <DashboardLivingIcon key={iconKey} focused={focused} color={iconColor} size={21} />;
+      case 'home':
+        return <HomeLivingIcon key={iconKey} focused={focused} color={iconColor} size={21} />;
+      case 'profile':
+        return <ProfileLivingIcon key={iconKey} focused={focused} color={iconColor} size={21} />;
       case 'branches':
-        return <BranchesLivingIcon focused={focused} color={iconColor} size={22} />;
+        return <BranchesLivingIcon key={iconKey} focused={focused} color={iconColor} size={21} />;
       case 'services':
-        return <ServicesLivingIcon focused={focused} color={iconColor} size={22} />;
+        return <ServicesLivingIcon key={iconKey} focused={focused} color={iconColor} size={21} />;
       case 'orders':
-        return <OrdersLivingIcon focused={focused} color={iconColor} size={22} />;
+        return <OrdersLivingIcon key={iconKey} focused={focused} color={iconColor} size={21} />;
       case 'cart':
-        return <CartLivingIcon focused={focused} color={iconColor} size={22} />;
+        return <CartLivingIcon key={iconKey} focused={focused} color={iconColor} size={21} />;
       case 'reports':
-        return <ReportsLivingIcon focused={focused} color={iconColor} size={22} />;
+        return <ReportsLivingIcon key={iconKey} focused={focused} color={iconColor} size={21} />;
       case 'settings':
-        return <SettingsLivingIcon focused={focused} color={iconColor} size={22} />;
+        return <SettingsLivingIcon key={iconKey} focused={focused} color={iconColor} size={21} />;
       default:
-        return <DashboardLivingIcon focused={focused} color={iconColor} size={22} />;
+        return <DashboardLivingIcon focused={focused} color={iconColor} size={21} />;
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Animated Pill Container wrapping BOTH Icon & Label */}
+      {/* Wide Zomato-Style Animated Pill Container */}
       <Animated.View
         style={[
           styles.pillContainer,
           {
             backgroundColor: focused ? pillBg : 'transparent',
-            opacity: focused ? 1 : 0.85,
             transform: [{ scale: pillScaleAnim }],
           },
         ]}
@@ -139,13 +144,13 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
           )}
         </View>
 
-        {/* Text Label inside the capsule */}
+        {/* Clear Crisp Text Label */}
         <Animated.Text
           style={[
             styles.label,
             {
-              color: iconColor,
-              fontWeight: focused ? '700' : '500',
+              color: textColor,
+              fontWeight: focused ? '700' : '600',
               opacity: labelOpacityAnim,
             },
           ]}
@@ -162,32 +167,33 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 68,
+    width: '100%',
+    flex: 1,
   },
   pillContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 16,
-    width: 64,
+    paddingVertical: 5,
+    paddingHorizontal: 6,
+    borderRadius: 22,
+    width: '90%',
   },
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 28,
-    height: 24,
+    width: 26,
+    height: 21,
   },
   label: {
-    fontSize: 10,
+    fontSize: 11.5,
     marginTop: 2,
-    letterSpacing: 0.1,
     textAlign: 'center',
-    width: 58,
+    width: '100%',
+    letterSpacing: 0.1,
   },
   badge: {
     position: 'absolute',
-    top: -4,
+    top: -5,
     right: -8,
     minWidth: 15,
     height: 15,

@@ -18,7 +18,7 @@ import api from '../../api/client';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,7 +77,7 @@ export default function LoginScreen({ navigation }: Props) {
     <ScreenWrapper edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <LinearGradient colors={theme.gradients.ocean as any} style={styles.header}>
+          <LinearGradient colors={(isDark ? theme.gradients.ocean : theme.gradients.primary) as any} style={styles.header}>
             <Text style={styles.emoji}>🧺</Text>
             <Text style={[theme.typography.displayMedium, { color: '#FFF' }]}>{APP_NAME}</Text>
             <Text style={[theme.typography.bodySmall, { color: 'rgba(255,255,255,0.7)', marginTop: 4 }]}>
@@ -103,8 +103,9 @@ export default function LoginScreen({ navigation }: Props) {
               keyboardType="email-address"
               autoCapitalize="none"
               error={errors.email}
-              textContentType="username"
+              textContentType="emailAddress"
               autoComplete="email"
+              surfaceColor={theme.colors.background}
             />
             <Input
               label="Password"
@@ -115,6 +116,7 @@ export default function LoginScreen({ navigation }: Props) {
               error={errors.password}
               textContentType="password"
               autoComplete="password"
+              surfaceColor={theme.colors.background}
             />
 
             <Button title="Login" onPress={handleLogin} loading={loading} style={{ marginTop: 8 }} />

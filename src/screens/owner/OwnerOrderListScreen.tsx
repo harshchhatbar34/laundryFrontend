@@ -59,12 +59,14 @@ export default function OwnerOrderListScreen({ navigation }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      fetch(false);
+      // If we already have orders, do silent fetch in background instead of showing loader
+      const hasData = orders.length > 0;
+      fetch(hasData);
 
       // Poll every 15 seconds silently while focused
       const interval = setInterval(() => fetch(true), 15000);
       return () => clearInterval(interval);
-    }, [fetch])
+    }, [orders.length, fetch])
   );
 
   const onRefresh = async () => { setRefreshing(true); await fetch(false); setRefreshing(false); };

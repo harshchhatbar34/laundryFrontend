@@ -59,21 +59,21 @@ export const DashboardLivingIcon: React.FC<LivingIconProps> = ({ focused, color,
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         {/* Large Left Card */}
         <AnimatedG style={{ transform: [{ translateY: card1Y }] }}>
-          <Rect x="3" y="3" width="8.5" height="18" rx="2.5" fill={softFill} stroke={color} strokeWidth="2" />
+          <Rect x="3" y="3" width="8.5" height="18" rx="2.5" fill={softFill} stroke={color} strokeWidth="1.2" />
         </AnimatedG>
 
         {/* Top Right Card */}
         <G x={17.25} y={7}>
           <AnimatedG style={{ transform: [{ translateY: card2Y }, { scale: idleScale }] }}>
             <G x={-17.25} y={-7}>
-              <Rect x="13.5" y="3" width="7.5" height="8" rx="2" fill={softFill} stroke={color} strokeWidth="2" />
+              <Rect x="13.5" y="3" width="7.5" height="8" rx="2" fill={softFill} stroke={color} strokeWidth="1.2" />
             </G>
           </AnimatedG>
         </G>
 
         {/* Bottom Right Card */}
         <AnimatedG style={{ transform: [{ translateY: card3Y }] }}>
-          <Rect x="13.5" y="13" width="7.5" height="8" rx="2" fill={softFill} stroke={color} strokeWidth="2" />
+          <Rect x="13.5" y="13" width="7.5" height="8" rx="2" fill={softFill} stroke={color} strokeWidth="1.2" />
         </AnimatedG>
       </Svg>
     </View>

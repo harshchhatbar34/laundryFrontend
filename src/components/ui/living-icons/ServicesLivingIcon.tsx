@@ -1,8 +1,16 @@
+/**
+ * ServicesLivingIcon — Living Laundry Washing Machine & Bubbles Icon
+ *
+ * Ultra-sleek 1.1px stroke washing machine with animated water/bubbles.
+ * Perfectly represents laundry services for Qwasho.
+ */
+
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
-import Svg, { Path, Circle, G } from 'react-native-svg';
+import Svg, { Rect, Circle, Path, G } from 'react-native-svg';
 
 const AnimatedG = Animated.createAnimatedComponent(G as any);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle as any);
 
 interface LivingIconProps {
   focused: boolean;
@@ -11,60 +19,45 @@ interface LivingIconProps {
 }
 
 export const ServicesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 24 }) => {
-  // Gear rotation (90° = 1)
-  const gearRot = useRef(new Animated.Value(0)).current;
-
-  // Wrench tilt
-  const wrenchRot = useRef(new Animated.Value(0)).current;
-
-  // Sparkle scale
-  const sparkleScale = useRef(new Animated.Value(0)).current;
+  const spinRot = useRef(new Animated.Value(0)).current;
+  const bubble1Y = useRef(new Animated.Value(0)).current;
+  const bubble2Y = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (focused) {
+      // Spin drum + float bubbles
       Animated.parallel([
-        Animated.spring(gearRot, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }),
-        Animated.sequence([
-          Animated.timing(wrenchRot, { toValue: -0.2, duration: 90, useNativeDriver: true }),
-          Animated.spring(wrenchRot, { toValue: 0, friction: 4, tension: 180, useNativeDriver: true }),
-        ]),
-        Animated.sequence([
-          Animated.timing(sparkleScale, { toValue: 1.2, duration: 160, useNativeDriver: true }),
-          Animated.spring(sparkleScale, { toValue: focused ? 1 : 0, friction: 5, tension: 140, useNativeDriver: true }),
-        ]),
+        Animated.timing(spinRot, { toValue: 1, duration: 600, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.spring(bubble1Y, { toValue: -3, friction: 4, tension: 160, useNativeDriver: true }),
+        Animated.spring(bubble2Y, { toValue: -4, friction: 5, tension: 140, useNativeDriver: true }),
       ]).start();
     } else {
-      gearRot.setValue(0);
-      wrenchRot.setValue(0);
-      sparkleScale.setValue(0);
+      spinRot.setValue(0);
+      bubble1Y.setValue(0);
+      bubble2Y.setValue(0);
     }
-  }, [focused, gearRot, wrenchRot, sparkleScale]);
+  }, [focused, spinRot, bubble1Y, bubble2Y]);
 
-  // Idle animation: Gear nudges 5°
+  // Idle Animation: Drum twitches & bubble floats
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    const triggerNudge = () => {
+    const triggerIdle = () => {
       if (!focused) {
         Animated.sequence([
-          Animated.timing(gearRot, { toValue: 0.08, duration: 150, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-          Animated.timing(gearRot, { toValue: 0, duration: 250, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+          Animated.timing(spinRot, { toValue: 0.15, duration: 250, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+          Animated.timing(spinRot, { toValue: 0, duration: 300, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
         ]).start();
       }
-      timer = setTimeout(triggerNudge, 6000 + Math.random() * 2000);
+      timer = setTimeout(triggerIdle, 5000 + Math.random() * 2000);
     };
 
-    timer = setTimeout(triggerNudge, 4500);
+    timer = setTimeout(triggerIdle, 3500);
     return () => clearTimeout(timer);
-  }, [focused, gearRot]);
+  }, [focused, spinRot]);
 
-  const gearInterpolate = gearRot.interpolate({
+  const spinInterpolate = spinRot.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '90deg'],
-  });
-
-  const wrenchInterpolate = wrenchRot.interpolate({
-    inputRange: [-1, 1],
-    outputRange: ['-45deg', '45deg'],
+    outputRange: ['0deg', '360deg'],
   });
 
   const softFill = focused ? color + '22' : 'none';
@@ -72,49 +65,50 @@ export const ServicesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        {/* Main Rotating Gear */}
-        <G x={10} y={10}>
-          <AnimatedG style={{ transform: [{ rotate: gearInterpolate }] }}>
-            <G x={-10} y={-10}>
-              <Circle cx="10" cy="10" r="4" stroke={color} strokeWidth="2" fill={softFill} />
-              {/* Gear teeth */}
+        {/* Main Washing Machine Outer Frame */}
+        <Rect
+          x="3"
+          y="3"
+          width="18"
+          height="18"
+          rx="3"
+          fill={softFill}
+          stroke={color}
+          strokeWidth="1.1"
+        />
+
+        {/* Top Control Panel Line & Buttons */}
+        <Path d="M3 7.5H21" stroke={color} strokeWidth="1.1" />
+        <Circle cx="6.5" cy="5.25" r="0.8" fill={color} />
+        <Circle cx="9.5" cy="5.25" r="0.8" fill={color} />
+        <Rect x="15" y="4.5" width="3" height="1.5" rx="0.75" stroke={color} strokeWidth="1.1" />
+
+        {/* Washing Drum Door & Inner Spin Wave */}
+        <G x={12} y={14}>
+          <AnimatedG style={{ transform: [{ rotate: spinInterpolate }] }}>
+            <G x={-12} y={-14}>
+              {/* Outer Door Ring */}
+              <Circle cx="12" cy="14" r="5" stroke={color} strokeWidth="1.1" fill={softFill} />
+              {/* Inner Drum Glass Arc */}
               <Path
-                d="M10 2V4 M10 16V18 M2 10H4 M16 10H18 M4.34 4.34L5.76 5.76 M14.24 14.24L15.66 15.66 M4.34 15.66L5.76 14.24 M14.24 5.76L15.66 4.34"
+                d="M9.5 13.5C10 14.5 11 15 12 15C13 15 14 14.5 14.5 13.5"
                 stroke={color}
-                strokeWidth="2"
+                strokeWidth="1.1"
                 strokeLinecap="round"
               />
             </G>
           </AnimatedG>
         </G>
 
-        {/* Tilting Wrench overlay - Clean stroke outline */}
-        <G x={17} y={17}>
-          <AnimatedG style={{ transform: [{ rotate: wrenchInterpolate }] }}>
-            <G x={-17} y={-17}>
-              <Path
-                d="M14.7 14.7L19.5 19.5 M17 12.5C18.5 11 20.8 11.2 21.8 12.8C22.4 13.8 22.2 15 21.5 15.8L19.8 14.1L18.4 15.5L20.1 17.2C19.3 17.9 18.1 18.1 17.1 17.5C15.5 16.5 15.3 14.2 16.8 12.7L17 12.5Z"
-                stroke={color}
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill={softFill}
-              />
-            </G>
-          </AnimatedG>
-        </G>
+        {/* Floating Bubble 1 */}
+        <AnimatedG style={{ transform: [{ translateY: bubble1Y }] }}>
+          <Circle cx="18" cy="4" r="1.5" stroke={color} strokeWidth="1.1" fill={softFill} />
+        </AnimatedG>
 
-        {/* Sparkle pop */}
-        <G x={19} y={4.5}>
-          <AnimatedG style={{ transform: [{ scale: sparkleScale }] }}>
-            <G x={-19} y={-4.5}>
-              <Path
-                d="M19 2L19.5 4L21.5 4.5L19.5 5L19 7L18.5 5L16.5 4.5L18.5 4L19 2Z"
-                fill="#F59E0B"
-              />
-            </G>
-          </AnimatedG>
-        </G>
+        {/* Floating Bubble 2 */}
+        <AnimatedG style={{ transform: [{ translateY: bubble2Y }] }}>
+          <Circle cx="20.5" cy="8" r="1" stroke={color} strokeWidth="1.1" fill={softFill} />
+        </AnimatedG>
       </Svg>
     </View>
   );

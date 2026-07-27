@@ -26,11 +26,6 @@ export type OwnerDashStackParamList = {
   OwnerDashboardMain: undefined;
 };
 
-export type OwnerBranchStackParamList = {
-  BranchList: undefined;
-  AddBranch: { branchId?: string } | undefined;
-};
-
 export type OwnerServiceStackParamList = {
   ServiceManagement: undefined;
   AddServiceElement: { type: 'service' | 'material' | 'item' | 'price'; id?: string; initialData?: any; editItem?: any } | undefined;
@@ -43,6 +38,8 @@ export type OwnerOrderStackParamList = {
 
 export type OwnerSettingsStackParamList = {
   OwnerSettingsMain: undefined;
+  BranchList: undefined;
+  AddBranch: { branchId?: string } | undefined;
   ProfileMain: undefined;
   HelperManagement: undefined;
   AddHelper: undefined;
@@ -50,9 +47,10 @@ export type OwnerSettingsStackParamList = {
   CustomerManagement: undefined;
 };
 
+export type OwnerBranchStackParamList = OwnerSettingsStackParamList;
+
 export type OwnerTabParamList = {
   Dashboard: undefined;
-  Branches: undefined;
   Services: undefined;
   Orders: undefined;
   Settings: any;
@@ -60,7 +58,6 @@ export type OwnerTabParamList = {
 
 const Tab = createBottomTabNavigator<OwnerTabParamList>();
 const DashStack = createNativeStackNavigator<OwnerDashStackParamList>();
-const BranchStack = createNativeStackNavigator<OwnerBranchStackParamList>();
 const ServiceStack = createNativeStackNavigator<OwnerServiceStackParamList>();
 const OrderStack = createNativeStackNavigator<OwnerOrderStackParamList>();
 const SettingsStack = createNativeStackNavigator<OwnerSettingsStackParamList>();
@@ -73,19 +70,10 @@ function DashStackScreen() {
   );
 }
 
-function BranchStackScreen() {
-  return (
-    <BranchStack.Navigator id="OwnerBranchStack" screenOptions={{ headerShown: false }}>
-      <BranchStack.Screen name="BranchList" component={BranchListScreen} />
-      <BranchStack.Screen name="AddBranch" component={AddBranchScreen} />
-    </BranchStack.Navigator>
-  );
-}
-
 function ServiceStackScreen() {
   return (
     <ServiceStack.Navigator id="OwnerServiceStack" screenOptions={{ headerShown: false }}>
-      <ServiceStack.Screen name="ServiceManagement" component={ServiceManagementScreen} />
+      <ServiceStack.Screen name="ServiceManagement" component={ServiceManagementScreen as any} />
       <ServiceStack.Screen name="AddServiceElement" component={AddServiceElementScreen} />
     </ServiceStack.Navigator>
   );
@@ -104,8 +92,10 @@ function OwnerSettingsStackScreen() {
   return (
     <SettingsStack.Navigator id="OwnerSettingsStack" screenOptions={{ headerShown: false }}>
       <SettingsStack.Screen name="OwnerSettingsMain" component={OwnerSettingsScreen} />
+      <SettingsStack.Screen name="BranchList" component={BranchListScreen as any} />
+      <SettingsStack.Screen name="AddBranch" component={AddBranchScreen} />
       <SettingsStack.Screen name="ProfileMain" component={OwnerProfileScreen} />
-      <SettingsStack.Screen name="HelperManagement" component={HelperManagementScreen} />
+      <SettingsStack.Screen name="HelperManagement" component={HelperManagementScreen as any} />
       <SettingsStack.Screen name="AddHelper" component={AddHelperScreen} />
       <SettingsStack.Screen name="OwnerStats" component={OwnerStatsScreen} />
       <SettingsStack.Screen name="CustomerManagement" component={CustomerManagementScreen} />
@@ -116,7 +106,8 @@ function OwnerSettingsStackScreen() {
 export default function OwnerTabs() {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 62 + insets.bottom;
+  const rawHeight = Platform.OS === 'ios' ? 58 : 64;
+  const tabBarHeight = rawHeight + insets.bottom;
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
@@ -142,38 +133,36 @@ export default function OwnerTabs() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarItemStyle: {
+          flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
           paddingBottom: 0,
+          paddingTop: 0,
+        },
+        tabBarIconStyle: {
+          width: '100%',
+          height: 48,
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         tabBarStyle: {
-          backgroundColor: Platform.OS === 'ios' ? 'transparent' : theme.colors.tabBar,
+          backgroundColor: theme.colors.tabBar,
           borderTopColor: theme.colors.border,
           borderTopWidth: StyleSheet.hairlineWidth,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
-          paddingTop: 6,
+          paddingBottom: insets.bottom,
+          paddingTop: 4,
           height: tabBarHeight,
-          elevation: 12,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: Platform.OS === 'ios' ? 0.18 : 0.1,
-          shadowRadius: Platform.OS === 'ios' ? 16 : 10,
-          position: Platform.OS === 'ios' ? 'absolute' : 'relative',
+          elevation: 0,
+          shadowColor: 'transparent',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0,
+          shadowRadius: 0,
         },
-        tabBarBackground: Platform.OS === 'ios'
-          ? () => (
-              <BlurView
-                intensity={85}
-                tint={isDark ? 'dark' : 'light'}
-                style={StyleSheet.absoluteFill}
-              />
-            )
-          : undefined,
       }}
     >
       <Tab.Screen
         name="Dashboard"
-        component={OwnerDashboardScreen}
+        component={DashStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
             <LivingTabBarItem
@@ -185,25 +174,16 @@ export default function OwnerTabs() {
             />
           ),
         }}
-      />
-      <Tab.Screen
-        name="Branches"
-        component={BranchListScreen as any}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <LivingTabBarItem
-              name="branches"
-              label="Branches"
-              focused={focused}
-              activeColor={theme.colors.tabBarActive}
-              inactiveColor={theme.colors.tabBarInactive}
-            />
-          ),
-        }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            (e as any).preventDefault();
+            (navigation as any).navigate('Dashboard', { screen: 'OwnerDashboardMain' });
+          },
+        })}
       />
       <Tab.Screen
         name="Services"
-        component={ServiceManagementScreen as any}
+        component={ServiceStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
             <LivingTabBarItem
@@ -215,6 +195,12 @@ export default function OwnerTabs() {
             />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            (e as any).preventDefault();
+            (navigation as any).navigate('Services', { screen: 'ServiceManagement' });
+          },
+        })}
       />
       <Tab.Screen
         name="Orders"
@@ -231,6 +217,12 @@ export default function OwnerTabs() {
             />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            (e as any).preventDefault();
+            (navigation as any).navigate('Orders', { screen: 'OwnerOrderList' });
+          },
+        })}
       />
       <Tab.Screen
         name="Settings"
@@ -246,6 +238,12 @@ export default function OwnerTabs() {
             />
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            (e as any).preventDefault();
+            (navigation as any).navigate('Settings', { screen: 'OwnerSettingsMain' });
+          },
+        })}
       />
     </Tab.Navigator>
   );

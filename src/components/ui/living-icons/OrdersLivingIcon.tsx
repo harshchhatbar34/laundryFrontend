@@ -77,17 +77,17 @@ export const OrdersLivingIcon: React.FC<LivingIconProps> = ({ focused, color, si
             width="10"
             height="9"
             rx="1.5"
-            fill="#FFFFFF"
+            fill={softFill}
             stroke={color}
-            strokeWidth="1.6"
+            strokeWidth="1.1"
           />
           {/* Lines on receipt */}
-          <Path d="M9 8.5H15 M9 10.5H13" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
+          <Path d="M9 8.5H15 M9 10.5H13" stroke={color} strokeWidth="1.1" strokeLinecap="round" />
           {/* Green Checkmark */}
           <G x={12} y={10}>
             <AnimatedG style={{ transform: [{ scale: checkScale }] }}>
               <G x={-12} y={-10}>
-                <Path d="M9.5 11L11 12.5L14.5 9" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M9.5 11L11 12.5L14.5 9" stroke="#10B981" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
               </G>
             </AnimatedG>
           </G>
@@ -105,10 +105,10 @@ export const OrdersLivingIcon: React.FC<LivingIconProps> = ({ focused, color, si
                 rx="2"
                 fill={softFill}
                 stroke={color}
-                strokeWidth="2"
+                strokeWidth="1.1"
               />
               {/* Vertical box tape */}
-              <Path d="M12 12V21" stroke={color} strokeWidth="1.6" strokeDasharray="1.5 1.5" />
+              <Path d="M12 12V21" stroke={color} strokeWidth="1.1" strokeDasharray="1.5 1.5" />
 
               {/* Box Flap/Lid with rotation */}
               <G x={3} y={12}>
@@ -117,7 +117,7 @@ export const OrdersLivingIcon: React.FC<LivingIconProps> = ({ focused, color, si
                     <Path
                       d="M3 12L12 15L21 12"
                       stroke={color}
-                      strokeWidth="2"
+                      strokeWidth="1.1"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />

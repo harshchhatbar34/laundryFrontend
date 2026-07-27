@@ -55,12 +55,14 @@ export default function OwnerDashboardScreen({ navigation }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      fetch(false);
+      // If we already have stats, do silent fetch in background instead of showing loader
+      const hasData = Boolean(stats);
+      fetch(hasData);
 
       // Poll every 15 seconds silently while focused
       const interval = setInterval(() => fetch(true), 15000);
       return () => clearInterval(interval);
-    }, [])
+    }, [stats])
   );
 
   const onRefresh = async () => { setRefreshing(true); await fetch(false); setRefreshing(false); };

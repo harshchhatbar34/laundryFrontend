@@ -1,4 +1,5 @@
 import api from './client';
+import { AxiosRequestConfig } from 'axios';
 import { USER_PROFILE, USER_ADDRESSES, USER_ADDRESS } from './endpoints';
 
 // ── Profile ──────────────────────────────────────────────────────────
@@ -23,9 +24,9 @@ export const updateProfile = async (data: any): Promise<any> => {
 
 // ── Addresses ────────────────────────────────────────────────────────
 
-export const getAddresses = async (): Promise<any> => {
+export const getAddresses = async (config?: AxiosRequestConfig): Promise<any> => {
   try {
-    const response = await api.get(USER_ADDRESSES);
+    const response = await api.get(USER_ADDRESSES, config);
     return response.data;
   } catch (error) {
     throw error;

@@ -1,8 +1,16 @@
+/**
+ * SettingsLivingIcon — Dual Toggle Switches Icon (Option 4)
+ *
+ * 2 horizontal toggle switch pill tracks with interactive sliding knobs.
+ * 1.1px stroke outline with smooth toggle flip animation on tap.
+ */
+
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
-import Svg, { Path, Circle, G } from 'react-native-svg';
+import Svg, { Rect, Circle, G } from 'react-native-svg';
 
-const AnimatedG = Animated.createAnimatedComponent(G as any);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle as any);
+const AnimatedRect = Animated.createAnimatedComponent(Rect as any);
 
 interface LivingIconProps {
   focused: boolean;
@@ -11,74 +19,71 @@ interface LivingIconProps {
 }
 
 export const SettingsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 24 }) => {
-  const gearRot = useRef(new Animated.Value(0)).current;
-  const clickScale = useRef(new Animated.Value(1)).current;
+  const toggle1X = useRef(new Animated.Value(focused ? 16 : 8)).current;
+  const toggle2X = useRef(new Animated.Value(focused ? 8 : 16)).current;
 
   useEffect(() => {
     if (focused) {
       Animated.parallel([
-        Animated.spring(gearRot, { toValue: 1, friction: 4, tension: 180, useNativeDriver: true }),
-        Animated.sequence([
-          Animated.timing(clickScale, { toValue: 1.12, duration: 60, useNativeDriver: true }),
-          Animated.spring(clickScale, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }),
-        ]),
+        Animated.spring(toggle1X, { toValue: 16, friction: 5, tension: 160, useNativeDriver: true }),
+        Animated.spring(toggle2X, { toValue: 8, friction: 5, tension: 160, useNativeDriver: true }),
       ]).start();
     } else {
-      gearRot.setValue(0);
-      clickScale.setValue(1);
+      Animated.parallel([
+        Animated.spring(toggle1X, { toValue: 8, friction: 6, tension: 140, useNativeDriver: true }),
+        Animated.spring(toggle2X, { toValue: 16, friction: 6, tension: 140, useNativeDriver: true }),
+      ]).start();
     }
-  }, [focused, gearRot, clickScale]);
+  }, [focused, toggle1X, toggle2X]);
 
-  // Idle Animation: Gear twitches
+  // Idle Animation: Toggle 1 flicks gently
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    const triggerTwitch = () => {
+    const triggerFlick = () => {
       if (!focused) {
         Animated.sequence([
-          Animated.timing(gearRot, { toValue: 0.05, duration: 100, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-          Animated.timing(gearRot, { toValue: -0.04, duration: 120, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-          Animated.timing(gearRot, { toValue: 0, duration: 140, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+          Animated.timing(toggle1X, { toValue: 12, duration: 250, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+          Animated.timing(toggle1X, { toValue: 8, duration: 300, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
         ]).start();
       }
-      timer = setTimeout(triggerTwitch, 5500 + Math.random() * 2000);
+      timer = setTimeout(triggerFlick, 5500 + Math.random() * 2000);
     };
 
-    timer = setTimeout(triggerTwitch, 3600);
+    timer = setTimeout(triggerFlick, 3600);
     return () => clearTimeout(timer);
-  }, [focused, gearRot]);
+  }, [focused, toggle1X]);
 
-  const gearInterpolate = gearRot.interpolate({
-    inputRange: [-1, 0, 1],
-    outputRange: ['-90deg', '0deg', '90deg'],
-  });
-
-  const softFill = focused ? color + '22' : 'none';
+  const softFill1 = focused ? color + '33' : 'none';
+  const softFill2 = focused ? 'none' : color + '22';
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <G x={12} y={12}>
-          <AnimatedG style={{ transform: [{ rotate: gearInterpolate }, { scale: clickScale }] }}>
-            <G x={-12} y={-12}>
-              {/* Outer mechanical gear teeth */}
-              <Path
-                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-                fill={softFill}
-                stroke={color}
-                strokeWidth="2"
-              />
-              <Path
-                d="M19.4 15A1.65 1.65 0 0 0 20 12A1.65 1.65 0 0 0 19.4 9L21.3 7.5L19.3 4.1L17 5.1A1.65 1.65 0 0 0 14.4 3.6L14 1.2H10L9.6 3.6A1.65 1.65 0 0 0 7 5.1L4.7 4.1L2.7 7.5L4.6 9A1.65 1.65 0 0 0 4.6 12A1.65 1.65 0 0 0 4 15L2.1 16.5L4.1 19.9L6.4 18.9A1.65 1.65 0 0 0 9 20.4L9.4 22.8H13.4L13.8 20.4A1.65 1.65 0 0 0 16.4 18.9L18.7 19.9L20.7 16.5L19.4 15Z"
-                stroke={color}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              {/* Inner core circle */}
-              <Circle cx="12" cy="12" r="2" fill={color} />
-            </G>
-          </AnimatedG>
-        </G>
+        {/* Top Toggle Switch Track */}
+        <Rect
+          x="3.5"
+          y="4.5"
+          width="17"
+          height="7"
+          rx="3.5"
+          fill={softFill1}
+          stroke={color}
+          strokeWidth="1.1"
+        />
+        <AnimatedCircle cx={toggle1X} cy="8" r="2.2" fill={color} />
+
+        {/* Bottom Toggle Switch Track */}
+        <Rect
+          x="3.5"
+          y="13.5"
+          width="17"
+          height="7"
+          rx="3.5"
+          fill={softFill2}
+          stroke={color}
+          strokeWidth="1.1"
+        />
+        <AnimatedCircle cx={toggle2X} cy="17" r="2.2" fill={color} />
       </Svg>
     </View>
   );

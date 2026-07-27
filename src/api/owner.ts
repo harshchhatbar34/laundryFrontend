@@ -1,4 +1,5 @@
 import api from './client';
+import { AxiosRequestConfig } from 'axios';
 import {
   OWNER_BRANCHES,
   OWNER_BRANCH_STATUS,
@@ -13,9 +14,9 @@ import {
 
 // ── Branches ─────────────────────────────────────────────────────────
 
-export const getBranches = async (): Promise<any> => {
+export const getBranches = async (config?: any): Promise<any> => {
   try {
-    const response = await api.get(OWNER_BRANCHES);
+    const response = await api.get(OWNER_BRANCHES, config);
     return response.data;
   } catch (error) {
     throw error;
@@ -51,9 +52,9 @@ export const toggleBranchStatus = async (id: string, isLive: boolean): Promise<a
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-export const getHelpers = async (): Promise<any> => {
+export const getHelpers = async (config?: any): Promise<any> => {
   try {
-    const response = await api.get(OWNER_HELPERS);
+    const response = await api.get(OWNER_HELPERS, config);
     return response.data;
   } catch (error) {
     throw error;
@@ -97,9 +98,9 @@ export const respondToOrder = async (id: string, action: string, note?: string):
 
 // ── Services ─────────────────────────────────────────────────────────
 
-export const getServices = async (): Promise<any> => {
+export const getServices = async (config?: any): Promise<any> => {
   try {
-    const response = await api.get(OWNER_SERVICES);
+    const response = await api.get(OWNER_SERVICES, config);
     return response.data;
   } catch (error) {
     throw error;
@@ -152,9 +153,9 @@ export const getStats = async (branchId?: string, config?: any): Promise<any> =>
 
 // ── Owner Profile (Laundry Info + UPI ID) ────────────────────────────
 
-export const getOwnerProfile = async (): Promise<any> => {
+export const getOwnerProfile = async (config?: AxiosRequestConfig): Promise<any> => {
   try {
-    const response = await api.get(OWNER_PROFILE);
+    const response = await api.get(OWNER_PROFILE, config);
     return response.data;
   } catch (error) {
     throw error;

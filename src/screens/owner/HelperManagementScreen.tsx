@@ -24,11 +24,20 @@ export default function HelperManagementScreen({ navigation }: Props) {
   const [helpers, setHelpers] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetch = useCallback(async () => {
-    try { const r = await getHelpers(); if (r?.data) setHelpers(Array.isArray(r.data) ? r.data : r.data.helpers || []); } catch (e) { console.log(e); }
+  const fetch = useCallback(async (isSilent = false) => {
+    try {
+      const r = await getHelpers(isSilent ? { hideLoader: true } : undefined);
+      if (r?.data) setHelpers(Array.isArray(r.data) ? r.data : r.data.helpers || []);
+    } catch (e) {
+      console.log(e);
+    }
   }, []);
-  useEffect(() => { fetch(); }, []);
-  useEffect(() => { const u = navigation.addListener('focus', fetch); return u; }, [navigation, fetch]);
+
+  useEffect(() => {
+    fetch(helpers.length > 0);
+    const u = navigation.addListener('focus', () => fetch(true));
+    return u;
+  }, [navigation, fetch]);
   const onRefresh = async () => { setRefreshing(true); await fetch(); setRefreshing(false); };
 
   const handleToggle = async (id: string, val: boolean) => { try { await toggleHelper(id, val); fetch(); } catch (e) { dispatch(showToast({ type: 'error', message: 'Failed to update helper status' })); } };

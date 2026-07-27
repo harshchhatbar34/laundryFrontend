@@ -15,6 +15,7 @@ import {
   KeyboardTypeOptions,
   TextInputProps,
   TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/ThemeContext';
@@ -41,6 +42,7 @@ export interface InputProps {
   onBlur?: TextInputProps['onBlur'];
   textContentType?: any;
   autoComplete?: any;
+  surfaceColor?: string;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -65,6 +67,7 @@ const Input: React.FC<InputProps> = ({
   onBlur: onBlurProp,
   textContentType,
   autoComplete,
+  surfaceColor,
 }) => {
   const { theme } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
@@ -82,11 +85,16 @@ const Input: React.FC<InputProps> = ({
   }, [isFocused, hasValue, labelAnim]);
 
   const bodyStyle = (() => {
+    let base = theme.typography.body;
     if (secureTextEntry && !showPassword) {
-      const { fontFamily, ...rest } = theme.typography.body;
+      const { fontFamily, ...rest } = base;
+      base = rest as any;
+    }
+    if (!multiline) {
+      const { lineHeight, ...rest } = base;
       return rest;
     }
-    return theme.typography.body;
+    return base;
   })();
 
   const handleFocus: TextInputProps['onFocus'] = (e) => {
@@ -131,6 +139,7 @@ const Input: React.FC<InputProps> = ({
               backgroundColor: bgColor,
               borderRadius: theme.radius.md,
               borderWidth: 1.5,
+              overflow: 'visible',
             },
             error ? { borderColor: theme.colors.error } : null,
             multiline ? { minHeight: numberOfLines * 22 + 32 } : null,
@@ -159,7 +168,7 @@ const Input: React.FC<InputProps> = ({
                       : isFocused
                       ? theme.colors.primary
                       : theme.colors.textSecondary,
-                    backgroundColor: bgColor,
+                  backgroundColor: surfaceColor ?? bgColor,
                   },
                 ]}
               >
@@ -246,6 +255,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
+    minHeight: 52,
   },
   leftIcon: {
     marginRight: 10,
@@ -253,6 +263,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flex: 1,
     position: 'relative',
+    justifyContent: 'center',
   },
   label: {
     position: 'absolute',
@@ -262,8 +273,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 12,
     paddingHorizontal: 0,
+    textAlignVertical: 'center',
   },
   rightIcon: {
     marginLeft: 10,

@@ -56,9 +56,9 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
   const [draftUpiId, setDraftUpiId] = useState('');
 
   // ── Fetch ──────────────────────────────────────────────────────────────
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async (silent = false) => {
     try {
-      const res = await getOwnerProfile();
+      const res = await getOwnerProfile(silent ? { hideLoader: true } : undefined);
       const profile = res?.data;
       if (profile) {
         setLaundryName(profile.laundryName || '');
@@ -69,9 +69,13 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
     } catch (e) {
       console.log('fetchProfile error:', e);
     }
-  };
+  }, []);
 
-  useFocusEffect(useCallback(() => { fetchProfile(); }, []));
+  // Cache-first: only show blocking loader on first visit (no data yet)
+  useFocusEffect(useCallback(() => {
+    const isFirstLoad = !laundryName;
+    fetchProfile(!isFirstLoad);
+  }, [fetchProfile, laundryName]));
 
   // ── Save UPI — explicit value param avoids stale-closure bug ──────────
   const saveUpi = async (value: string) => {
@@ -157,7 +161,7 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
 
   const managementLinks = [
     { icon: 'people-outline' as const,        label: 'Manage Helpers',   color: '#F59E0B', screen: 'HelperManagement', tab: 'Settings' },
-    { icon: 'storefront-outline' as const,    label: 'Manage Branches',  color: theme.colors.primary, screen: 'BranchList', tab: 'Branches' },
+    { icon: 'storefront-outline' as const,    label: 'Manage Branches',  color: theme.colors.primary, screen: 'BranchList', tab: 'Settings' },
     { icon: 'people-circle-outline' as const, label: 'Manage Customers', color: '#E11D48', screen: 'CustomerManagement', tab: 'Settings' },
     { icon: 'bar-chart-outline' as const,     label: 'View Stats',       color: '#8B5CF6', screen: 'OwnerStats', tab: 'Settings' },
     { icon: 'person-outline' as const,        label: 'My Profile',       color: '#10B981', screen: 'ProfileMain', tab: 'Settings' },
@@ -174,7 +178,7 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
 
         {/* ── Hero ──────────────────────────────────────────────────── */}
-        <LinearGradient colors={theme.gradients.ocean as any} style={styles.hero}>
+        <LinearGradient colors={(isDark ? theme.gradients.ocean : theme.gradients.primary) as any} style={styles.hero}>
           <View style={styles.heroRow}>
             <View style={[styles.heroAvatar, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
               <Ionicons name="business" size={36} color="#FFF" />

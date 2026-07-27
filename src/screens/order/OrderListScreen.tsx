@@ -39,14 +39,18 @@ export default function OrderListScreen({ navigation }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      fetchOrders(false);
-      // Poll every 15 seconds silently while the screen is focused
-      const interval = setInterval(() => fetchOrders(true), 15000);
+      // Cache-first: if we already have data, fetch silently in background
+      // Only show blocking loader on very first load (orders is empty)
+      const isFirstLoad = orders.length === 0;
+      fetchOrders(!isFirstLoad);
+
+      // Poll every 30 seconds silently while screen is focused
+      const interval = setInterval(() => fetchOrders(true), 30000);
       return () => clearInterval(interval);
-    }, [fetchOrders])
+    }, [fetchOrders, orders.length])
   );
 
-  const onRefresh = async () => { setRefreshing(true); await fetchOrders(false); setRefreshing(false); };
+  const onRefresh = async () => { setRefreshing(true); await fetchOrders(true); setRefreshing(false); };
 
   const renderOrder = ({ item, index }: { item: any; index: number }) => (
     <FadeSlideIn delay={index * 70}>

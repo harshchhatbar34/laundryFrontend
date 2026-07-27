@@ -95,7 +95,7 @@ function ProfileStackScreen() {
 export default function CustomerTabs() {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 62 + insets.bottom;
+  const tabBarHeight = 64 + insets.bottom;
   const cart = useSelector((s: RootState) => s.orders.cart);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const [updateCount, setUpdateCount] = useState(0);
@@ -124,36 +124,31 @@ export default function CustomerTabs() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarItemStyle: {
+          flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
           paddingBottom: 0,
+          paddingTop: 0,
         },
-        // iOS: transparent so BlurView shows through; Android: solid background
+        tabBarIconStyle: {
+          width: '100%',
+          height: 48,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
         tabBarStyle: {
-          backgroundColor: Platform.OS === 'ios' ? 'transparent' : theme.colors.tabBar,
+          backgroundColor: theme.colors.tabBar,
           borderTopColor: theme.colors.border,
           borderTopWidth: StyleSheet.hairlineWidth,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
-          paddingTop: 6,
+          paddingBottom: insets.bottom,
+          paddingTop: 4,
           height: tabBarHeight,
-          // elevation only affects Android — no-op on iOS
-          elevation: 12,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: Platform.OS === 'ios' ? 0.18 : 0.1,
-          shadowRadius: Platform.OS === 'ios' ? 16 : 10,
-          position: Platform.OS === 'ios' ? 'absolute' : 'relative',
+          elevation: 0,
+          shadowColor: 'transparent',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0,
+          shadowRadius: 0,
         },
-        // iOS frosted glass blur background (BlurView) — null on Android
-        tabBarBackground: Platform.OS === 'ios'
-          ? () => (
-              <BlurView
-                intensity={85}
-                tint={isDark ? 'dark' : 'light'}
-                style={StyleSheet.absoluteFill}
-              />
-            )
-          : undefined,
       }}
     >
       <Tab.Screen
@@ -162,7 +157,7 @@ export default function CustomerTabs() {
         options={{
           tabBarIcon: ({ focused }) => (
             <LivingTabBarItem
-              name="dashboard"
+              name="home"
               label="Home"
               focused={focused}
               activeColor={theme.colors.tabBarActive}
@@ -221,7 +216,7 @@ export default function CustomerTabs() {
         options={{
           tabBarIcon: ({ focused }) => (
             <LivingTabBarItem
-              name="settings"
+              name="profile"
               label="Profile"
               focused={focused}
               activeColor={theme.colors.tabBarActive}

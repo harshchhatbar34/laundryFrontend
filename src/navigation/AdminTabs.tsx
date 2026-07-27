@@ -120,7 +120,7 @@ function SettingsStackScreen() {
 export default function AdminTabs() {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 62 + insets.bottom;
+  const tabBarHeight = 64 + insets.bottom;
 
   return (
     <Tab.Navigator
@@ -129,34 +129,31 @@ export default function AdminTabs() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarItemStyle: {
+          flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
           paddingBottom: 0,
+          paddingTop: 0,
         },
-        // iOS: transparent so BlurView shows through; Android: solid background
+        tabBarIconStyle: {
+          width: '100%',
+          height: 48,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
         tabBarStyle: {
-          backgroundColor: Platform.OS === 'ios' ? 'transparent' : theme.colors.tabBar,
+          backgroundColor: theme.colors.tabBar,
           borderTopColor: theme.colors.border,
           borderTopWidth: StyleSheet.hairlineWidth,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
-          paddingTop: 6,
+          paddingBottom: insets.bottom,
+          paddingTop: 4,
           height: tabBarHeight,
-          elevation: 12,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: Platform.OS === 'ios' ? 0.18 : 0.1,
-          shadowRadius: Platform.OS === 'ios' ? 16 : 10,
-          position: Platform.OS === 'ios' ? 'absolute' : 'relative',
+          elevation: 0,
+          shadowColor: 'transparent',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0,
+          shadowRadius: 0,
         },
-        tabBarBackground: Platform.OS === 'ios'
-          ? () => (
-              <BlurView
-                intensity={85}
-                tint={isDark ? 'dark' : 'light'}
-                style={StyleSheet.absoluteFill}
-              />
-            )
-          : undefined,
       }}
     >
       <Tab.Screen

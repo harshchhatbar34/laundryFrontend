@@ -179,14 +179,15 @@ export default function CustomerProfileScreen({ navigation }: Props) {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loadingAddr, setLoadingAddr] = useState(false);
 
-  // Load addresses whenever screen focuses
+  // Load addresses whenever screen focuses — cache-first approach
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
-      const fetchAddresses = async () => {
-        setLoadingAddr(true);
+      const fetchAddresses = async (silent = false) => {
+        // Only show loading indicator on first load (no cached data yet)
+        if (!silent) setLoadingAddr(true);
         try {
-          const data = await getAddresses();
+          const data = await getAddresses(silent ? { hideLoader: true } : undefined);
           if (!cancelled) {
             let list: Address[] = [];
             if (Array.isArray(data)) {
@@ -205,14 +206,16 @@ export default function CustomerProfileScreen({ navigation }: Props) {
         } catch {
           // silently ignore
         } finally {
-          if (!cancelled) setLoadingAddr(false);
+          if (!cancelled && !silent) setLoadingAddr(false);
         }
       };
-      fetchAddresses();
+      // Cache-first: if addresses already loaded, fetch silently in background
+      const isFirstLoad = addresses.length === 0;
+      fetchAddresses(!isFirstLoad);
       return () => {
         cancelled = true;
       };
-    }, [])
+    }, [addresses.length])
   );
 
   // ── Derived values ──────────────────────────────────────────────────────────

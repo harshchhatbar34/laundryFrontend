@@ -25,11 +25,20 @@ export default function BranchListScreen({ navigation }: Props) {
   const [branches, setBranches] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetch = useCallback(async () => {
-    try { const r = await getBranches(); if (r?.data) setBranches(Array.isArray(r.data) ? r.data : r.data.branches || []); } catch (e) { console.log(e); }
+  const fetch = useCallback(async (isSilent = false) => {
+    try {
+      const r = await getBranches(isSilent ? { hideLoader: true } : undefined);
+      if (r?.data) setBranches(Array.isArray(r.data) ? r.data : r.data.branches || []);
+    } catch (e) {
+      console.log(e);
+    }
   }, []);
-  useEffect(() => { fetch(); }, []);
-  useEffect(() => { const u = navigation.addListener('focus', fetch); return u; }, [navigation, fetch]);
+
+  useEffect(() => {
+    fetch(branches.length > 0);
+    const u = navigation.addListener('focus', () => fetch(true));
+    return u;
+  }, [navigation, fetch]);
   const onRefresh = async () => { setRefreshing(true); await fetch(); setRefreshing(false); };
 
   const handleToggle = async (id: string, val: boolean) => {

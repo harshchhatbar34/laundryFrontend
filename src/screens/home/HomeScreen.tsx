@@ -22,7 +22,7 @@ import { RootState } from '../../store';
 type Props = NativeStackScreenProps<HomeStackParamList, 'HomeMain'>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user } = useSelector((s: RootState) => s.auth);
   const [branch, setBranch] = useState<any>(null);
   const [branches, setBranches] = useState<any[]>([]);
@@ -179,7 +179,7 @@ export default function HomeScreen({ navigation }: Props) {
         {/* Premium Hero Welcome Banner */}
         <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
           <LinearGradient
-            colors={theme.gradients.ocean as any}
+            colors={(isDark ? theme.gradients.ocean : theme.gradients.primary) as any}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0.8 }}
             style={styles.heroCard}
