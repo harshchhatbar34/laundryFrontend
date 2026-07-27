@@ -11,20 +11,16 @@ interface LivingIconProps {
   size?: number;
 }
 
-export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 26 }) => {
-  // Buildings separation
+export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 24 }) => {
   const bldgLeftX = useRef(new Animated.Value(0)).current;
   const bldgRightX = useRef(new Animated.Value(0)).current;
 
-  // Pin hop & idle bob
   const pinY = useRef(new Animated.Value(0)).current;
   const lineScale = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
   useEffect(() => {
     if (focused) {
-      // Tap Animation: buildings separate slightly, pin hops, line connects
       Animated.parallel([
-        // Buildings nudge outwards then spring back
         Animated.sequence([
           Animated.timing(bldgLeftX, { toValue: -1.5, duration: 80, useNativeDriver: true }),
           Animated.spring(bldgLeftX, { toValue: 0, friction: 4, tension: 150, useNativeDriver: true }),
@@ -33,12 +29,10 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
           Animated.timing(bldgRightX, { toValue: 1.5, duration: 80, useNativeDriver: true }),
           Animated.spring(bldgRightX, { toValue: 0, friction: 4, tension: 150, useNativeDriver: true }),
         ]),
-        // Pin hop
         Animated.sequence([
-          Animated.spring(pinY, { toValue: -6, friction: 3, tension: 220, useNativeDriver: true }),
+          Animated.spring(pinY, { toValue: -5, friction: 3, tension: 220, useNativeDriver: true }),
           Animated.spring(pinY, { toValue: 0, friction: 5, tension: 160, useNativeDriver: true }),
         ]),
-        // Connection line scale
         Animated.timing(lineScale, { toValue: 1, duration: 200, useNativeDriver: true }),
       ]).start();
     } else {
@@ -49,7 +43,7 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
     }
   }, [focused, bldgLeftX, bldgRightX, pinY, lineScale]);
 
-  // Idle animation: Pin bobs up and down gently every 5.5s
+  // Idle animation: Pin bobs up and down
   useEffect(() => {
     let timer: NodeJS.Timeout;
     const triggerBob = () => {
@@ -66,42 +60,24 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
     return () => clearTimeout(timer);
   }, [focused, pinY]);
 
+  const softFill = focused ? color + '22' : 'none';
+
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         {/* Left Store Building */}
         <AnimatedG style={{ transform: [{ translateX: bldgLeftX }] }}>
-          <Rect
-            x="2"
-            y="11"
-            width="7"
-            height="10"
-            rx="1.5"
-            fill={focused ? color : 'none'}
-            stroke={color}
-            strokeWidth="2"
-          />
-          {/* Roof line */}
+          <Rect x="2" y="11" width="7" height="10" rx="1.5" fill={softFill} stroke={color} strokeWidth="2" />
           <Path d="M1.5 11L5.5 8L9.5 11" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </AnimatedG>
 
         {/* Right Store Building */}
         <AnimatedG style={{ transform: [{ translateX: bldgRightX }] }}>
-          <Rect
-            x="15"
-            y="11"
-            width="7"
-            height="10"
-            rx="1.5"
-            fill={focused ? color : 'none'}
-            stroke={color}
-            strokeWidth="2"
-          />
-          {/* Roof line */}
+          <Rect x="15" y="11" width="7" height="10" rx="1.5" fill={softFill} stroke={color} strokeWidth="2" />
           <Path d="M14.5 11L18.5 8L22.5 11" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </AnimatedG>
 
-        {/* Dashed Connecting Line between stores */}
+        {/* Connecting Line */}
         <AnimatedPath
           d="M9 16H15"
           stroke={color}
@@ -111,7 +87,7 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
           style={{ opacity: lineScale }}
         />
 
-        {/* Location Pin hopping above middle */}
+        {/* Location Pin */}
         <AnimatedG style={{ transform: [{ translateY: pinY }] }}>
           <Path
             d="M12 2C10.3 2 9 3.3 9 5C9 7.2 12 10.5 12 10.5C12 10.5 15 7.2 15 5C15 3.3 13.7 2 12 2Z"

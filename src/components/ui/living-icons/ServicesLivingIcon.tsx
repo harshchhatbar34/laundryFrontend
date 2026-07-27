@@ -10,11 +10,11 @@ interface LivingIconProps {
   size?: number;
 }
 
-export const ServicesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 26 }) => {
-  // Gear rotation (90° = 0.25 turn)
+export const ServicesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 24 }) => {
+  // Gear rotation (90° = 1)
   const gearRot = useRef(new Animated.Value(0)).current;
 
-  // Wrench tilt (-15° to +15°)
+  // Wrench tilt
   const wrenchRot = useRef(new Animated.Value(0)).current;
 
   // Sparkle scale
@@ -22,14 +22,8 @@ export const ServicesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
 
   useEffect(() => {
     if (focused) {
-      // Tap Animation: Gear rotates 90° with spring overshoot, wrench tilts, sparkle pops
       Animated.parallel([
-        Animated.spring(gearRot, {
-          toValue: 1,
-          friction: 5,
-          tension: 160,
-          useNativeDriver: true,
-        }),
+        Animated.spring(gearRot, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }),
         Animated.sequence([
           Animated.timing(wrenchRot, { toValue: -0.2, duration: 90, useNativeDriver: true }),
           Animated.spring(wrenchRot, { toValue: 0, friction: 4, tension: 180, useNativeDriver: true }),
@@ -46,7 +40,7 @@ export const ServicesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
     }
   }, [focused, gearRot, wrenchRot, sparkleScale]);
 
-  // Idle animation: Gear nudges 5° as if machine is alive
+  // Idle animation: Gear nudges 5°
   useEffect(() => {
     let timer: NodeJS.Timeout;
     const triggerNudge = () => {
@@ -73,40 +67,54 @@ export const ServicesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
     outputRange: ['-45deg', '45deg'],
   });
 
+  const softFill = focused ? color + '22' : 'none';
+
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         {/* Main Rotating Gear */}
-        <AnimatedG style={{ transform: [{ rotate: gearInterpolate }], transformOrigin: '10px 10px' }}>
-          <Circle cx="10" cy="10" r="4" stroke={color} strokeWidth="2" fill={focused ? color + '33' : 'none'} />
-          {/* Gear teeth */}
-          <Path
-            d="M10 2V4 M10 16V18 M2 10H4 M16 10H18 M4.34 4.34L5.76 5.76 M14.24 14.24L15.66 15.66 M4.34 15.66L5.76 14.24 M14.24 5.76L15.66 4.34"
-            stroke={color}
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </AnimatedG>
+        <G x={10} y={10}>
+          <AnimatedG style={{ transform: [{ rotate: gearInterpolate }] }}>
+            <G x={-10} y={-10}>
+              <Circle cx="10" cy="10" r="4" stroke={color} strokeWidth="2" fill={softFill} />
+              {/* Gear teeth */}
+              <Path
+                d="M10 2V4 M10 16V18 M2 10H4 M16 10H18 M4.34 4.34L5.76 5.76 M14.24 14.24L15.66 15.66 M4.34 15.66L5.76 14.24 M14.24 5.76L15.66 4.34"
+                stroke={color}
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </G>
+          </AnimatedG>
+        </G>
 
-        {/* Tilting Wrench overlay */}
-        <AnimatedG style={{ transform: [{ rotate: wrenchInterpolate }], transformOrigin: '17px 17px' }}>
-          <Path
-            d="M14.7 14.7L19.5 19.5 M17 12.5C18.5 11 20.8 11.2 21.8 12.8C22.4 13.8 22.2 15 21.5 15.8L19.8 14.1L18.4 15.5L20.1 17.2C19.3 17.9 18.1 18.1 17.1 17.5C15.5 16.5 15.3 14.2 16.8 12.7L17 12.5Z"
-            stroke={color}
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill={focused ? color : 'none'}
-          />
-        </AnimatedG>
+        {/* Tilting Wrench overlay - Clean stroke outline */}
+        <G x={17} y={17}>
+          <AnimatedG style={{ transform: [{ rotate: wrenchInterpolate }] }}>
+            <G x={-17} y={-17}>
+              <Path
+                d="M14.7 14.7L19.5 19.5 M17 12.5C18.5 11 20.8 11.2 21.8 12.8C22.4 13.8 22.2 15 21.5 15.8L19.8 14.1L18.4 15.5L20.1 17.2C19.3 17.9 18.1 18.1 17.1 17.5C15.5 16.5 15.3 14.2 16.8 12.7L17 12.5Z"
+                stroke={color}
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill={softFill}
+              />
+            </G>
+          </AnimatedG>
+        </G>
 
         {/* Sparkle pop */}
-        <AnimatedG style={{ transform: [{ scale: sparkleScale }], transformOrigin: '19px 5px' }}>
-          <Path
-            d="M19 2L19.5 4L21.5 4.5L19.5 5L19 7L18.5 5L16.5 4.5L18.5 4L19 2Z"
-            fill="#F59E0B"
-          />
-        </AnimatedG>
+        <G x={19} y={4.5}>
+          <AnimatedG style={{ transform: [{ scale: sparkleScale }] }}>
+            <G x={-19} y={-4.5}>
+              <Path
+                d="M19 2L19.5 4L21.5 4.5L19.5 5L19 7L18.5 5L16.5 4.5L18.5 4L19 2Z"
+                fill="#F59E0B"
+              />
+            </G>
+          </AnimatedG>
+        </G>
       </Svg>
     </View>
   );

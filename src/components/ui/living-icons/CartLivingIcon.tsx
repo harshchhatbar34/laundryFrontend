@@ -10,25 +10,14 @@ interface LivingIconProps {
   size?: number;
 }
 
-export const CartLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 26 }) => {
-  // Cart body forward roll (translateX 0 -> 7px -> 0)
+export const CartLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 24 }) => {
   const rollX = useRef(new Animated.Value(0)).current;
-
-  // Cart suspension compression (translateY & scaleY)
   const compressY = useRef(new Animated.Value(0)).current;
-
-  // Wheels rotation
   const wheelRot = useRef(new Animated.Value(0)).current;
-
-  // Front wheel idle twitch
   const frontWheelIdleRot = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (focused) {
-      // Tap Animation:
-      // 1. Compress suspension (0-40ms)
-      // 2. Roll forward + rotate wheels (120-180ms)
-      // 3. Overshoot & return home naturally (spring settle)
       Animated.sequence([
         Animated.timing(compressY, { toValue: 2, duration: 40, useNativeDriver: true }),
         Animated.parallel([
@@ -50,7 +39,7 @@ export const CartLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size
     }
   }, [focused, rollX, compressY, wheelRot]);
 
-  // Idle Animation: Front wheel rotates 30° before stopping
+  // Idle Animation: Front wheel rotates 30°
   useEffect(() => {
     let timer: NodeJS.Timeout;
     const triggerWheelTwitch = () => {
@@ -77,10 +66,12 @@ export const CartLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size
     outputRange: ['0deg', '45deg'],
   });
 
+  const softFill = focused ? color + '22' : 'none';
+
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        {/* Main Cart Body with roll & compression */}
+        {/* Main Cart Body */}
         <AnimatedG style={{ transform: [{ translateX: rollX }, { translateY: compressY }] }}>
           {/* Cart basket */}
           <Path
@@ -89,28 +80,34 @@ export const CartLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            fill={focused ? color + '25' : 'none'}
+            fill={softFill}
           />
 
-          {/* Cart handle accent */}
           <Path d="M16 9H21" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
 
           {/* Rear Wheel */}
-          <AnimatedG style={{ transform: [{ rotate: wheelRotateInterpolate }], transformOrigin: '8.5px 19.5px' }}>
-            <Circle cx="8.5" cy="19.5" r="2" fill={focused ? color : 'none'} stroke={color} strokeWidth="2" />
-            <Path d="M8.5 17.5V21.5" stroke={color} strokeWidth="1" />
-          </AnimatedG>
+          <G x={8.5} y={19.5}>
+            <AnimatedG style={{ transform: [{ rotate: wheelRotateInterpolate }] }}>
+              <G x={-8.5} y={-19.5}>
+                <Circle cx="8.5" cy="19.5" r="2" fill={softFill} stroke={color} strokeWidth="2" />
+                <Path d="M8.5 17.5V21.5" stroke={color} strokeWidth="1" />
+              </G>
+            </AnimatedG>
+          </G>
 
-          {/* Front Wheel with idle rotation */}
-          <AnimatedG
-            style={{
-              transform: [{ rotate: focused ? wheelRotateInterpolate : frontWheelIdleInterpolate }],
-              transformOrigin: '17.5px 19.5px',
-            }}
-          >
-            <Circle cx="17.5" cy="19.5" r="2" fill={focused ? color : 'none'} stroke={color} strokeWidth="2" />
-            <Path d="M17.5 17.5V21.5" stroke={color} strokeWidth="1" />
-          </AnimatedG>
+          {/* Front Wheel */}
+          <G x={17.5} y={19.5}>
+            <AnimatedG
+              style={{
+                transform: [{ rotate: focused ? wheelRotateInterpolate : frontWheelIdleInterpolate }],
+              }}
+            >
+              <G x={-17.5} y={-19.5}>
+                <Circle cx="17.5" cy="19.5" r="2" fill={softFill} stroke={color} strokeWidth="2" />
+                <Path d="M17.5 17.5V21.5" stroke={color} strokeWidth="1" />
+              </G>
+            </AnimatedG>
+          </G>
         </AnimatedG>
       </Svg>
     </View>

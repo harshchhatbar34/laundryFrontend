@@ -10,23 +10,14 @@ interface LivingIconProps {
   size?: number;
 }
 
-export const SettingsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 26 }) => {
-  // Gear rotation (0 to 1 = 90deg)
+export const SettingsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size = 24 }) => {
   const gearRot = useRef(new Animated.Value(0)).current;
-
-  // Mechanical scale twitch
   const clickScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (focused) {
-      // Tap Animation: 90° mechanical rotate with slight overshoot and click
       Animated.parallel([
-        Animated.spring(gearRot, {
-          toValue: 1,
-          friction: 4,
-          tension: 180,
-          useNativeDriver: true,
-        }),
+        Animated.spring(gearRot, { toValue: 1, friction: 4, tension: 180, useNativeDriver: true }),
         Animated.sequence([
           Animated.timing(clickScale, { toValue: 1.12, duration: 60, useNativeDriver: true }),
           Animated.spring(clickScale, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }),
@@ -38,7 +29,7 @@ export const SettingsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
     }
   }, [focused, gearRot, clickScale]);
 
-  // Idle Animation: Gear twitches 3-5° occasionally
+  // Idle Animation: Gear twitches
   useEffect(() => {
     let timer: NodeJS.Timeout;
     const triggerTwitch = () => {
@@ -61,32 +52,33 @@ export const SettingsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
     outputRange: ['-90deg', '0deg', '90deg'],
   });
 
+  const softFill = focused ? color + '22' : 'none';
+
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <AnimatedG
-          style={{
-            transform: [{ rotate: gearInterpolate }, { scale: clickScale }],
-            transformOrigin: '12px 12px',
-          }}
-        >
-          {/* Outer mechanical gear teeth */}
-          <Path
-            d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-            fill={focused ? color : 'none'}
-            stroke={color}
-            strokeWidth="2"
-          />
-          <Path
-            d="M19.4 15A1.65 1.65 0 0 0 20 12A1.65 1.65 0 0 0 19.4 9L21.3 7.5L19.3 4.1L17 5.1A1.65 1.65 0 0 0 14.4 3.6L14 1.2H10L9.6 3.6A1.65 1.65 0 0 0 7 5.1L4.7 4.1L2.7 7.5L4.6 9A1.65 1.65 0 0 0 4.6 12A1.65 1.65 0 0 0 4 15L2.1 16.5L4.1 19.9L6.4 18.9A1.65 1.65 0 0 0 9 20.4L9.4 22.8H13.4L13.8 20.4A1.65 1.65 0 0 0 16.4 18.9L18.7 19.9L20.7 16.5L19.4 15Z"
-            stroke={color}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Inner core circle */}
-          <Circle cx="12" cy="12" r="2" fill={focused ? '#FFF' : color} />
-        </AnimatedG>
+        <G x={12} y={12}>
+          <AnimatedG style={{ transform: [{ rotate: gearInterpolate }, { scale: clickScale }] }}>
+            <G x={-12} y={-12}>
+              {/* Outer mechanical gear teeth */}
+              <Path
+                d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
+                fill={softFill}
+                stroke={color}
+                strokeWidth="2"
+              />
+              <Path
+                d="M19.4 15A1.65 1.65 0 0 0 20 12A1.65 1.65 0 0 0 19.4 9L21.3 7.5L19.3 4.1L17 5.1A1.65 1.65 0 0 0 14.4 3.6L14 1.2H10L9.6 3.6A1.65 1.65 0 0 0 7 5.1L4.7 4.1L2.7 7.5L4.6 9A1.65 1.65 0 0 0 4.6 12A1.65 1.65 0 0 0 4 15L2.1 16.5L4.1 19.9L6.4 18.9A1.65 1.65 0 0 0 9 20.4L9.4 22.8H13.4L13.8 20.4A1.65 1.65 0 0 0 16.4 18.9L18.7 19.9L20.7 16.5L19.4 15Z"
+                stroke={color}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {/* Inner core circle */}
+              <Circle cx="12" cy="12" r="2" fill={color} />
+            </G>
+          </AnimatedG>
+        </G>
       </Svg>
     </View>
   );

@@ -1,12 +1,7 @@
 /**
  * LivingTabBarItem — Next-Gen Living Navigation Icon System
  *
- * Implements:
- *  - Apple craftsmanship + Zomato micro-interactions + Duolingo playful motion
- *  - Individual SVG component animations (no whole-icon scale)
- *  - WhatsApp/Zerodha active pill background expansion
- *  - iOS Haptic feedback (Light impact)
- *  - 100% Expo Go and Release build compatible
+ * Clean, pill-centered active background with zero icon clipping or distortion.
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -54,11 +49,11 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
   const isFirstRender = useRef(true);
 
   // Pill expand/shrink
-  const pillWidthAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
+  const pillScaleAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
   const pillOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
   // Label opacity
-  const labelOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0.5)).current;
+  const labelOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0.55)).current;
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -73,11 +68,11 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
 
     // Expand/collapse background active pill with spring physics
     Animated.parallel([
-      Animated.spring(pillWidthAnim, {
+      Animated.spring(pillScaleAnim, {
         toValue: focused ? 1 : 0,
-        friction: 7,
-        tension: 110,
-        useNativeDriver: false,
+        friction: 6,
+        tension: 140,
+        useNativeDriver: true,
       }),
       Animated.timing(pillOpacityAnim, {
         toValue: focused ? 1 : 0,
@@ -90,60 +85,48 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
         useNativeDriver: true,
       }),
     ]).start();
-  }, [focused, pillWidthAnim, pillOpacityAnim, labelOpacityAnim]);
+  }, [focused, pillScaleAnim, pillOpacityAnim, labelOpacityAnim]);
 
-  const pillWidth = pillWidthAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [36, Platform.OS === 'ios' ? 68 : 64],
-  });
-
-  const pillHeight = pillWidthAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, Platform.OS === 'ios' ? 32 : 28],
-  });
-
-  const pillBg = pillColor ?? activeColor + '22';
+  const pillBg = pillColor ?? activeColor + '18'; // Soft 10% opacity pill
   const iconColor = focused ? activeColor : inactiveColor;
 
   const renderIcon = () => {
     switch (name) {
       case 'dashboard':
-        return <DashboardLivingIcon focused={focused} color={iconColor} size={25} />;
+        return <DashboardLivingIcon focused={focused} color={iconColor} size={24} />;
       case 'branches':
-        return <BranchesLivingIcon focused={focused} color={iconColor} size={25} />;
+        return <BranchesLivingIcon focused={focused} color={iconColor} size={24} />;
       case 'services':
-        return <ServicesLivingIcon focused={focused} color={iconColor} size={25} />;
+        return <ServicesLivingIcon focused={focused} color={iconColor} size={24} />;
       case 'orders':
-        return <OrdersLivingIcon focused={focused} color={iconColor} size={25} />;
+        return <OrdersLivingIcon focused={focused} color={iconColor} size={24} />;
       case 'cart':
-        return <CartLivingIcon focused={focused} color={iconColor} size={25} />;
+        return <CartLivingIcon focused={focused} color={iconColor} size={24} />;
       case 'reports':
-        return <ReportsLivingIcon focused={focused} color={iconColor} size={25} />;
+        return <ReportsLivingIcon focused={focused} color={iconColor} size={24} />;
       case 'settings':
-        return <SettingsLivingIcon focused={focused} color={iconColor} size={25} />;
+        return <SettingsLivingIcon focused={focused} color={iconColor} size={24} />;
       default:
-        return <DashboardLivingIcon focused={focused} color={iconColor} size={25} />;
+        return <DashboardLivingIcon focused={focused} color={iconColor} size={24} />;
     }
   };
 
   return (
     <View style={styles.container}>
       {/* Animated pill background */}
-      <Animated.View
-        style={[
-          styles.pill,
-          {
-            width: pillWidth,
-            height: pillHeight,
-            backgroundColor: pillBg,
-            opacity: pillOpacityAnim,
-            borderRadius: 16,
-          },
-        ]}
-      />
-
-      {/* Living SVG Icon Container */}
       <View style={styles.iconWrap}>
+        <Animated.View
+          style={[
+            styles.pill,
+            {
+              backgroundColor: pillBg,
+              opacity: pillOpacityAnim,
+              transform: [{ scale: pillScaleAnim }],
+            },
+          ]}
+        />
+
+        {/* Living SVG Icon */}
         {renderIcon()}
 
         {/* Badge count */}
@@ -178,33 +161,32 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 72,
-    paddingTop: 6,
-    paddingBottom: 2,
-  },
-  pill: {
-    position: 'absolute',
-    top: 4,
-    alignSelf: 'center',
+    width: 68,
+    paddingTop: 4,
   },
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 36,
-    height: 28,
-    marginTop: 3,
+    width: 52,
+    height: 32,
+  },
+  pill: {
+    position: 'absolute',
+    width: 52,
+    height: 30,
+    borderRadius: 15,
   },
   label: {
     fontSize: 10.5,
-    marginTop: 3,
+    marginTop: 2,
     letterSpacing: 0.1,
     textAlign: 'center',
-    width: 72,
+    width: 68,
   },
   badge: {
     position: 'absolute',
-    top: -5,
-    right: -6,
+    top: -2,
+    right: 4,
     minWidth: 16,
     height: 16,
     borderRadius: 8,
