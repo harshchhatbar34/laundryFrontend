@@ -22,7 +22,7 @@ import AddressListScreen from '../screens/address/AddressListScreen';
 import AddAddressScreen from '../screens/address/AddAddressScreen';
 import NotificationListScreen from '../screens/notifications/NotificationListScreen';
 import BranchNavigationScreen from '../screens/navigation/BranchNavigationScreen';
-import { PremiumTabBarItem } from '../components/ui/PremiumTabBarItem';
+import { LivingTabBarItem } from '../components/ui/LivingTabBarItem';
 
 export type HomeStackParamList = {
   HomeMain: undefined;
@@ -161,10 +161,10 @@ export default function CustomerTabs() {
         component={HomeStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="home"
-              focused={focused}
+            <LivingTabBarItem
+              name="dashboard"
               label="Home"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
@@ -182,10 +182,10 @@ export default function CustomerTabs() {
         component={CartScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="cart"
-              focused={focused}
+            <LivingTabBarItem
+              name="cart"
               label="Cart"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
               badgeCount={cartItemCount}
@@ -198,10 +198,10 @@ export default function CustomerTabs() {
         component={OrderStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="receipt"
-              focused={focused}
+            <LivingTabBarItem
+              name="orders"
               label="Orders"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
               badgeCount={updateCount}
@@ -220,10 +220,10 @@ export default function CustomerTabs() {
         component={ProfileStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="person"
-              focused={focused}
+            <LivingTabBarItem
+              name="settings"
               label="Profile"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />

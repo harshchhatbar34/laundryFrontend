@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PremiumTabBarItem } from '../components/ui/PremiumTabBarItem';
+import { LivingTabBarItem } from '../components/ui/LivingTabBarItem';
 
 import HelperDashboardScreen from '../screens/helper/HelperDashboardScreen';
 import HelperOrderDetailScreen from '../screens/helper/HelperOrderDetailScreen';
@@ -73,10 +73,10 @@ function HelperTabNavigator() {
         component={HelperDashboardScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="speedometer"
-              focused={focused}
+            <LivingTabBarItem
+              name="dashboard"
               label="Dashboard"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
@@ -88,10 +88,10 @@ function HelperTabNavigator() {
         component={HelperReportScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="receipt"
-              focused={focused}
+            <LivingTabBarItem
+              name="orders"
               label="Orders"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
@@ -103,10 +103,10 @@ function HelperTabNavigator() {
         component={HelperProfileScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="person"
-              focused={focused}
+            <LivingTabBarItem
+              name="settings"
               label="Profile"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />

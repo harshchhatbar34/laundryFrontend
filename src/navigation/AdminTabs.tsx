@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PremiumTabBarItem } from '../components/ui/PremiumTabBarItem';
+import { LivingTabBarItem } from '../components/ui/LivingTabBarItem';
 
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import OwnerManagementScreen from '../screens/admin/OwnerManagementScreen';
@@ -164,10 +164,10 @@ export default function AdminTabs() {
         component={DashStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="grid"
-              focused={focused}
+            <LivingTabBarItem
+              name="dashboard"
               label="Dashboard"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
@@ -179,10 +179,10 @@ export default function AdminTabs() {
         component={OwnerStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="business"
-              focused={focused}
+            <LivingTabBarItem
+              name="branches"
               label="Owners"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
@@ -194,10 +194,10 @@ export default function AdminTabs() {
         component={CustomerStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="people"
-              focused={focused}
+            <LivingTabBarItem
+              name="branches"
               label="Customers"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
@@ -209,10 +209,10 @@ export default function AdminTabs() {
         component={OrderStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="receipt"
-              focused={focused}
+            <LivingTabBarItem
+              name="orders"
               label="Orders"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
@@ -224,10 +224,10 @@ export default function AdminTabs() {
         component={SettingsStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="settings"
-              focused={focused}
+            <LivingTabBarItem
+              name="settings"
               label="Settings"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />

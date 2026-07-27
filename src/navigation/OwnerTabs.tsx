@@ -6,7 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeContext';
 import { getOwnerOrders } from '../api/owner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PremiumTabBarItem } from '../components/ui/PremiumTabBarItem';
+import { LivingTabBarItem } from '../components/ui/LivingTabBarItem';
 
 import OwnerDashboardScreen from '../screens/owner/OwnerDashboardScreen';
 import BranchListScreen from '../screens/owner/BranchListScreen';
@@ -91,7 +91,7 @@ function ServiceStackScreen() {
   );
 }
 
-function OrderStackScreen() {
+function OwnerOrderStackScreen() {
   return (
     <OrderStack.Navigator id="OwnerOrderStack" screenOptions={{ headerShown: false }}>
       <OrderStack.Screen name="OwnerOrderList" component={OwnerOrderListScreen} />
@@ -100,7 +100,7 @@ function OrderStackScreen() {
   );
 }
 
-function SettingsStackScreen() {
+function OwnerSettingsStackScreen() {
   return (
     <SettingsStack.Navigator id="OwnerSettingsStack" screenOptions={{ headerShown: false }}>
       <SettingsStack.Screen name="OwnerSettingsMain" component={OwnerSettingsScreen} />
@@ -146,7 +146,6 @@ export default function OwnerTabs() {
           justifyContent: 'center',
           paddingBottom: 0,
         },
-        // iOS: transparent so BlurView shows through; Android: solid background
         tabBarStyle: {
           backgroundColor: Platform.OS === 'ios' ? 'transparent' : theme.colors.tabBar,
           borderTopColor: theme.colors.border,
@@ -174,109 +173,79 @@ export default function OwnerTabs() {
     >
       <Tab.Screen
         name="Dashboard"
-        component={DashStackScreen}
+        component={OwnerDashboardScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="grid"
-              focused={focused}
+            <LivingTabBarItem
+              name="dashboard"
               label="Dashboard"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
           ),
         }}
-        listeners={({ navigation }) => ({
-          tabPress: (e: any) => {
-            e.preventDefault();
-            (navigation as any).navigate('Dashboard', { screen: 'OwnerDashboardMain' });
-          },
-        })}
       />
       <Tab.Screen
         name="Branches"
-        component={BranchStackScreen}
+        component={BranchListScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="storefront"
-              focused={focused}
+            <LivingTabBarItem
+              name="branches"
               label="Branches"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
           ),
         }}
-        listeners={({ navigation }) => ({
-          tabPress: (e: any) => {
-            e.preventDefault();
-            (navigation as any).navigate('Branches', { screen: 'BranchList' });
-          },
-        })}
       />
       <Tab.Screen
         name="Services"
-        component={ServiceStackScreen}
+        component={ServiceManagementScreen as any}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="layers"
-              focused={focused}
+            <LivingTabBarItem
+              name="services"
               label="Services"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
           ),
         }}
-        listeners={({ navigation }) => ({
-          tabPress: (e: any) => {
-            e.preventDefault();
-            (navigation as any).navigate('Services', { screen: 'ServiceManagement' });
-          },
-        })}
       />
       <Tab.Screen
         name="Orders"
-        component={OrderStackScreen}
+        component={OwnerOrderStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="receipt"
-              focused={focused}
+            <LivingTabBarItem
+              name="orders"
               label="Orders"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
               badgeCount={pendingCount}
             />
           ),
         }}
-        listeners={({ navigation }) => ({
-          tabPress: (e: any) => {
-            e.preventDefault();
-            (navigation as any).navigate('Orders', { screen: 'OwnerOrderList' });
-          },
-        })}
       />
       <Tab.Screen
         name="Settings"
-        component={SettingsStackScreen}
+        component={OwnerSettingsStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <PremiumTabBarItem
-              iconName="settings"
-              focused={focused}
+            <LivingTabBarItem
+              name="settings"
               label="Settings"
+              focused={focused}
               activeColor={theme.colors.tabBarActive}
               inactiveColor={theme.colors.tabBarInactive}
             />
           ),
         }}
-        listeners={({ navigation }) => ({
-          tabPress: (e: any) => {
-            e.preventDefault();
-            (navigation as any).navigate('Settings', { screen: 'OwnerSettingsMain' });
-          },
-        })}
       />
     </Tab.Navigator>
   );
