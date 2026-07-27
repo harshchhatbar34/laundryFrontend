@@ -235,7 +235,7 @@ export default function VerifyOTPScreen({ navigation, route }: Props) {
               {/* Resend */}
               <View style={styles.resendRow}>
                 <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary }]}>
-                  Didn't receive the code?{' '}
+                  Didn&apos;t receive the code?{' '}
                 </Text>
                 {canResend ? (
                   <TouchableOpacity onPress={handleResend} disabled={resending}>
@@ -254,7 +254,7 @@ export default function VerifyOTPScreen({ navigation, route }: Props) {
               <View style={[styles.infoCard, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.border }]}>
                 <Ionicons name="information-circle-outline" size={16} color={theme.colors.textMuted} />
                 <Text style={[theme.typography.caption, { color: theme.colors.textMuted, marginLeft: 8, flex: 1, lineHeight: 18 }]}>
-                  Check your spam/junk folder if you don't see the email. The code is valid for 10 minutes.
+                  Check your spam/junk folder if you don&apos;t see the email. The code is valid for 10 minutes.
                 </Text>
               </View>
             </>

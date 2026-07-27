@@ -114,7 +114,7 @@ function SettingsStackScreen() {
 }
 
 export default function OwnerTabs() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 62 + insets.bottom;
   const [pendingCount, setPendingCount] = useState(0);
@@ -123,12 +123,10 @@ export default function OwnerTabs() {
     const fetchPendingCount = async (isSilent = false) => {
       try {
         const res = await getOwnerOrders({ status: 'pending' }, isSilent ? { hideLoader: true } : undefined);
-        if (res?.success && res.data) {
-          const list = Array.isArray(res.data) ? res.data : res.data.orders || [];
-          setPendingCount(list.length);
-        }
+        const orders = Array.isArray(res?.data) ? res.data : res?.data?.orders || [];
+        setPendingCount(orders.length);
       } catch (e) {
-        console.log('Error fetching pending orders count:', e);
+        console.log(e);
       }
     };
 
@@ -167,7 +165,7 @@ export default function OwnerTabs() {
           ? () => (
               <BlurView
                 intensity={85}
-                tint={theme.dark ? 'dark' : 'light'}
+                tint={isDark ? 'dark' : 'light'}
                 style={StyleSheet.absoluteFill}
               />
             )

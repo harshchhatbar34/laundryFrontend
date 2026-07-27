@@ -116,4 +116,6 @@ const styles = StyleSheet.create({
   },
 });
 
+StaggeredDotLoader.displayName = 'StaggeredDotLoader';
+
 export default StaggeredDotLoader;

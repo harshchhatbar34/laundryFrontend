@@ -41,10 +41,10 @@ export default function AppNavigator() {
 
       if ((path === 'register' || path.endsWith('/register')) && code && navigationRef.current) {
         // If not logged in, navigate to Register with code
-        navigationRef.current.navigate('Register' as never, { tenantCode: code } as never);
+        (navigationRef.current as any).navigate('Register', { tenantCode: code });
       } else if ((path === 'set-password' || path === 'reset-password' || path.endsWith('/set-password') || path.endsWith('/reset-password')) && token && navigationRef.current) {
         // Navigate to SetPassword screen with reset token
-        navigationRef.current.navigate('SetPassword' as never, { token } as never);
+        (navigationRef.current as any).navigate('SetPassword', { token });
       }
     } catch (e) {
       if (__DEV__) console.warn('Error parsing deep link:', e);

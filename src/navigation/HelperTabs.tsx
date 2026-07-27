@@ -27,12 +27,13 @@ const Tab = createBottomTabNavigator<HelperTabParamList>();
 const Stack = createNativeStackNavigator<HelperStackParamList>();
 
 function HelperTabNavigator() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 62 + insets.bottom;
 
   return (
     <Tab.Navigator
+      id="HelperTabs"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
@@ -60,7 +61,7 @@ function HelperTabNavigator() {
           ? () => (
               <BlurView
                 intensity={85}
-                tint={theme.dark ? 'dark' : 'light'}
+                tint={isDark ? 'dark' : 'light'}
                 style={StyleSheet.absoluteFill}
               />
             )

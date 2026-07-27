@@ -118,7 +118,7 @@ function SettingsStackScreen() {
 }
 
 export default function AdminTabs() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 62 + insets.bottom;
 
@@ -152,7 +152,7 @@ export default function AdminTabs() {
           ? () => (
               <BlurView
                 intensity={85}
-                tint={theme.dark ? 'dark' : 'light'}
+                tint={isDark ? 'dark' : 'light'}
                 style={StyleSheet.absoluteFill}
               />
             )

@@ -34,6 +34,8 @@ const StatCard = React.memo(({ icon, label, value, color, delay, theme, onPress 
   </FadeSlideIn>
 ));
 
+StatCard.displayName = 'StatCard';
+
 export default function AdminDashboardScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const [stats, setStats] = useState<any>(null);

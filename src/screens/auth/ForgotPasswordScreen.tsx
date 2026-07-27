@@ -86,7 +86,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
             ) : null}
 
             <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginBottom: 20, textAlign: 'center', lineHeight: 22 }]}>
-              Enter your registered email address below. We'll send you a secure link to reset your password.
+              Enter your registered email address below. We&apos;ll send you a secure link to reset your password.
             </Text>
 
             <Input

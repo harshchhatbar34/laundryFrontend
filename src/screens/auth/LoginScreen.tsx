@@ -131,7 +131,7 @@ export default function LoginScreen({ navigation }: Props) {
 
             <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.link}>
               <Text style={[theme.typography.body, { color: theme.colors.textSecondary }]}>
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Text style={{ color: theme.colors.primary, fontWeight: '600' }}>Register</Text>
               </Text>
             </TouchableOpacity>

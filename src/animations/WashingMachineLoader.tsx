@@ -205,4 +205,6 @@ const styles = StyleSheet.create({
   },
 });
 
+WashingMachineLoader.displayName = 'WashingMachineLoader';
+
 export default WashingMachineLoader;

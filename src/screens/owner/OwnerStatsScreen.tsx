@@ -204,7 +204,7 @@ export default function OwnerStatsScreen({ route, navigation }: Props) {
                     </View>
                     {item.review ? (
                       <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 10, fontStyle: 'italic', lineHeight: 20 }]}>
-                        "{item.review}"
+                        &quot;{item.review}&quot;
                       </Text>
                     ) : (
                       <Text style={[theme.typography.caption, { color: theme.colors.textMuted, marginTop: 10, fontStyle: 'italic' }]}>

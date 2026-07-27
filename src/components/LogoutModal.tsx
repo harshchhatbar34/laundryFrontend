@@ -86,7 +86,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ visible, onConfirm, onCancel 
                 Log out of your account?
               </Text>
               <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-                You'll need to sign in again to continue.
+                You&apos;ll need to sign in again to continue.
               </Text>
 
               {/* Buttons row */}

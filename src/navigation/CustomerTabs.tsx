@@ -93,7 +93,7 @@ function ProfileStackScreen() {
 }
 
 export default function CustomerTabs() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 62 + insets.bottom;
   const cart = useSelector((s: RootState) => s.orders.cart);
@@ -149,7 +149,7 @@ export default function CustomerTabs() {
           ? () => (
               <BlurView
                 intensity={85}
-                tint={theme.dark ? 'dark' : 'light'}
+                tint={isDark ? 'dark' : 'light'}
                 style={StyleSheet.absoluteFill}
               />
             )
