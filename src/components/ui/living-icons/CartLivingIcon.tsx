@@ -19,11 +19,11 @@ export const CartLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size
   useEffect(() => {
     if (focused) {
       Animated.sequence([
-        Animated.timing(compressY, { toValue: 2, duration: 40, useNativeDriver: true }),
+        Animated.timing(compressY, { toValue: 1.5, duration: 40, useNativeDriver: true }),
         Animated.parallel([
           Animated.spring(compressY, { toValue: 0, friction: 5, tension: 180, useNativeDriver: true }),
           Animated.sequence([
-            Animated.timing(rollX, { toValue: 6, duration: 130, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+            Animated.timing(rollX, { toValue: 4, duration: 130, easing: Easing.out(Easing.quad), useNativeDriver: true }),
             Animated.spring(rollX, { toValue: 0, friction: 4, tension: 150, useNativeDriver: true }),
           ]),
           Animated.sequence([
@@ -70,7 +70,8 @@ export const CartLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Expanded viewBox="-1 -1 26 25" so forward rolling cart never clips */}
+      <Svg width={size} height={size} viewBox="-1 -1 26 25" fill="none">
         {/* Main Cart Body */}
         <AnimatedG style={{ transform: [{ translateX: rollX }, { translateY: compressY }] }}>
           {/* Cart basket */}

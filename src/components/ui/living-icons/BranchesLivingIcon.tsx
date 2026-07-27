@@ -30,7 +30,7 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
           Animated.spring(bldgRightX, { toValue: 0, friction: 4, tension: 150, useNativeDriver: true }),
         ]),
         Animated.sequence([
-          Animated.spring(pinY, { toValue: -5, friction: 3, tension: 220, useNativeDriver: true }),
+          Animated.spring(pinY, { toValue: -4, friction: 3, tension: 220, useNativeDriver: true }),
           Animated.spring(pinY, { toValue: 0, friction: 5, tension: 160, useNativeDriver: true }),
         ]),
         Animated.timing(lineScale, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -49,7 +49,7 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
     const triggerBob = () => {
       if (!focused) {
         Animated.sequence([
-          Animated.timing(pinY, { toValue: -3, duration: 300, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+          Animated.timing(pinY, { toValue: -2.5, duration: 300, easing: Easing.out(Easing.quad), useNativeDriver: true }),
           Animated.timing(pinY, { toValue: 0, duration: 350, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
         ]).start();
       }
@@ -64,7 +64,8 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Expanded viewBox="-1 -3 26 27" so hopping pin never clips at top */}
+      <Svg width={size} height={size} viewBox="-1 -3 26 27" fill="none">
         {/* Left Store Building */}
         <AnimatedG style={{ transform: [{ translateX: bldgLeftX }] }}>
           <Rect x="2" y="11" width="7" height="10" rx="1.5" fill={softFill} stroke={color} strokeWidth="2" />

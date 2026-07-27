@@ -11,12 +11,15 @@ import { getServices as getOwnerServices, deleteServiceElement } from '../../api
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { OwnerServiceStackParamList } from '../../navigation/OwnerTabs';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 type Props = NativeStackScreenProps<OwnerServiceStackParamList, 'ServiceManagement'>;
 
 const TABS = ['Services', 'Materials', 'Items'];
 
 export default function ServiceManagementScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState('Services');
   const [data, setData] = useState<{ services: any[]; materials: any[]; items: any[]; prices: any[] }>({ services: [], materials: [], items: [], prices: [] });
 
@@ -65,11 +68,11 @@ export default function ServiceManagementScreen({ navigation }: Props) {
         {TABS.map((t) => <Chip key={t} label={t} selected={tab === t} onPress={() => setTab(t)} style={{ marginRight: 8 }} />)}
       </View>
       <FlatList data={currentData || []} renderItem={renderItem} keyExtractor={(i) => i._id || Math.random().toString()}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 120 + insets.bottom }}
         ListEmptyComponent={<EmptyState icon="layers-outline" title={`No ${tab.toLowerCase()}`} />}
       />
       <TouchableOpacity onPress={() => navigation.navigate('AddServiceElement', { type })}
-        style={[styles.fab, { backgroundColor: theme.colors.primary }, theme.shadows.primary as any]}>
+        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: 80 + insets.bottom }, theme.shadows.primary as any]}>
         <Ionicons name="add" size={28} color="#FFF" />
       </TouchableOpacity>
     </ScreenWrapper>
@@ -79,5 +82,5 @@ export default function ServiceManagementScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 8 },
   row: { flexDirection: 'row', alignItems: 'center' },
-  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  fab: { position: 'absolute', right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', zIndex: 99 },
 });

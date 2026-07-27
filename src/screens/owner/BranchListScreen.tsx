@@ -14,10 +14,13 @@ import { getBranches, toggleBranchStatus } from '../../api/owner';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { OwnerBranchStackParamList } from '../../navigation/OwnerTabs';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 type Props = NativeStackScreenProps<OwnerBranchStackParamList, 'BranchList'>;
 
 export default function BranchListScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const [branches, setBranches] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -63,12 +66,12 @@ export default function BranchListScreen({ navigation }: Props) {
     <ScreenWrapper edges={[]}>
       <Header title="Branches" showBack onBack={() => navigation.goBack()} />
       <FlatList data={branches} renderItem={renderItem} keyExtractor={(i) => i._id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 120 + insets.bottom }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />}
         ListEmptyComponent={<EmptyState icon="storefront-outline" title="No branches" description="Add your first branch" />}
       />
       <TouchableOpacity onPress={() => navigation.navigate('AddBranch')}
-        style={[styles.fab, { backgroundColor: theme.colors.primary }, theme.shadows.primary as any]}>
+        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: 80 + insets.bottom }, theme.shadows.primary as any]}>
         <Ionicons name="add" size={28} color="#FFF" />
       </TouchableOpacity>
     </ScreenWrapper>
@@ -77,5 +80,5 @@ export default function BranchListScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
-  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  fab: { position: 'absolute', right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', zIndex: 99 },
 });

@@ -13,10 +13,13 @@ import { getHelpers, toggleHelper } from '../../api/owner';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { OwnerSettingsStackParamList } from '../../navigation/OwnerTabs';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 type Props = NativeStackScreenProps<OwnerSettingsStackParamList, 'HelperManagement'>;
 
 export default function HelperManagementScreen({ navigation }: Props) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const [helpers, setHelpers] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,12 +56,12 @@ export default function HelperManagementScreen({ navigation }: Props) {
     <ScreenWrapper edges={[]}>
       <Header title="Helpers" showBack onBack={() => navigation.goBack()} />
       <FlatList data={helpers} renderItem={renderItem} keyExtractor={(i) => i._id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 120 + insets.bottom }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />}
         ListEmptyComponent={<EmptyState icon="people-outline" title="No helpers" description="Add your first helper" />}
       />
       <TouchableOpacity onPress={() => navigation.navigate('AddHelper')}
-        style={[styles.fab, { backgroundColor: theme.colors.primary }, theme.shadows.primary as any]}>
+        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: 80 + insets.bottom }, theme.shadows.primary as any]}>
         <Ionicons name="add" size={28} color="#FFF" />
       </TouchableOpacity>
     </ScreenWrapper>
@@ -68,5 +71,5 @@ export default function HelperManagementScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  fab: { position: 'absolute', right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', zIndex: 99 },
 });

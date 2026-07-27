@@ -1,7 +1,8 @@
 /**
  * LivingTabBarItem — Next-Gen Living Navigation Icon System
  *
- * Clean, pill-centered active background with zero icon clipping or distortion.
+ * Active capsule pill encloses BOTH the living icon and the label word
+ * together inside a unified rounded pill container.
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -48,12 +49,12 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
 }) => {
   const isFirstRender = useRef(true);
 
-  // Pill expand/shrink
-  const pillScaleAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
+  // Pill scale and opacity
+  const pillScaleAnim = useRef(new Animated.Value(focused ? 1 : 0.95)).current;
   const pillOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
   // Label opacity
-  const labelOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0.55)).current;
+  const labelOpacityAnim = useRef(new Animated.Value(focused ? 1 : 0.65)).current;
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -66,12 +67,12 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     }
 
-    // Expand/collapse background active pill with spring physics
+    // Expand/collapse pill container wrapping BOTH icon & label
     Animated.parallel([
       Animated.spring(pillScaleAnim, {
-        toValue: focused ? 1 : 0,
+        toValue: focused ? 1 : 0.95,
         friction: 6,
-        tension: 140,
+        tension: 160,
         useNativeDriver: true,
       }),
       Animated.timing(pillOpacityAnim, {
@@ -80,79 +81,79 @@ export const LivingTabBarItem: React.FC<LivingTabBarItemProps> = ({
         useNativeDriver: true,
       }),
       Animated.timing(labelOpacityAnim, {
-        toValue: focused ? 1 : 0.55,
+        toValue: focused ? 1 : 0.65,
         duration: 180,
         useNativeDriver: true,
       }),
     ]).start();
   }, [focused, pillScaleAnim, pillOpacityAnim, labelOpacityAnim]);
 
-  const pillBg = pillColor ?? activeColor + '18'; // Soft 10% opacity pill
+  const pillBg = pillColor ?? activeColor + '18'; // 10% primary tint pill
   const iconColor = focused ? activeColor : inactiveColor;
 
   const renderIcon = () => {
     switch (name) {
       case 'dashboard':
-        return <DashboardLivingIcon focused={focused} color={iconColor} size={24} />;
+        return <DashboardLivingIcon focused={focused} color={iconColor} size={22} />;
       case 'branches':
-        return <BranchesLivingIcon focused={focused} color={iconColor} size={24} />;
+        return <BranchesLivingIcon focused={focused} color={iconColor} size={22} />;
       case 'services':
-        return <ServicesLivingIcon focused={focused} color={iconColor} size={24} />;
+        return <ServicesLivingIcon focused={focused} color={iconColor} size={22} />;
       case 'orders':
-        return <OrdersLivingIcon focused={focused} color={iconColor} size={24} />;
+        return <OrdersLivingIcon focused={focused} color={iconColor} size={22} />;
       case 'cart':
-        return <CartLivingIcon focused={focused} color={iconColor} size={24} />;
+        return <CartLivingIcon focused={focused} color={iconColor} size={22} />;
       case 'reports':
-        return <ReportsLivingIcon focused={focused} color={iconColor} size={24} />;
+        return <ReportsLivingIcon focused={focused} color={iconColor} size={22} />;
       case 'settings':
-        return <SettingsLivingIcon focused={focused} color={iconColor} size={24} />;
+        return <SettingsLivingIcon focused={focused} color={iconColor} size={22} />;
       default:
-        return <DashboardLivingIcon focused={focused} color={iconColor} size={24} />;
+        return <DashboardLivingIcon focused={focused} color={iconColor} size={22} />;
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Animated pill background */}
-      <View style={styles.iconWrap}>
-        <Animated.View
-          style={[
-            styles.pill,
-            {
-              backgroundColor: pillBg,
-              opacity: pillOpacityAnim,
-              transform: [{ scale: pillScaleAnim }],
-            },
-          ]}
-        />
-
-        {/* Living SVG Icon */}
-        {renderIcon()}
-
-        {/* Badge count */}
-        {badgeCount !== undefined && badgeCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>
-              {badgeCount > 99 ? '99+' : String(badgeCount)}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Label */}
-      <Animated.Text
+      {/* Animated Pill Container wrapping BOTH Icon & Label */}
+      <Animated.View
         style={[
-          styles.label,
+          styles.pillContainer,
           {
-            color: iconColor,
-            fontWeight: focused ? '700' : '500',
-            opacity: labelOpacityAnim,
+            backgroundColor: focused ? pillBg : 'transparent',
+            opacity: focused ? 1 : 0.85,
+            transform: [{ scale: pillScaleAnim }],
           },
         ]}
-        numberOfLines={1}
       >
-        {label}
-      </Animated.Text>
+        {/* Living SVG Icon Container */}
+        <View style={styles.iconWrap}>
+          {renderIcon()}
+
+          {/* Badge count */}
+          {badgeCount !== undefined && badgeCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {badgeCount > 99 ? '99+' : String(badgeCount)}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Text Label inside the capsule */}
+        <Animated.Text
+          style={[
+            styles.label,
+            {
+              color: iconColor,
+              fontWeight: focused ? '700' : '500',
+              opacity: labelOpacityAnim,
+            },
+          ]}
+          numberOfLines={1}
+        >
+          {label}
+        </Animated.Text>
+      </Animated.View>
     </View>
   );
 };
@@ -162,34 +163,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: 68,
-    paddingTop: 4,
+  },
+  pillContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 16,
+    width: 64,
   },
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 52,
-    height: 32,
-  },
-  pill: {
-    position: 'absolute',
-    width: 52,
-    height: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 24,
   },
   label: {
-    fontSize: 10.5,
+    fontSize: 10,
     marginTop: 2,
     letterSpacing: 0.1,
     textAlign: 'center',
-    width: 68,
+    width: 58,
   },
   badge: {
     position: 'absolute',
-    top: -2,
-    right: 4,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
+    top: -4,
+    right: -8,
+    minWidth: 15,
+    height: 15,
+    borderRadius: 7.5,
     backgroundColor: '#EF4444',
     alignItems: 'center',
     justifyContent: 'center',
@@ -198,8 +200,8 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#FFFFFF',
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: '800',
-    lineHeight: 11,
+    lineHeight: 10,
   },
 });
