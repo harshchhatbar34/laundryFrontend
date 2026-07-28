@@ -114,8 +114,22 @@ export default function AppNavigator() {
     }
   };
 
+  const linking = {
+    prefixes: [
+      'laundroflow://',
+      'https://laundry-backend-eta.vercel.app',
+      'http://laundry-backend-eta.vercel.app',
+    ],
+    config: {
+      screens: {
+        SetPassword: 'set-password',
+        Register: 'register',
+      },
+    },
+  };
+
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       {getNavigator()}
     </NavigationContainer>
   );

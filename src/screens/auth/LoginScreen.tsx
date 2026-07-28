@@ -77,7 +77,7 @@ export default function LoginScreen({ navigation }: Props) {
     <ScreenWrapper edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <LinearGradient colors={(isDark ? theme.gradients.ocean : theme.gradients.primary) as any} style={styles.header}>
+          <LinearGradient colors={theme.gradients.ocean as any} style={styles.header}>
             <Text style={styles.emoji}>🧺</Text>
             <Text style={[theme.typography.displayMedium, { color: '#FFF' }]}>{APP_NAME}</Text>
             <Text style={[theme.typography.bodySmall, { color: 'rgba(255,255,255,0.7)', marginTop: 4 }]}>

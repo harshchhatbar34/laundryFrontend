@@ -80,11 +80,12 @@ export default function ServiceManagementScreen({ navigation }: Props) {
         {TABS.map((t) => <Chip key={t} label={t} selected={tab === t} onPress={() => setTab(t)} style={{ marginRight: 8 }} />)}
       </View>
       <FlatList data={currentData || []} renderItem={renderItem} keyExtractor={(i) => i._id || Math.random().toString()}
-        contentContainerStyle={{ padding: 16, paddingBottom: 120 + insets.bottom }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         ListEmptyComponent={<EmptyState icon="layers-outline" title={`No ${tab.toLowerCase()}`} />}
       />
       <TouchableOpacity onPress={() => navigation.navigate('AddServiceElement', { type })}
-        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: 80 + insets.bottom }, theme.shadows.primary as any]}>
+        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: 84 + insets.bottom, right: 24 }, theme.shadows.primary as any]}>
         <Ionicons name="add" size={28} color="#FFF" />
       </TouchableOpacity>
     </ScreenWrapper>
@@ -94,5 +95,5 @@ export default function ServiceManagementScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 8 },
   row: { flexDirection: 'row', alignItems: 'center' },
-  fab: { position: 'absolute', right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', zIndex: 99 },
+  fab: { position: 'absolute', right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', zIndex: 999, elevation: 8 },
 });

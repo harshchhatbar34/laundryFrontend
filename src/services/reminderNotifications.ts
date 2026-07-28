@@ -11,7 +11,7 @@ const REMINDER_IDS_KEY = '@reminder_notification_ids';
 
 const WEEKLY_REMINDERS = [
   {
-    title: "Time for fresh laundry! 🧺",
+    title: "Time for fresh clothes! 🧺",
     body: "Don't let the pile grow! Book a pickup in seconds.",
   },
   {
@@ -20,11 +20,11 @@ const WEEKLY_REMINDERS = [
   },
   {
     title: "Your wardrobe misses you 👔",
-    body: "It's been a while — book a laundry pickup today!",
+    body: "It's been a while — book an order pickup today!",
   },
   {
     title: "Fresh week, fresh clothes! ✨",
-    body: "Start the week right. Book your laundry pickup now.",
+    body: "Start the week right. Book your order pickup now.",
   },
 ];
 
@@ -34,12 +34,12 @@ const RE_ENGAGEMENT_REMINDERS = [
     body: "Haven't used LaundroFlow in a while? Fresh clothes are just a tap away.",
   },
   {
-    title: "Your laundry won't wash itself 😄",
+    title: "Your order won't wash itself 😄",
     body: "Book a pickup now — we'll handle the rest!",
   },
   {
     title: "Special reminder for you 🎁",
-    body: "Come back and book your laundry pickup today. Easy, fast & affordable!",
+    body: "Come back and book your order pickup today. Easy, fast & affordable!",
   },
 ];
 

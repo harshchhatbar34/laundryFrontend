@@ -65,12 +65,13 @@ export default function HelperManagementScreen({ navigation }: Props) {
     <ScreenWrapper edges={[]}>
       <Header title="Helpers" showBack onBack={() => navigation.goBack()} />
       <FlatList data={helpers} renderItem={renderItem} keyExtractor={(i) => i._id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 120 + insets.bottom }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />}
         ListEmptyComponent={<EmptyState icon="people-outline" title="No helpers" description="Add your first helper" />}
       />
       <TouchableOpacity onPress={() => navigation.navigate('AddHelper')}
-        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: 80 + insets.bottom }, theme.shadows.primary as any]}>
+        style={[styles.fab, { backgroundColor: theme.colors.primary, bottom: 84 + insets.bottom, right: 24 }, theme.shadows.primary as any]}>
         <Ionicons name="add" size={28} color="#FFF" />
       </TouchableOpacity>
     </ScreenWrapper>
@@ -80,5 +81,5 @@ export default function HelperManagementScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  fab: { position: 'absolute', right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', zIndex: 99 },
+  fab: { position: 'absolute', right: 24, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', zIndex: 999, elevation: 8 },
 });

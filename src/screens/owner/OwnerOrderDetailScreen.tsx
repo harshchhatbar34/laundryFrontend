@@ -618,7 +618,7 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
         ) : (
           <Card padding="medium" style={{ marginBottom: 12 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <Text style={[theme.typography.h4, { color: theme.colors.textPrimary }]}>Items</Text>
+              <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, flex: 1 }]}>Items</Text>
               {(order.status === 'accepted' || order.status === 'pickup') && (
                 <TouchableOpacity onPress={startEditing} style={styles.editBtn}>
                   <Ionicons name="create-outline" size={16} color={theme.colors.primary} />
@@ -660,20 +660,15 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
         )}
 
         {order.status !== 'pending' && order.status !== 'rejected' && order.status !== 'cancelled' && !isFailedDelivery && (
-          <View style={{ marginTop: 8 }}>
-            {!order.helper || (typeof order.helper === 'object' ? order.helper._id : order.helper) !== user?._id ? (
-              order.status === 'accepted' && (
-                <Button title="I will Pick Up" onPress={() => handleAction('accept_pickup')} loading={loading} icon="bicycle-outline" />
-              )
-            ) : (
+          <View style={{ marginTop: 8, gap: 12 }}>
+            {order.status === 'accepted' && (!order.helper || (typeof order.helper === 'object' ? order.helper._id : order.helper) !== user?._id) && (
+              <Button title="I will Pick Up (Self Assign)" onPress={() => handleAction('accept_pickup')} loading={loading} variant="secondary" icon="bicycle-outline" />
+            )}
+            <ActionButton />
+            {order.status === 'out_for_delivery' && (
               <View style={{ gap: 12 }}>
-                <ActionButton />
-                {order.status === 'out_for_delivery' && (
-                  <View style={{ gap: 12 }}>
-                    <Button title="Mark Delivered" onPress={() => handleAction('delivered')} loading={loading} icon="checkmark-outline" />
-                    <Button title="Failed Delivery" onPress={() => handleAction('failed')} variant="danger" icon="close-circle-outline" />
-                  </View>
-                )}
+                <Button title="Mark Delivered" onPress={() => handleAction('delivered')} loading={loading} icon="checkmark-outline" />
+                <Button title="Failed Delivery" onPress={() => handleAction('failed')} variant="danger" icon="close-circle-outline" />
               </View>
             )}
           </View>
