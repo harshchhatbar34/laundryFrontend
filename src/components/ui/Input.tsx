@@ -137,7 +137,7 @@ const Input: React.FC<InputProps> = ({
             {
               borderColor,
               backgroundColor: bgColor,
-              borderRadius: theme.radius.md,
+              borderRadius: theme.radius.lg, // 16px rounded corners
               borderWidth: 1.5,
               overflow: 'visible',
             },

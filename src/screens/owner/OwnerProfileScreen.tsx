@@ -1,5 +1,5 @@
 // FreshWash — Owner Profile Screen
-// Rich profile page: personal details + business info, all editable, no logout/theme
+// Unified Left-to-Right Electric Ocean Header + Owner Profile Hero
 
 import React, { useState, useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,14 +9,12 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDispatch, useSelector } from 'react-redux';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
-import Header from '../../components/ui/Header';
 import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -55,18 +53,18 @@ function formatDate(dateStr?: string) {
 }
 
 export default function OwnerProfileScreen({ navigation }: Props) {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const user = useSelector((s: RootState) => s.auth.user);
 
-  // ── Personal info ──────────────────────────────────────────────────
+  // Personal info
   const [editingPersonal, setEditingPersonal] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [draftPhone, setDraftPhone] = useState('');
   const [loadingPersonal, setLoadingPersonal] = useState(false);
 
-  // ── Business info ──────────────────────────────────────────────────
+  // Business info
   const [laundryName, setLaundryName] = useState('');
   const [city, setCity] = useState('');
   const [stateName, setStateName] = useState('');
@@ -77,7 +75,6 @@ export default function OwnerProfileScreen({ navigation }: Props) {
   const [draftState, setDraftState] = useState('');
   const [loadingBusiness, setLoadingBusiness] = useState(false);
 
-  // ── Fetch business profile ─────────────────────────────────────────
   const fetchProfile = async () => {
     try {
       const res = await getOwnerProfile();
@@ -95,7 +92,6 @@ export default function OwnerProfileScreen({ navigation }: Props) {
 
   useFocusEffect(useCallback(() => { fetchProfile(); }, []));
 
-  // ── Save personal info ─────────────────────────────────────────────
   const handleSavePersonal = async () => {
     if (!draftName.trim()) {
       dispatch(showToast({ type: 'warning', message: 'Name cannot be empty' }));
@@ -108,13 +104,11 @@ export default function OwnerProfileScreen({ navigation }: Props) {
       setEditingPersonal(false);
       dispatch(showToast({ type: 'success', message: 'Personal info updated!' }));
     } catch (_) {
-      // error toast shown by interceptor
     } finally {
       setLoadingPersonal(false);
     }
   };
 
-  // ── Save business info ─────────────────────────────────────────────
   const handleSaveBusiness = async () => {
     if (!draftLaundry.trim()) {
       dispatch(showToast({ type: 'warning', message: 'Laundry name cannot be empty' }));
@@ -139,36 +133,56 @@ export default function OwnerProfileScreen({ navigation }: Props) {
 
   const displayName = user?.name || 'Owner';
   const initials = getInitials(displayName);
-
-  // Avatar gradient picks based on initials for a consistent unique color
   const avatarColor = ['#6366F1', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B'][
     (initials.charCodeAt(0) || 0) % 5
   ];
 
-  return (
-    <ScreenWrapper edges={[]}>
-      <Header title="My Profile" showBack onBack={() => navigation.goBack()} />
+  const canGoBack = navigation.canGoBack();
 
+  return (
+    <ScreenWrapper edges={['top']} statusBarStyle="light-content">
       <ScrollView contentContainerStyle={{ paddingBottom: 100 + insets.bottom }} showsVerticalScrollIndicator={false}>
 
-        {/* ── Hero Banner ────────────────────────────────────────── */}
-        <LinearGradient colors={(isDark ? theme.gradients.ocean : theme.gradients.primary) as any} style={styles.hero}>
-          {/* Avatar circle */}
-          <View style={[styles.avatarCircle, { backgroundColor: avatarColor + 'CC' }]}>
-            <Text style={styles.avatarText}>{initials}</Text>
+        {/* ── Unified Hero Banner (My Profile Header + Owner Banner) ────── */}
+        <LinearGradient
+          colors={theme.gradients.ocean as any}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.unifiedHero}
+        >
+          {/* Top Title Bar */}
+          <View style={styles.topHeaderRow}>
+            {canGoBack ? (
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 36 }} />
+            )}
+            <Text style={styles.headerTitle}>My Profile</Text>
+            <View style={{ width: 36 }} />
           </View>
 
-          <Text style={[theme.typography.h2, { color: '#FFF', marginTop: 14, textAlign: 'center' }]}>
-            {displayName}
-          </Text>
+          {/* Avatar circle */}
+          <View style={styles.avatarContainer}>
+            <View style={[styles.avatarCircle, { backgroundColor: avatarColor }]}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+          </View>
 
-          <Text style={[theme.typography.bodySmall, { color: 'rgba(255,255,255,0.75)', marginTop: 4, textAlign: 'center' }]}>
+          <Text style={styles.heroName}>{displayName}</Text>
+
+          <Text style={styles.heroEmail}>
             {user?.email || '—'}
           </Text>
 
           {/* Role badge */}
           <View style={styles.roleBadge}>
-            <Ionicons name="shield-checkmark" size={12} color="#FFF" />
+            <Ionicons name="shield-checkmark" size={12} color="#FFFFFF" />
             <Text style={styles.roleBadgeText}>Owner</Text>
           </View>
 
@@ -178,7 +192,7 @@ export default function OwnerProfileScreen({ navigation }: Props) {
             <View style={styles.statsDivider} />
             <StatPill icon="location-outline" label="City" value={city || '—'} />
             <View style={styles.statsDivider} />
-            <StatPill icon="qr-code-outline" label="UPI" value={upiId ? 'Set ✓' : 'Not set'} valueColor={upiId ? '#6EE7B7' : 'rgba(255,255,255,0.55)'} />
+            <StatPill icon="qr-code-outline" label="UPI" value={upiId ? 'Set ✓' : 'Not set'} valueColor={upiId ? '#6EE7B7' : 'rgba(255,255,255,0.6)'} />
           </View>
         </LinearGradient>
 
@@ -366,8 +380,6 @@ export default function OwnerProfileScreen({ navigation }: Props) {
   );
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────
-
 function SectionHeader({
   icon, iconColor, title, subtitle, editing, onEdit, theme,
 }: {
@@ -459,26 +471,66 @@ function QuickAction({
 }
 
 const styles = StyleSheet.create({
-  hero: {
-    paddingHorizontal: 24,
-    paddingTop: 30,
-    paddingBottom: 40,
+  unifiedHero: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     alignItems: 'center',
   },
-  avatarCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+  topHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    width: '100%',
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#C9A227',
   },
   avatarText: {
-    fontSize: 34,
+    fontSize: 30,
     fontWeight: '800',
-    color: '#FFF',
+    color: '#FFFFFF',
     letterSpacing: 1,
+  },
+  heroName: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  heroEmail: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 2,
+    textAlign: 'center',
   },
   roleBadge: {
     flexDirection: 'row',
@@ -487,7 +539,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 20,
-    marginTop: 10,
+    marginTop: 8,
   },
   roleBadgeText: {
     color: '#FFF',
@@ -500,11 +552,11 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 18,
     paddingVertical: 14,
     paddingHorizontal: 8,
-    marginTop: 20,
+    marginTop: 18,
     width: '100%',
   },
   statPill: {
@@ -515,11 +567,11 @@ const styles = StyleSheet.create({
   statsDivider: {
     width: 1,
     height: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
   },
   statLabel: {
     fontSize: 10,
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.7)',
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,

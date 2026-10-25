@@ -18,7 +18,7 @@ import api from '../../api/client';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,16 +40,14 @@ export default function LoginScreen({ navigation }: Props) {
     setLoading(true);
     setErrors({});
     try {
-      // Call API directly first so we can intercept requiresVerification
       const response = await api.post(
         '/api/auth/login',
         { email: email.trim().toLowerCase(), password },
-        { validateStatus: () => true } // don't throw on 4xx
+        { validateStatus: () => true }
       );
 
       const data = response.data;
 
-      // Unverified customer — navigate directly to OTP screen
       if (!data?.success && data?.requiresVerification && data?.data?.userId) {
         navigation.navigate('VerifyOTP', {
           userId: data.data.userId,
@@ -58,13 +56,11 @@ export default function LoginScreen({ navigation }: Props) {
         return;
       }
 
-      // Normal error
       if (!data?.success || !data?.data) {
         setErrors({ general: data?.message || 'Login failed' });
         return;
       }
 
-      // Success — dispatch loginSuccess to set auth state
       await dispatch(login({ email: email.trim().toLowerCase(), password })).unwrap();
     } catch (err: any) {
       setErrors({ general: err?.response?.data?.message || err?.message || 'Login failed' });
@@ -77,11 +73,20 @@ export default function LoginScreen({ navigation }: Props) {
     <ScreenWrapper edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <LinearGradient colors={theme.gradients.ocean as any} style={styles.header}>
-            <Text style={styles.emoji}>🧺</Text>
-            <Text style={[theme.typography.displayMedium, { color: '#FFF' }]}>{APP_NAME}</Text>
-            <Text style={[theme.typography.bodySmall, { color: 'rgba(255,255,255,0.7)', marginTop: 4 }]}>
-              Welcome back
+          <LinearGradient
+            colors={theme.gradients.ocean as any}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.header}
+          >
+            {/* 2026 Theme Circular Emblem Badge */}
+            <View style={styles.logoBadge}>
+              <Ionicons name="shirt-outline" size={32} color="#C9A227" />
+            </View>
+
+            <Text style={styles.appTitle}>{APP_NAME}</Text>
+            <Text style={styles.tagline}>
+              Premium • Laundry Care • Excellence
             </Text>
           </LinearGradient>
 
@@ -119,14 +124,20 @@ export default function LoginScreen({ navigation }: Props) {
               surfaceColor={theme.colors.background}
             />
 
-            <Button title="Login" onPress={handleLogin} loading={loading} style={{ marginTop: 8 }} />
+            <Button
+              title="Sign In"
+              onPress={handleLogin}
+              loading={loading}
+              variant="primary"
+              size="large"
+              style={{ marginTop: 12 }}
+            />
 
-            {/* Forgot Password */}
             <TouchableOpacity
               onPress={() => navigation.navigate('ForgotPassword')}
-              style={{ alignItems: 'flex-end', marginTop: 14 }}
+              style={{ alignItems: 'flex-end', marginTop: 16 }}
             >
-              <Text style={[theme.typography.bodySmall, { color: theme.colors.primary, fontWeight: '600' }]}>
+              <Text style={[theme.typography.bodySmall, { color: theme.colors.primary, fontWeight: '700' }]}>
                 Forgot Password?
               </Text>
             </TouchableOpacity>
@@ -134,7 +145,7 @@ export default function LoginScreen({ navigation }: Props) {
             <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.link}>
               <Text style={[theme.typography.body, { color: theme.colors.textSecondary }]}>
                 Don&apos;t have an account?{' '}
-                <Text style={{ color: theme.colors.primary, fontWeight: '600' }}>Register</Text>
+                <Text style={{ color: theme.colors.primary, fontWeight: '700' }}>Register</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -147,20 +158,60 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   scroll: { flexGrow: 1 },
   header: {
-    paddingTop: 60, paddingBottom: 50,
+    paddingTop: 56,
+    paddingBottom: 48,
     alignItems: 'center',
-    borderBottomLeftRadius: 32, borderBottomRightRadius: 32,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
-  emoji: { fontSize: 56, marginBottom: 8 },
+  logoBadge: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1.5,
+    borderColor: '#C9A227',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+    shadowColor: '#C9A227',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  appTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+  },
+  tagline: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginTop: 6,
+    letterSpacing: 0.4,
+  },
   form: {
-    flex: 1, paddingHorizontal: 24,
-    paddingTop: 32, paddingBottom: 32,
-    marginTop: -20,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 32,
+    marginTop: -24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   errorBanner: {
-    flexDirection: 'row', alignItems: 'center',
-    padding: 12, borderRadius: 10, marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
   },
-  link: { alignItems: 'center', marginTop: 24, paddingVertical: 12 },
+  link: {
+    alignItems: 'center',
+    marginTop: 24,
+    paddingVertical: 12,
+  },
 });

@@ -8,7 +8,7 @@ import { useTheme } from '../../theme/ThemeContext';
 export interface CardProps {
   children?: React.ReactNode;
   onPress?: () => void;
-  variant?: 'elevated' | 'outlined' | 'flat';
+  variant?: 'elevated' | 'outlined' | 'flat' | 'gold';
   style?: StyleProp<ViewStyle>;
   padding?: 'none' | 'small' | 'medium' | 'large';
   disabled?: boolean;
@@ -17,9 +17,9 @@ export interface CardProps {
 const Card: React.FC<CardProps> = ({
   children,
   onPress,
-  variant = 'elevated', // elevated, outlined, flat
+  variant = 'elevated',
   style,
-  padding = 'medium', // none, small, medium, large
+  padding = 'medium',
   disabled = false,
 }) => {
   const { theme } = useTheme();
@@ -37,13 +37,21 @@ const Card: React.FC<CardProps> = ({
         return {
           backgroundColor: theme.colors.card,
           ...theme.shadows.md,
-          borderWidth: 0,
+          borderWidth: 1,
+          borderColor: theme.colors.borderLight,
         };
       case 'outlined':
         return {
           backgroundColor: theme.colors.card,
-          borderWidth: 1,
+          borderWidth: 1.5,
           borderColor: theme.colors.border,
+        };
+      case 'gold':
+        return {
+          backgroundColor: theme.colors.card,
+          borderWidth: 1.5,
+          borderColor: theme.colors.borderGold,
+          ...theme.shadows.gold,
         };
       case 'flat':
         return {
@@ -58,7 +66,7 @@ const Card: React.FC<CardProps> = ({
   const cardStyle = [
     styles.card,
     {
-      borderRadius: theme.radius.lg,
+      borderRadius: theme.radius.xl, // 20px rounded corners
       padding: paddingMap[padding],
     },
     getVariantStyle(),

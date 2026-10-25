@@ -35,23 +35,26 @@ export const shadows = {
   none: createShadow('#000', 0, 0, 0, 0),
 
   // Subtle — for inputs, chips
-  sm: createShadow(palette.ocean, 1, 4, 0.06, 1),
+  sm: createShadow(palette.navy, 2, 6, 0.05, 1),
 
-  // Default — for cards, elevated surfaces
-  md: createShadow(palette.ocean, 4, 12, 0.08, 3),
+  // Default — for luxury floating cards (20px radius)
+  md: createShadow(palette.navy, 4, 14, 0.08, 3),
 
-  // Prominent — for floating buttons, modals
-  lg: createShadow(palette.ocean, 8, 24, 0.12, 6),
+  // Prominent — for floating action buttons, modals
+  lg: createShadow(palette.navy, 8, 24, 0.12, 6),
 
   // Heavy — for bottom sheets, overlays
-  xl: createShadow(palette.ocean, 12, 32, 0.16, 10),
+  xl: createShadow(palette.navy, 12, 32, 0.16, 10),
 
-  // Colored shadows — for primary buttons
-  primary: createShadow(palette.azure, 4, 16, 0.25, 4),
-  primaryLg: createShadow(palette.azure, 8, 24, 0.3, 8),
+  // Colored shadows — for Electric Blue primary buttons
+  primary: createShadow(palette.electric, 4, 16, 0.28, 4),
+  primaryLg: createShadow(palette.electric, 8, 24, 0.32, 8),
 
-  // Success shadow — for confirmation cards
-  success: createShadow(palette.mint, 4, 12, 0.2, 4),
+  // Solar Gold shadow — for gold accents & luxury highlight cards
+  gold: createShadow(palette.gold, 4, 16, 0.3, 4),
+
+  // Trust Teal shadow — for status badges
+  success: createShadow(palette.teal, 4, 12, 0.22, 4),
 
   // Error shadow
   error: createShadow(palette.coral, 4, 12, 0.2, 4),

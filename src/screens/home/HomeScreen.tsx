@@ -6,30 +6,23 @@ import { useSelector } from 'react-redux';
 import * as Location from 'expo-location';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
-import FadeSlideIn from '../../animations/FadeSlideIn';
-import PulseGlow from '../../animations/PulseGlow';
 import { useTheme } from '../../theme/ThemeContext';
 import { getNearestBranch } from '../../api/branches';
 import { getServices, getMasters } from '../../api/services';
 import { getGreeting } from '../../utils/helpers';
-import { SERVICE_ICONS } from '../../utils/constants';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '../../navigation/CustomerTabs';
 import { RootState } from '../../store';
 
-
 type Props = NativeStackScreenProps<HomeStackParamList, 'HomeMain'>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const { user } = useSelector((s: RootState) => s.auth);
-  const [branch, setBranch] = useState<any>(null);
   const [branches, setBranches] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [masters, setMasters] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState({ latitude: 23.0225, longitude: 72.5714 });
 
   const getDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -54,10 +47,6 @@ export default function HomeScreen({ navigation }: Props) {
     return `${dist.toFixed(1)}km`;
   };
 
-  /**
-   * Opens Google Maps (Android) or Apple Maps (iOS) with turn-by-turn directions
-   * to the branch. Falls back to address search if no coordinates available.
-   */
   const openDirections = (b: any) => {
     const lat = b.location?.coordinates?.[1];
     const lng = b.location?.coordinates?.[0];
@@ -66,55 +55,18 @@ export default function HomeScreen({ navigation }: Props) {
 
     let url = '';
     if (lat && lng) {
-      // Google Maps deep link — works on both Android and iOS
-      // Android: opens Google Maps app; iOS: opens Google Maps if installed, else Apple Maps
       url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${label}&travelmode=driving`;
     } else {
-      // Fallback: search by address
       url = `https://www.google.com/maps/search/?api=1&query=${address}`;
     }
 
     Linking.canOpenURL(url)
       .then((supported) => {
-        if (supported) {
-          return Linking.openURL(url);
-        }
-        // Fallback to geo URI for native maps app
-        const geoUrl = lat && lng
-          ? `geo:${lat},${lng}?q=${lat},${lng}(${label})`
-          : `geo:0,0?q=${address}`;
+        if (supported) return Linking.openURL(url);
+        const geoUrl = lat && lng ? `geo:${lat},${lng}?q=${lat},${lng}(${label})` : `geo:0,0?q=${address}`;
         return Linking.openURL(geoUrl);
       })
       .catch((err) => console.log('Error opening maps:', err));
-  };
-
-  const handleBranchPress = (b: any) => {
-    Alert.alert(
-      b.name,
-      `Address: ${b.addressLine}\n${b.landmark ? `Landmark: ${b.landmark}\n` : ''}City: ${b.city}\nPhone: ${b.phone || 'N/A'}`,
-      [
-        {
-          text: '🗺️ Get Directions',
-          onPress: () => openDirections(b),
-        },
-        ...(b.phone
-          ? [
-              {
-                text: '📞 Call Branch',
-                onPress: () => {
-                  Linking.openURL(`tel:${b.phone}`).catch((err) =>
-                    console.log('Error opening dialer:', err)
-                  );
-                },
-              },
-            ]
-          : []),
-        {
-          text: 'Close',
-          style: 'cancel' as const,
-        },
-      ]
-    );
   };
 
   const fetchData = useCallback(async () => {
@@ -144,18 +96,24 @@ export default function HomeScreen({ navigation }: Props) {
         getMasters().catch(() => null),
       ]);
       if (branchRes?.data) {
-        setBranch(branchRes.data.branch || null);
         setBranches(branchRes.data.branches || (branchRes.data.branch ? [branchRes.data.branch] : []));
       }
       if (servicesRes?.data?.services) setServices(servicesRes.data.services);
       if (mastersRes?.data) setMasters(mastersRes.data);
-    } catch (e) { console.log(e); }
-    finally { setLoading(false); }
+    } catch (e) {
+      console.log(e);
+    }
   }, []);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  };
 
   return (
     <ScreenWrapper>
@@ -164,46 +122,59 @@ export default function HomeScreen({ navigation }: Props) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Greeting */}
+        {/* Greeting Header */}
         <View style={[styles.greetingRow, { paddingHorizontal: 20 }]}>
           <View style={{ flex: 1 }}>
-            <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary }]}>{getGreeting()}</Text>
-            <Text style={[theme.typography.h2, { color: theme.colors.textPrimary }]}>{user?.name || 'Guest'} 👋</Text>
+            <Text style={[theme.typography.bodySmall, { color: theme.colors.textSecondary, fontWeight: '500' }]}>
+              {getGreeting()}
+            </Text>
+            <Text style={[theme.typography.h2, { color: theme.colors.textPrimary, fontWeight: '800' }]}>
+              {user?.name || 'Guest'} 👋
+            </Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}
-            style={[styles.bellBtn, { backgroundColor: theme.colors.surfaceVariant }]}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Notifications')}
+            style={[styles.bellBtn, { backgroundColor: theme.colors.surfaceVariant }]}
+          >
             <Ionicons name="notifications-outline" size={22} color={theme.colors.textPrimary} />
           </TouchableOpacity>
         </View>
 
-        {/* Premium Hero Welcome Banner */}
+        {/* 2026 Theme Hero Express Banner Card */}
         <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
           <LinearGradient
-            colors={(isDark ? theme.gradients.ocean : theme.gradients.primary) as any}
+            colors={theme.gradients.ocean as any}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0.8 }}
+            end={{ x: 1, y: 1 }}
             style={styles.heroCard}
           >
             <View style={styles.heroContent}>
-              <Text style={styles.heroEmoji}>🧺</Text>
+              <View style={styles.heroEmblem}>
+                <Ionicons name="shirt-outline" size={26} color="#C9A227" />
+              </View>
               <View style={{ flex: 1, marginLeft: 14 }}>
-                <Text style={styles.heroTitle}>FreshWash Premium Care</Text>
+                <Text style={styles.heroTitle}>LaundroFlow Express</Text>
                 <Text style={styles.heroSubtitle}>
-                  Professional laundry, ironing & dry cleaning. Choose a branch below to view services and place your order.
+                  Delicious clean & fresh laundry prepared with care and delivered fast. Select a branch outlet below to order online.
                 </Text>
               </View>
             </View>
           </LinearGradient>
         </View>
 
-        {/* Branches Selection List */}
+        {/* Laundry Branches Section */}
         {branches.length > 0 && (
           <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
-            <Text style={[theme.typography.h3, { color: theme.colors.textPrimary, marginBottom: 12 }]}>
-              Our Branches
+            <Text style={[theme.typography.h3, { color: theme.colors.textPrimary, marginBottom: 14, fontWeight: '800' }]}>
+              Laundry Branches
             </Text>
             {branches.map((b) => {
-              const distanceStr = formatDistance(userLocation.latitude, userLocation.longitude, b.location.coordinates[1], b.location.coordinates[0]);
+              const distanceStr = formatDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                b.location.coordinates[1],
+                b.location.coordinates[0]
+              );
               return (
                 <Card
                   key={b._id}
@@ -213,7 +184,7 @@ export default function HomeScreen({ navigation }: Props) {
                 >
                   <View style={styles.branchRow}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                      <Text style={[theme.typography.h4, { color: theme.colors.textPrimary }]} numberOfLines={1}>
+                      <Text style={[theme.typography.h4, { color: theme.colors.textPrimary, fontWeight: '700' }]} numberOfLines={1}>
                         {b.name}
                       </Text>
                       <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 4 }]} numberOfLines={1}>
@@ -222,21 +193,20 @@ export default function HomeScreen({ navigation }: Props) {
                     </View>
                     <View style={styles.branchRightCol}>
                       <View style={styles.liveStatus}>
-                        <Ionicons name="location-outline" size={14} color={theme.colors.primary} />
-                        <Text style={[theme.typography.labelSmall, { color: theme.colors.primary, marginLeft: 4 }]}>
+                        <Ionicons name="location-outline" size={14} color={theme.colors.textSecondary} />
+                        <Text style={[theme.typography.labelSmall, { color: theme.colors.textPrimary, fontWeight: '600', marginLeft: 3 }]}>
                           {distanceStr}
                         </Text>
                       </View>
-                      {/* Get Directions button */}
                       <TouchableOpacity
                         onPress={() => openDirections(b)}
-                        style={[styles.directionsBtn, { backgroundColor: theme.colors.primary + '18' }]}
+                        style={[styles.directionsBtn, { backgroundColor: theme.colors.surfaceVariant }]}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
-                        <Ionicons name="navigate" size={14} color={theme.colors.primary} />
-                        <Text style={[styles.directionsBtnText, { color: theme.colors.primary }]}>Navigate</Text>
+                        <Ionicons name="navigate-sharp" size={12} color={theme.colors.textPrimary} />
+                        <Text style={[styles.directionsBtnText, { color: theme.colors.textPrimary }]}>Navigate</Text>
                       </TouchableOpacity>
-                      <Ionicons name="chevron-forward" size={18} color={theme.colors.textMuted} style={{ marginLeft: 6 }} />
+                      <Ionicons name="chevron-forward" size={18} color={theme.colors.textMuted} style={{ marginLeft: 4 }} />
                     </View>
                   </View>
                 </Card>
@@ -252,27 +222,44 @@ export default function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   greetingRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 16 },
   bellBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  branchRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  branchRow: { flexDirection: 'row', alignItems: 'center' },
   liveStatus: { flexDirection: 'row', alignItems: 'center' },
-  closedBanner: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12 },
-  heroCard: { borderRadius: 16, padding: 18, overflow: 'hidden' },
+  heroCard: {
+    borderRadius: 20,
+    padding: 20,
+    overflow: 'hidden',
+    shadowColor: '#0B1E3B',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
   heroContent: { flexDirection: 'row', alignItems: 'center' },
-  heroEmoji: { fontSize: 32 },
-  heroTitle: { fontSize: 18, fontWeight: '700', color: '#FFF' },
+  heroEmblem: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1.5,
+    borderColor: '#C9A227',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroTitle: { fontSize: 19, fontWeight: '800', color: '#FFF', letterSpacing: -0.3 },
   heroSubtitle: { fontSize: 13, color: 'rgba(255, 255, 255, 0.85)', marginTop: 4, lineHeight: 18 },
-  branchListItem: { marginBottom: 8, borderWidth: 1.5, borderColor: 'transparent' },
+  branchListItem: { marginBottom: 12, borderRadius: 20 },
   branchRightCol: { flexDirection: 'row', alignItems: 'center' },
   directionsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginLeft: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    marginLeft: 10,
   },
   directionsBtnText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    marginLeft: 3,
+    marginLeft: 4,
   },
 });

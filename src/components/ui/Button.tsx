@@ -19,7 +19,7 @@ import { useTheme } from '../../theme/ThemeContext';
 export interface ButtonProps {
   title: string;
   onPress?: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'gold';
   size?: 'small' | 'medium' | 'large';
   icon?: keyof typeof Ionicons.glyphMap;
   iconPosition?: 'left' | 'right';
@@ -33,8 +33,8 @@ export interface ButtonProps {
 const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
-  variant = 'primary', // primary, secondary, outline, ghost, danger
-  size = 'medium', // small, medium, large
+  variant = 'primary',
+  size = 'medium',
   icon,
   iconPosition = 'left',
   loading = false,
@@ -48,9 +48,9 @@ const Button: React.FC<ButtonProps> = ({
   const isDisabled = disabled || loading;
 
   const sizeStyles = {
-    small: { paddingVertical: 8, paddingHorizontal: 16, minHeight: 36 },
-    medium: { paddingVertical: 14, paddingHorizontal: 24, minHeight: 48 },
-    large: { paddingVertical: 18, paddingHorizontal: 32, minHeight: 56 },
+    small: { paddingVertical: 8, paddingHorizontal: 16, minHeight: 38 },
+    medium: { paddingVertical: 14, paddingHorizontal: 24, minHeight: 50 },
+    large: { paddingVertical: 18, paddingHorizontal: 32, minHeight: 58 },
   };
 
   const textSizes = {
@@ -67,6 +67,16 @@ const Button: React.FC<ButtonProps> = ({
           gradientColors: theme.gradients.primary,
           textColor: '#FFFFFF',
           shadow: theme.shadows.primary,
+          backgroundColor: undefined,
+          borderWidth: undefined,
+          borderColor: undefined,
+        };
+      case 'gold':
+        return {
+          gradient: true,
+          gradientColors: theme.gradients.gold,
+          textColor: '#0B1E3B',
+          shadow: theme.shadows.gold,
           backgroundColor: undefined,
           borderWidth: undefined,
           borderColor: undefined,

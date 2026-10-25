@@ -1,5 +1,5 @@
 // FreshWash — Owner Settings Screen
-// UPI ID management + laundry profile + QR code + theme toggle + logout
+// Unified Left-to-Right Electric Ocean Header + Shop Profile Hero
 
 import React, { useState, useCallback } from 'react';
 import {
@@ -16,10 +16,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Clipboard from 'expo-clipboard';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import UpiQrCode from '../../components/ui/UpiQrCode';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
-import Header from '../../components/ui/Header';
 import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -38,7 +37,7 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
   const { theme, isDark } = useTheme();
   const dispatch = useDispatch();
 
-  // Display state (persisted from server)
+  // Display state
   const [laundryName, setLaundryName] = useState('');
   const [upiId, setUpiId] = useState('');
   const [city, setCity] = useState('');
@@ -55,7 +54,6 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
   const [draftLaundryName, setDraftLaundryName] = useState('');
   const [draftUpiId, setDraftUpiId] = useState('');
 
-  // ── Fetch ──────────────────────────────────────────────────────────────
   const fetchProfile = useCallback(async (silent = false) => {
     try {
       const res = await getOwnerProfile(silent ? { hideLoader: true } : undefined);
@@ -71,13 +69,11 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
     }
   }, []);
 
-  // Cache-first: only show blocking loader on first visit (no data yet)
   useFocusEffect(useCallback(() => {
     const isFirstLoad = !laundryName;
     fetchProfile(!isFirstLoad);
   }, [fetchProfile, laundryName]));
 
-  // ── Save UPI — explicit value param avoids stale-closure bug ──────────
   const saveUpi = async (value: string) => {
     const trimmed = value.trim();
     if (trimmed && !trimmed.includes('@')) {
@@ -97,7 +93,6 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
       setEditingUpi(false);
       dispatch(showToast({ type: 'success', message: trimmed ? 'UPI ID saved!' : 'UPI ID removed' }));
     } catch (_) {
-      // error toast already shown by axios interceptor
     } finally {
       setLoading(false);
     }
@@ -112,7 +107,6 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
     ]);
   };
 
-  // ── Save laundry name ─────────────────────────────────────────────────
   const handleSaveProfile = async () => {
     if (!draftLaundryName.trim()) {
       dispatch(showToast({ type: 'warning', message: 'Laundry name cannot be empty' }));
@@ -129,14 +123,12 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
     finally { setLoading(false); }
   };
 
-  // ── Clipboard ─────────────────────────────────────────────────────────
   const handleCopyUpi = async () => {
     if (!upiId) return;
     await Clipboard.setStringAsync(upiId);
     dispatch(showToast({ type: 'success', message: `Copied: ${upiId}` }));
   };
 
-  // ── UPI deep-link test ────────────────────────────────────────────────
   const handleTestPay = () => {
     if (!upiId) return;
     const url = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(laundryName)}&cu=INR`;
@@ -145,13 +137,10 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
     });
   };
 
-  // ── Logout ────────────────────────────────────────────────────────────
   const handleLogout = () => {
     setShowLogoutModal(true);
   };
 
-  // ── Theme toggle ──────────────────────────────────────────────────────
-  // QR code uses theme-aware colors: dark background in dark mode, white in light
   const qrBgColor = isDark ? '#1E2A3A' : '#FFFFFF';
   const qrFgColor = isDark ? '#E2F0FF' : '#111111';
 
@@ -167,28 +156,47 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
     { icon: 'person-outline' as const,        label: 'My Profile',       color: '#10B981', screen: 'ProfileMain', tab: 'Settings' },
   ];
 
+  const canGoBack = navigation.canGoBack();
+
   return (
-    <ScreenWrapper edges={[]}>
-      <Header 
-        title="Settings" 
-        showBack={navigation.canGoBack()} 
-        onBack={() => navigation.goBack()} 
-      />
+    <ScreenWrapper edges={['top']} statusBarStyle="light-content">
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* ── Unified Hero (Merged Settings Header + Laundry Profile) ────────── */}
+        <LinearGradient
+          colors={theme.gradients.ocean as any}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.unifiedHero}
+        >
+          {/* Top Title Bar */}
+          <View style={styles.topHeaderRow}>
+            {canGoBack ? (
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 36 }} />
+            )}
+            <Text style={styles.headerTitle}>Settings</Text>
+            <View style={{ width: 36 }} />
+          </View>
 
-        {/* ── Hero ──────────────────────────────────────────────────── */}
-        <LinearGradient colors={(isDark ? theme.gradients.ocean : theme.gradients.primary) as any} style={styles.hero}>
+          {/* Shop Info Container */}
           <View style={styles.heroRow}>
-            <View style={[styles.heroAvatar, { backgroundColor: 'rgba(255,255,255,0.18)' }]}>
-              <Ionicons name="business" size={36} color="#FFF" />
+            <View style={styles.heroAvatar}>
+              <Ionicons name="business" size={32} color="#FFFFFF" />
             </View>
             <View style={{ flex: 1, marginLeft: 14 }}>
-              <Text style={[theme.typography.h3, { color: '#FFF' }]} numberOfLines={1}>
+              <Text style={styles.shopNameText} numberOfLines={1}>
                 {laundryName || 'My Laundry'}
               </Text>
               {city ? (
-                <Text style={[theme.typography.caption, { color: 'rgba(255,255,255,0.75)', marginTop: 2 }]}>
+                <Text style={styles.locationText}>
                   📍 {city}{stateName ? `, ${stateName}` : ''}
                 </Text>
               ) : null}
@@ -196,9 +204,9 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
                 <Ionicons
                   name={upiId ? 'qr-code-outline' : 'alert-circle-outline'}
                   size={11}
-                  color={upiId ? '#6EE7B7' : 'rgba(255,255,255,0.65)'}
+                  color={upiId ? '#6EE7B7' : 'rgba(255,255,255,0.7)'}
                 />
-                <Text style={[theme.typography.caption, { color: upiId ? '#D1FAE5' : 'rgba(255,255,255,0.65)', marginLeft: 4 }]} numberOfLines={1}>
+                <Text style={[styles.upiChipText, { color: upiId ? '#D1FAE5' : 'rgba(255,255,255,0.7)' }]} numberOfLines={1}>
                   {upiId || 'UPI not set — add below'}
                 </Text>
               </View>
@@ -211,7 +219,6 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
           {/* ── UPI Section ──────────────────────────────────────────── */}
           <FadeSlideIn delay={0}>
             <Card padding="medium" style={{ marginBottom: 16 }}>
-
               <View style={styles.sectionHeader}>
                 <View style={[styles.sectionIcon, { backgroundColor: '#10B98118' }]}>
                   <Ionicons name="qr-code-outline" size={20} color="#10B981" />
@@ -235,7 +242,6 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
                 )}
               </View>
 
-              {/* Edit form */}
               {editingUpi ? (
                 <View style={{ marginTop: 16 }}>
                   <Input
@@ -255,12 +261,8 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
                     <Button title="Cancel" onPress={() => setEditingUpi(false)} variant="outline" style={{ flex: 1 }} />
                   </View>
                 </View>
-
               ) : upiId ? (
-                /* UPI set — show display + QR preview */
                 <View style={{ marginTop: 14 }}>
-
-                  {/* ID pill */}
                   <View style={[styles.upiDisplay, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.borderLight }]}>
                     <Ionicons name="at-circle-outline" size={22} color="#10B981" />
                     <Text style={[theme.typography.body, { color: theme.colors.textPrimary, flex: 1, marginLeft: 10 }]} selectable>
@@ -268,7 +270,6 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
                     </Text>
                   </View>
 
-                  {/* QR preview — tap to enlarge — theme-aware background */}
                   <TouchableOpacity
                     onPress={() => setQrModalVisible(true)}
                     style={[styles.qrPreviewRow, {
@@ -292,7 +293,6 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
                     </View>
                   </TouchableOpacity>
 
-                  {/* Action chips */}
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                     <TouchableOpacity style={[styles.chip, { backgroundColor: theme.colors.surfaceVariant, flex: 1 }]} onPress={handleCopyUpi}>
                       <Ionicons name="copy-outline" size={14} color={theme.colors.textSecondary} />
@@ -308,9 +308,7 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
                     </TouchableOpacity>
                   </View>
                 </View>
-
               ) : (
-                /* No UPI */
                 <View style={[styles.emptyBox, { backgroundColor: theme.colors.surfaceVariant }]}>
                   <Ionicons name="qr-code-outline" size={40} color={theme.colors.textMuted} />
                   <Text style={[theme.typography.bodySmall, { color: theme.colors.textMuted, marginTop: 10, textAlign: 'center' }]}>
@@ -404,7 +402,7 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
         </View>
       </ScrollView>
 
-      {/* ── Full-screen QR Modal — fully theme-aware ──────────────────── */}
+      {/* ── Full-screen QR Modal ────────────────────────────────────── */}
       <Modal visible={qrModalVisible} transparent animationType="fade" onRequestClose={() => setQrModalVisible(false)}>
         <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setQrModalVisible(false)}>
           <View style={[styles.modalCard, { backgroundColor: theme.colors.surface }]}>
@@ -415,7 +413,6 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
               Scan with any UPI app to pay
             </Text>
 
-            {/* QR with theme-aware colors */}
             <View style={[styles.qrBig, { borderColor: theme.colors.borderLight, backgroundColor: qrBgColor }]}>
               <UpiQrCode value={upiQrValue} size={220} backgroundColor={qrBgColor} color={qrFgColor} />
             </View>
@@ -461,10 +458,71 @@ function InfoRow({ icon, label, value, theme }: { icon: any; label: string; valu
 }
 
 const styles = StyleSheet.create({
-  hero: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 34 },
-  heroRow: { flexDirection: 'row', alignItems: 'center' },
-  heroAvatar: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  upiChip: { flexDirection: 'row', alignItems: 'center', marginTop: 6, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, alignSelf: 'flex-start' },
+  unifiedHero: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
+  topHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  heroAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1.5,
+    borderColor: '#C9A227',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shopNameText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  locationText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 2,
+  },
+  upiChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+  upiChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
   sectionHeader: { flexDirection: 'row', alignItems: 'center' },
   sectionIcon: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   editPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
@@ -476,7 +534,6 @@ const styles = StyleSheet.create({
   addBtn: { flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 },
   linkRow: { flexDirection: 'row', alignItems: 'center' },
   linkIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  themeChip: { alignItems: 'center', paddingVertical: 12, borderRadius: 12, borderWidth: 1 },
   logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 15, borderRadius: 14, borderWidth: 1, marginBottom: 8 },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' },
   modalCard: { width: '85%', borderRadius: 24, padding: 28, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 20, elevation: 12 },
