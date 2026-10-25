@@ -17,13 +17,15 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://laundry-backend-eta.vercel.app"
+        "EXPO_PUBLIC_API_URL": "https://laundry-backend-eta.vercel.app",
+        "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyD9c0AUbUubY6FSLyUsyi0dBvweYnxzryg"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://laundry-backend-eta.vercel.app"
+        "EXPO_PUBLIC_API_URL": "https://laundry-backend-eta.vercel.app",
+        "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyD9c0AUbUubY6FSLyUsyi0dBvweYnxzryg"
       }
     }
   },

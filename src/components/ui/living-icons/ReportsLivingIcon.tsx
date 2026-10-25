@@ -40,7 +40,7 @@ export const ReportsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, s
 
   // Idle Animation: Bar 2 grows by 1-2px
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     const triggerIdleGrowth = () => {
       if (!focused) {
         Animated.sequence([

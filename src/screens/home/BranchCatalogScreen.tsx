@@ -24,28 +24,63 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
   const { branch, masters } = route.params;
 
   const [selectedService, setSelectedService] = useState<any>(null);
-  const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [quantity, setQuantity] = useState<number>(1);
 
-  // Extract services, materials, and items from masters
+  // Extract services and master items
   const services = useMemo(() => masters?.services || [], [masters]);
-  const materials = useMemo(() => (masters?.materials || []).filter((m: any) => m.isActive), [masters]);
-  const items = useMemo(() => (masters?.items || []).filter((i: any) => i.isActive), [masters]);
+  const allMasterItems = useMemo(() => (masters?.items || []).filter((i: any) => i.isActive), [masters]);
 
-  // Display-only estimated price (for chip labels). Real price is calculated by backend on order creation.
+  // Dynamically compute items available for the selected service
+  const availableItems = useMemo(() => {
+    if (!selectedService) return [];
+
+    const discount = selectedService.discount || 0;
+
+    // If service has specific items configured in its items array
+    if (selectedService.items && Array.isArray(selectedService.items) && selectedService.items.length > 0) {
+      return selectedService.items
+        .filter((si: any) => si.isActive !== false)
+        .map((si: any) => {
+          const itemObj = si.item?._id
+            ? si.item
+            : allMasterItems.find((it: any) => it._id === (si.item?._id || si.item));
+          const basePrice = si.price != null ? si.price : (itemObj?.price || 0);
+          const finalPrice = discount > 0 ? Math.max(0, Math.round(basePrice * (1 - discount / 100))) : basePrice;
+
+          return {
+            _id: itemObj?._id || si.item,
+            name: itemObj?.name || 'Item',
+            price: finalPrice,
+            basePrice,
+            discount,
+          };
+        });
+    }
+
+    // Fallback: If service has no specific items configured, show all master items
+    return allMasterItems.map((it: any) => {
+      const basePrice = it.price || 0;
+      const finalPrice = discount > 0 ? Math.max(0, Math.round(basePrice * (1 - discount / 100))) : basePrice;
+      return {
+        _id: it._id,
+        name: it.name,
+        price: finalPrice,
+        basePrice,
+        discount,
+      };
+    });
+  }, [selectedService, allMasterItems]);
+
+  // Display-only estimated price
   const estimatedPrice = useMemo(() => {
-    if (!selectedItem || !selectedMaterial || !selectedService) return 0;
-    return (selectedItem.price || 0) + (selectedMaterial.price || 0) + (selectedService.price || 0);
-  }, [selectedItem, selectedMaterial, selectedService]);
+    if (!selectedItem) return 0;
+    return selectedItem.price || 0;
+  }, [selectedItem]);
 
   const handleAddToCart = () => {
     if (!selectedService) {
       dispatch(showToast({ type: 'warning', message: 'Please select a service' }));
-      return;
-    }
-    if (!selectedMaterial) {
-      dispatch(showToast({ type: 'warning', message: 'Please select a material/fabric' }));
       return;
     }
     if (!selectedItem) {
@@ -59,8 +94,6 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
         serviceName: selectedService.name,
         item: selectedItem._id,
         itemName: selectedItem.name,
-        material: selectedMaterial._id,
-        materialName: selectedMaterial.name,
         quantity,
         price: estimatedPrice, // display-only estimate; backend recalculates real price from DB
         name: selectedItem.name,
@@ -70,13 +103,12 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
     dispatch(
       showToast({
         type: 'success',
-        message: `${quantity} x ${selectedItem.name} (${selectedMaterial.name} · ${selectedService.name}) added to cart`,
+        message: `${quantity} x ${selectedItem.name} (${selectedService.name}) added to cart`,
       })
     );
 
     // Reset all selections for next item
     setSelectedService(null);
-    setSelectedMaterial(null);
     setSelectedItem(null);
     setQuantity(1);
   };
@@ -114,64 +146,73 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
           {services.map((s: any) => {
             const isSelected = selectedService?._id === s._id;
             const emoji = (SERVICE_ICONS as any)[s.name] || (SERVICE_ICONS as any).default;
+            const discountLabel = s.discount && s.discount > 0 ? ` · ${s.discount}% OFF` : '';
             return (
               <Chip
                 key={s._id}
-                label={`${emoji} ${s.name} (+₹${s.price || 0})`}
+                label={`${emoji} ${s.name}${discountLabel}`}
                 selected={isSelected}
-                onPress={() => setSelectedService(s)}
+                onPress={() => {
+                  setSelectedService(s);
+                  setSelectedItem(null);
+                }}
                 style={styles.chip}
               />
             );
           })}
         </ScrollView>
 
-        {/* 2. Select Material */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary, marginTop: 20 }]}>2. Select Fabric/Material</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-          {materials.map((m: any) => {
-            const isSelected = selectedMaterial?._id === m._id;
-            return (
-              <Chip
-                key={m._id}
-                label={`${m.name} (+₹${m.price || 0})`}
-                selected={isSelected}
-                onPress={() => setSelectedMaterial(m)}
-                style={styles.chip}
-              />
-            );
-          })}
-        </ScrollView>
+        {/* 2. Select Cloth */}
+        <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary, marginTop: 20 }]}>2. Select Cloth</Text>
+        {!selectedService ? (
+          <Text style={[theme.typography.caption, { color: theme.colors.textMuted, marginHorizontal: 16, marginTop: 4 }]}>
+            👆 Please select a service first to view available clothes & prices.
+          </Text>
+        ) : availableItems.length === 0 ? (
+          <Text style={[theme.typography.caption, { color: theme.colors.textMuted, marginHorizontal: 16, marginTop: 4 }]}>
+            No clothes configured for {selectedService.name}.
+          </Text>
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
+            {availableItems.map((item: any) => {
+              const isSelected = selectedItem?._id === item._id;
+              return (
+                <Chip
+                  key={item._id}
+                  label={`${item.name} (₹${item.price})`}
+                  selected={isSelected}
+                  onPress={() => setSelectedItem(item)}
+                  style={styles.chip}
+                />
+              );
+            })}
+          </ScrollView>
+        )}
 
-        {/* 3. Select Cloth */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary, marginTop: 20 }]}>3. Select Cloth</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-          {items.map((item: any) => {
-            const isSelected = selectedItem?._id === item._id;
-            return (
-              <Chip
-                key={item._id}
-                label={`${item.name} (+₹${item.price})`}
-                selected={isSelected}
-                onPress={() => setSelectedItem(item)}
-                style={styles.chip}
-              />
-            );
-          })}
-        </ScrollView>
-
-        {/* 4. Selection Summary and Add to Cart */}
-        {selectedService && selectedMaterial && selectedItem && (
+        {/* 3. Selection Summary and Add to Cart */}
+        {selectedService && selectedItem && (
           <Card style={[styles.summaryCard, { borderColor: theme.colors.primary }]} padding="medium">
             <Text style={[styles.summaryTitle, { color: theme.colors.textPrimary }]}>Selection Summary</Text>
             <View style={styles.summaryRow}>
               <View style={{ flex: 1 }}>
                 <Text style={[theme.typography.label, { color: theme.colors.textPrimary }]}>
-                  {selectedItem.name} ({selectedMaterial.name})
+                  {selectedItem.name}
                 </Text>
                 <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 2 }]}>
                   Service: {selectedService.name}
                 </Text>
+                {selectedItem.discount > 0 && selectedItem.basePrice !== selectedItem.price && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                    <Text style={{ fontSize: 12, color: theme.colors.textMuted, textDecorationLine: 'line-through' }}>
+                      ₹{selectedItem.basePrice}
+                    </Text>
+                    <View style={{ backgroundColor: theme.colors.success + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 }}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: theme.colors.success }}>
+                        {selectedItem.discount}% OFF
+                      </Text>
+                    </View>
+                  </View>
+                )}
               </View>
               <Text style={[theme.typography.price, { color: theme.colors.primary }]}>
                 {formatPrice(estimatedPrice * quantity)}

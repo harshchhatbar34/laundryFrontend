@@ -32,14 +32,14 @@ const RippleButton = memo<RippleButtonProps>(({
   const scale = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0.35)).current;
   const [ripple, setRipple] = useState<{ x: number; y: number; size: number } | null>(null);
-  const containerRef = useRef<View>(null);
+  const containerRef = useRef<any>(null);
 
   const handlePressIn = useCallback((event: GestureResponderEvent) => {
     const { locationX, locationY } = event.nativeEvent;
 
     // Measure container to calculate max ripple radius
     if (containerRef.current) {
-      containerRef.current.measure((x, y, width, height) => {
+      containerRef.current.measure((x: any, y: any, width: any, height: any) => {
         // Ripple needs to cover the full container from the touch point
         const maxDist = Math.sqrt(
           Math.max(locationX, width - locationX) ** 2 +
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   rippleContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill as any,
     overflow: 'hidden',
   },
   ripple: {

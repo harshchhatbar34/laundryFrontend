@@ -23,18 +23,16 @@ export const register = async (
   name: string,
   email: string,
   password: string,
-  tenantCode: string,
-  mobileNumber?: string
+  tenantCode?: string,
+  mobileNumber?: string,
+  referralCode?: string
 ): Promise<any> => {
+  const body: any = { name, email, password, mobileNumber };
+  if (tenantCode) body.tenantCode = tenantCode;
+  if (referralCode) body.referralCode = referralCode;
   const response = await api.post(
     AUTH_REGISTER,
-    {
-      name,
-      email,
-      password,
-      tenantCode,
-      mobileNumber,
-    },
+    body,
     authRequestConfig
   );
   return response.data;

@@ -22,50 +22,48 @@ export default function ServiceDetailScreen({ route, navigation }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const { service, masters } = route.params;
   
-  const [selectedMaterialId, setSelectedMaterialId] = useState<string>('');
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-  // Get active materials from masters
-  const materials = useMemo(() => {
-    if (!masters?.materials) return [];
-    return masters.materials.filter((m: any) => m.isActive);
-  }, [masters]);
-
-  // Set default material on mount
-  useEffect(() => {
-    if (materials.length > 0) {
-      setSelectedMaterialId(materials[0]._id);
-    }
-  }, [materials]);
-
-  // Build display combinations — prices are display-only estimates from master data.
-  // Real price is recalculated by backend using IDs on order creation.
+  // Build display combinations — use service-specific items and apply discount
   const itemsWithPrices = useMemo(() => {
-    if (!masters) return [];
-    const { items = [] } = masters;
-    const result: any[] = [];
-    items.forEach((item: any) => {
-      if (!item.isActive) return;
-      materials.forEach((material: any) => {
-        // Estimate: item + material + service price for display only
-        const estimatedPrice = (item.price || 0) + (material.price || 0) + (service.price || 0);
-        result.push({
+    const allMasterItems = masters?.items || [];
+    const discount = service.discount || 0;
+
+    if (service.items && Array.isArray(service.items) && service.items.length > 0) {
+      return service.items
+        .filter((si: any) => si.isActive !== false)
+        .map((si: any) => {
+          const itemObj = si.item?._id
+            ? si.item
+            : allMasterItems.find((it: any) => it._id === (si.item?._id || si.item));
+          const basePrice = si.price != null ? si.price : (itemObj?.price || 0);
+          const finalPrice = discount > 0 ? Math.max(0, Math.round(basePrice * (1 - discount / 100))) : basePrice;
+
+          return {
+            item: itemObj?._id || si.item,
+            itemName: itemObj?.name || 'Item',
+            price: finalPrice,
+            basePrice,
+            discount,
+          };
+        });
+    }
+
+    // Fallback if service has no specific items configured
+    return allMasterItems
+      .filter((item: any) => item.isActive)
+      .map((item: any) => {
+        const basePrice = item.price || 0;
+        const finalPrice = discount > 0 ? Math.max(0, Math.round(basePrice * (1 - discount / 100))) : basePrice;
+        return {
           item: item._id,
           itemName: item.name,
-          material: material._id,
-          materialName: material.name,
-          price: estimatedPrice, // display estimate only
-        });
+          price: finalPrice,
+          basePrice,
+          discount,
+        };
       });
-    });
-    return result;
-  }, [masters, materials, service]);
-
-  // Filter items to show only the ones for the selected material
-  const visibleItems = useMemo(() => {
-    if (!selectedMaterialId) return [];
-    return itemsWithPrices.filter((item) => item.material === selectedMaterialId);
-  }, [itemsWithPrices, selectedMaterialId]);
+  }, [masters, service]);
 
   const updateQty = (key: string, delta: number) => {
     setQuantities((prev) => {
@@ -81,23 +79,21 @@ export default function ServiceDetailScreen({ route, navigation }: Props) {
 
   const totalItems = Object.values(quantities).reduce((s, v) => s + v, 0);
   const totalPrice = Object.entries(quantities).reduce((s, [key, qty]) => {
-    const p = itemsWithPrices.find((i) => `${i.item}-${i.material}` === key);
+    const p = itemsWithPrices.find((i: any) => i.item === key);
     return s + (p ? p.price * qty : 0);
   }, 0);
 
   const handleAddToCart = () => {
     Object.entries(quantities).forEach(([key, qty]) => {
-      const p = itemsWithPrices.find((i) => `${i.item}-${i.material}` === key);
+      const p = itemsWithPrices.find((i: any) => i.item === key);
       if (p) {
         dispatch(addToCart({
           service: service._id,
           serviceName: service.name,
           item: p.item,
           itemName: p.itemName,
-          material: p.material,
-          materialName: p.materialName,
           quantity: qty,
-          price: p.price, // display-only estimate; backend recalculates real price from DB
+          price: p.price,
           name: p.itemName,
         }));
       }
@@ -106,19 +102,31 @@ export default function ServiceDetailScreen({ route, navigation }: Props) {
   };
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {
-    const key = `${item.item}-${item.material}`;
+    const key = item.item;
     const qty = quantities[key] || 0;
+
     return (
       <FadeSlideIn delay={index * 40}>
         <Card style={{ marginBottom: 10 }} padding="medium" variant="outlined">
           <View style={styles.itemRow}>
             <View style={{ flex: 1 }}>
               <Text style={[theme.typography.label, { color: theme.colors.textPrimary }]}>{item.itemName}</Text>
-              <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>{item.materialName}</Text>
+              {item.discount > 0 && (
+                <Text style={[theme.typography.captionSmall, { color: theme.colors.success, fontWeight: '700', marginTop: 2 }]}>
+                  {item.discount}% OFF
+                </Text>
+              )}
             </View>
-            <Text style={[theme.typography.priceSmall, { color: theme.colors.primary, marginRight: 16 }]}>
-              {formatPrice(item.price)}
-            </Text>
+            <View style={{ alignItems: 'flex-end', marginRight: 16 }}>
+              <Text style={[theme.typography.priceSmall, { color: theme.colors.primary }]}>
+                {formatPrice(item.price)}
+              </Text>
+              {item.discount > 0 && item.basePrice !== item.price && (
+                <Text style={[theme.typography.captionSmall, { textDecorationLine: 'line-through', color: theme.colors.textMuted }]}>
+                  {formatPrice(item.basePrice)}
+                </Text>
+              )}
+            </View>
             <View style={styles.stepper}>
               <TouchableOpacity onPress={() => updateQty(key, -1)} style={[styles.stepBtn, { backgroundColor: theme.colors.surfaceVariant }]}>
                 <Ionicons name="remove" size={18} color={theme.colors.textPrimary} />
@@ -137,34 +145,11 @@ export default function ServiceDetailScreen({ route, navigation }: Props) {
   return (
     <ScreenWrapper edges={[]}>
       <Header title={service.name} showBack onBack={() => navigation.goBack()} />
-      
-      {/* Horizontal Scrollable Fabric/Material Tabs */}
-      {materials.length > 0 && (
-        <View style={[styles.tabBarContainer, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
-          <Text style={[theme.typography.labelSmall, { color: theme.colors.textSecondary, marginTop: 12, marginHorizontal: 16, marginBottom: 8 }]}>
-            Select Fabric / Material
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {materials.map((m: any) => (
-              <Chip
-                key={m._id}
-                label={m.name}
-                selected={selectedMaterialId === m._id}
-                onPress={() => setSelectedMaterialId(m._id)}
-              />
-            ))}
-          </ScrollView>
-        </View>
-      )}
 
       <FlatList
-        data={visibleItems}
+        data={itemsWithPrices}
         renderItem={renderItem}
-        keyExtractor={(i) => `${i.item}-${i.material}`}
+        keyExtractor={(i) => i.item}
         contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
@@ -41,8 +41,10 @@ export default function OwnerDashboardScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const [stats, setStats] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const statsRef = useRef(stats);
+  statsRef.current = stats;
 
-  const fetch = async (isSilent = false) => {
+  const fetchStats = useCallback(async (isSilent = false) => {
     try {
       const res = await getStats(undefined, isSilent ? { hideLoader: true } : undefined);
       if (res?.data) {
@@ -51,21 +53,21 @@ export default function OwnerDashboardScreen({ navigation }: Props) {
     } catch (e) {
       console.log(e);
     }
-  };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       // If we already have stats, do silent fetch in background instead of showing loader
-      const hasData = Boolean(stats);
-      fetch(hasData);
+      const hasData = Boolean(statsRef.current);
+      fetchStats(hasData);
 
       // Poll every 15 seconds silently while focused
-      const interval = setInterval(() => fetch(true), 15000);
+      const interval = setInterval(() => fetchStats(true), 15000);
       return () => clearInterval(interval);
-    }, [stats])
+    }, [fetchStats])
   );
 
-  const onRefresh = async () => { setRefreshing(true); await fetch(false); setRefreshing(false); };
+  const onRefresh = async () => { setRefreshing(true); await fetchStats(false); setRefreshing(false); };
 
   return (
     <ScreenWrapper>

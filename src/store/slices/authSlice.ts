@@ -86,7 +86,7 @@ export const login = createAsyncThunk<
 
 export const register = createAsyncThunk<
   { userId: string; email: string },
-  { name: string; email: string; password: string; tenantCode: string; mobileNumber?: string },
+  { name: string; email: string; password: string; tenantCode?: string; mobileNumber?: string; referralCode?: string },
   { rejectValue: string }
 >('auth/register', async (payload, { rejectWithValue }) => {
   try {
@@ -96,7 +96,8 @@ export const register = createAsyncThunk<
       payload.email,
       payload.password,
       payload.tenantCode,
-      payload.mobileNumber
+      payload.mobileNumber,
+      payload.referralCode
     );
 
     if (!data?.success || !data?.data) {

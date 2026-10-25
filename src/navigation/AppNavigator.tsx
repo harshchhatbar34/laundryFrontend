@@ -13,7 +13,10 @@ import OwnerTabs from './OwnerTabs';
 import AdminTabs from './AdminTabs';
 import { AppDispatch, RootState } from '../store';
 import { usePushNotifications } from '../hooks/usePushNotifications';
-import * as Notifications from 'expo-notifications';
+import type * as Notifications from 'expo-notifications';
+import { isRunningInExpoGo } from 'expo';
+
+console.log('[STARTUP] AppNavigator.tsx module evaluated');
 
 export default function AppNavigator() {
   const dispatch = useDispatch<AppDispatch>();
@@ -21,6 +24,8 @@ export default function AppNavigator() {
   const { theme } = useTheme();
   const [isReady, setIsReady] = React.useState(false);
   const navigationRef = useRef<NavigationContainerRef<any>>(null);
+
+  console.log('[STARTUP] AppNavigator rendering, isReady=', isReady, 'isLoggedIn=', isLoggedIn);
 
   useEffect(() => {
     Promise.all([
@@ -35,13 +40,13 @@ export default function AppNavigator() {
     try {
       const queryString = url.includes('?') ? url.split('?')[1] : '';
       const params = new URLSearchParams(queryString);
-      const code = params.get('code');
+      const refCode = params.get('ref') || params.get('referral') || params.get('code');
       const token = params.get('token');
       const path = url.replace(/^[a-zA-Z0-9+\-.]+:\/\//, '').split('?')[0];
 
-      if ((path === 'register' || path.endsWith('/register')) && code && navigationRef.current) {
-        // If not logged in, navigate to Register with code
-        (navigationRef.current as any).navigate('Register', { tenantCode: code });
+      if ((path === 'register' || path.endsWith('/register')) && navigationRef.current) {
+        // If not logged in, navigate to Register with optional referral code
+        (navigationRef.current as any).navigate('Register', refCode ? { referralCode: refCode } : undefined);
       } else if ((path === 'set-password' || path === 'reset-password' || path.endsWith('/set-password') || path.endsWith('/reset-password')) && token && navigationRef.current) {
         // Navigate to SetPassword screen with reset token
         (navigationRef.current as any).navigate('SetPassword', { token });
@@ -80,15 +85,21 @@ export default function AppNavigator() {
   // Register for push notifications and set up listeners
   usePushNotifications({ onNotificationTap: handleNotificationTap });
 
-  // Handle notification that launched the app from killed state
+  // Handle notification that launched the app from killed state (standalone builds only)
   useEffect(() => {
-    Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response?.notification) {
-        // Slight delay to let the navigator mount
-        setTimeout(() => handleNotificationTap(response.notification), 1000);
-      }
-    });
-  }, [isLoggedIn]);
+    if (isRunningInExpoGo()) return;
+    try {
+      const NotificationsMod = require('expo-notifications');
+      NotificationsMod.getLastNotificationResponseAsync()
+        .then((response: any) => {
+          if (response?.notification) {
+            // Slight delay to let the navigator mount
+            setTimeout(() => handleNotificationTap(response.notification), 1000);
+          }
+        })
+        .catch(() => {});
+    } catch {}
+  }, [isLoggedIn, handleNotificationTap]);
 
   if (!isReady) {
     return (

@@ -3,31 +3,26 @@
     "name": "LaundroFlow",
     "slug": "mobile",
     "version": "1.0.0",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "sdkVersion": "58.0.0",
+    "runtimeVersion": "1.0.0",
     "updates": {
-      "url": "https://u.expo.dev/1f14223d-684e-4884-8cc1-c68d26590e30",
+      "url": "https://u.expo.dev/b682f2bd-393e-433a-a6f0-d46bd98297b0",
       "enabled": true,
       "checkAutomatically": "ON_ERROR_RECOVERY",
       "fallbackToCacheTimeout": 0
     },
     "orientation": "portrait",
     "scheme": "laundroflow",
-
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.laundroflow.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"],
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
         "NSLocationWhenInUseUsageDescription": "LaundroFlow uses your location to find the nearest laundry branches and pin shop coordinates."
       }
     },
@@ -37,7 +32,6 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.laundroflow.app",
       "permissions": [
@@ -58,10 +52,19 @@
     },
     "extra": {
       "eas": {
-        "projectId": "1f14223d-684e-4884-8cc1-c68d26590e30"
+        "projectId": "b682f2bd-393e-433a-a6f0-d46bd98297b0"
       }
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-status-bar",
       "expo-updates",
       "@react-native-community/datetimepicker",
       "expo-font",
@@ -73,15 +76,8 @@
           "sounds": [],
           "mode": "production"
         }
-      ],
-      [
-        "@sentry/react-native",
-        {
-          "organization": "qonsult-business-solution",
-          "project": "react-native"
-        }
       ]
-    ]
+    ],
+    "owner": "harshchhatbar34"
   }
 }
-

@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { loadUser, logout } from './authSlice';
 
 export interface CartItem {
-  material: string;
+  material?: string;
   item: string;
   service: string;
   quantity: number;

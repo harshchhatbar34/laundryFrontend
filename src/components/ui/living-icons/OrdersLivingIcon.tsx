@@ -43,7 +43,7 @@ export const OrdersLivingIcon: React.FC<LivingIconProps> = ({ focused, color, si
 
   // Idle Animation: Receipt peeks out 2px
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     const triggerPeek = () => {
       if (!focused) {
         Animated.sequence([

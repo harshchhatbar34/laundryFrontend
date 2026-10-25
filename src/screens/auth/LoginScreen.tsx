@@ -90,9 +90,9 @@ export default function LoginScreen({ navigation }: Props) {
             </Text>
           </LinearGradient>
 
-          <View style={[styles.form, { backgroundColor: theme.colors.background }]}>
+          <View style={[styles.form, { backgroundColor: theme.colors.surface }]}>
             {errors.general && (
-              <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorBg }]}>
+              <View style={[styles.errorBanner, { backgroundColor: theme.colors.errorBg, borderRadius: 12 }]}>
                 <Ionicons name="alert-circle-outline" size={16} color={theme.colors.error} />
                 <Text style={[theme.typography.bodySmall, { color: theme.colors.error, marginLeft: 8, flex: 1 }]}>
                   {errors.general}
@@ -110,7 +110,7 @@ export default function LoginScreen({ navigation }: Props) {
               error={errors.email}
               textContentType="emailAddress"
               autoComplete="email"
-              surfaceColor={theme.colors.background}
+              surfaceColor={theme.colors.surface}
             />
             <Input
               label="Password"
@@ -121,7 +121,7 @@ export default function LoginScreen({ navigation }: Props) {
               error={errors.password}
               textContentType="password"
               autoComplete="password"
-              surfaceColor={theme.colors.background}
+              surfaceColor={theme.colors.surface}
             />
 
             <Button

@@ -40,7 +40,7 @@ export const ProfileLivingIcon: React.FC<LivingIconProps> = ({ focused, color, s
 
   // Idle animation: Head bobs gently
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     const triggerBob = () => {
       if (!focused) {
         Animated.sequence([

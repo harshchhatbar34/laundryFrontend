@@ -92,7 +92,7 @@ export const CartLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size
   // Gentle idle nudge every 6–8s while focused
   useEffect(() => {
     if (!focused) return;
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     const NT = { useNativeDriver: true };
     const nudge = () => {
       Animated.sequence([

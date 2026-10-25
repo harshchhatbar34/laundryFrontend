@@ -15,13 +15,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<OwnerServiceStackParamList, 'ServiceManagement'>;
 
-const TABS = ['Services', 'Materials', 'Items'];
+const TABS = ['Services', 'Items'];
 
 export default function ServiceManagementScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState('Services');
-  const [data, setData] = useState<{ services: any[]; materials: any[]; items: any[]; prices: any[] }>({ services: [], materials: [], items: [], prices: [] });
+  const [data, setData] = useState<{ services: any[]; items: any[] }>({ services: [], items: [] });
 
   const fetch = async (isSilent = false) => {
     try {
@@ -33,7 +33,7 @@ export default function ServiceManagementScreen({ navigation }: Props) {
   };
 
   useEffect(() => {
-    const hasData = data.services.length > 0 || data.materials.length > 0 || data.items.length > 0;
+    const hasData = data.services.length > 0 || data.items.length > 0;
     fetch(hasData);
     const u = navigation.addListener('focus', () => {
       fetch(true); // silent fetch on menu focus
@@ -48,18 +48,30 @@ export default function ServiceManagementScreen({ navigation }: Props) {
     ]);
   };
 
-  const currentData = tab === 'Services' ? data.services : tab === 'Materials' ? data.materials : tab === 'Items' ? data.items : data.prices;
-  const type = tab.toLowerCase().slice(0, -1) as 'service' | 'material' | 'item' | 'price';
+  const currentData = tab === 'Services' ? data.services : data.items;
+  const type = (tab === 'Services' ? 'service' : 'item') as 'service' | 'item';
 
   const renderItem = ({ item }: { item: any }) => (
     <Card style={{ marginBottom: 10 }} padding="medium">
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
-          <Text style={[theme.typography.label, { color: theme.colors.textPrimary }]}>{item.name || `${item.serviceName} · ${item.materialName} · ${item.itemName}`}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={[theme.typography.label, { color: theme.colors.textPrimary }]}>{item.name || item.serviceName || item.itemName}</Text>
+            {tab === 'Services' && item.discount > 0 && (
+              <View style={{ backgroundColor: theme.colors.success + '20', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                <Text style={{ color: theme.colors.success, fontSize: 11, fontWeight: '700' }}>{item.discount}% OFF</Text>
+              </View>
+            )}
+          </View>
           {item.description && <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>{item.description}</Text>}
-          {item.price != null && (
+          {tab === 'Services' && item.items && item.items.length > 0 && (
+            <Text style={[theme.typography.captionSmall, { color: theme.colors.textMuted, marginTop: 2 }]}>
+              {item.items.length} {item.items.length === 1 ? 'item' : 'items'} configured in table
+            </Text>
+          )}
+          {tab !== 'Services' && item.price != null && (
             <Text style={[theme.typography.priceSmall, { color: theme.colors.primary, marginTop: 4 }]}>
-              {tab === 'Services' ? 'Base Price: ' : ''}₹{item.price}
+              ₹{item.price}
             </Text>
           )}
         </View>

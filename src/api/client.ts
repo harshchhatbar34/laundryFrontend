@@ -25,7 +25,7 @@ if (sanitizedBaseURL.endsWith('/api')) {
 
 const api = axios.create({
   baseURL: sanitizedBaseURL,
-  timeout: 15000,
+  timeout: 35000,
   headers: {
     'Content-Type': 'application/json',
   },

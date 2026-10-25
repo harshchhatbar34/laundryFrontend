@@ -16,7 +16,7 @@ const ThemeContext = createContext<ThemeContextProps | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const dispatch = useDispatch();
-  const [systemScheme, setSystemScheme] = useState<ColorSchemeName>(Appearance.getColorScheme());
+  const [systemScheme, setSystemScheme] = useState<ColorSchemeName>(Appearance.getColorScheme() ?? 'light');
   const themePreference = useSelector((state: any) => state.theme.preference);
 
   useEffect(() => {
@@ -24,10 +24,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [dispatch]);
 
   useEffect(() => {
-    setSystemScheme(Appearance.getColorScheme());
+    setSystemScheme(Appearance.getColorScheme() ?? 'light');
 
     const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-      setSystemScheme(colorScheme);
+      setSystemScheme(colorScheme ?? 'light');
     });
 
     return () => {

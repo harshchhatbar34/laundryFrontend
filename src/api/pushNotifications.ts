@@ -1,8 +1,6 @@
-// FreshWash — Push Notification Registration & Token API
-
-import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { isRunningInExpoGo } from 'expo';
 import { Platform, Alert } from 'react-native';
 import api from './client';
 import { USER_PUSH_TOKEN } from './endpoints';
@@ -15,17 +13,20 @@ const PROJECT_ID = '1f14223d-684e-4884-8cc1-c68d26590e30';
  * - Falls back to Expo Push Token if native FCM token fetch fails.
  */
 export const registerForPushNotifications = async (): Promise<string | null> => {
-  const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+  try {
+    const isExpoGo = isRunningInExpoGo() || Constants.executionEnvironment === ExecutionEnvironment.StoreClient || (Constants as any).appOwnership === 'expo';
 
-  if (Platform.OS === 'android' && isExpoGo) {
-    console.log('[Push] Skipping: remote push not supported in Expo Go on Android.');
-    return null;
-  }
+    if (isExpoGo) {
+      console.log('[Push] Skipping: remote push not supported in Expo Go.');
+      return null;
+    }
 
   if (!Device.isDevice) {
     console.log('[Push] Skipping: not a physical device (simulator/emulator).');
     return null;
   }
+
+  const Notifications = require('expo-notifications');
 
   // Request permission
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -47,18 +48,22 @@ export const registerForPushNotifications = async (): Promise<string | null> => 
     return null;
   }
 
-  // Ensure Android notification channel exists
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'LaundroFlow',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#6366F1',
-      sound: 'default',
-      enableVibrate: true,
-      showBadge: true,
-    });
-    console.log('[Push] Android notification channel "default" ensured.');
+  // Ensure Android notification channel exists (production standalone builds only)
+  if (Platform.OS === 'android' && !__DEV__) {
+    try {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'LaundroFlow',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#6366F1',
+        sound: 'default',
+        enableVibrate: true,
+        showBadge: true,
+      });
+      console.log('[Push] Android notification channel "default" ensured.');
+    } catch (channelError) {
+      console.warn('[Push] Notification channel setup skipped:', channelError);
+    }
   }
 
   // Strategy 1: Attempt native device token (raw FCM for standalone Android APK)
@@ -87,11 +92,16 @@ export const registerForPushNotifications = async (): Promise<string | null> => 
       console.log(`[Push] ✅ Expo push token obtained: ${tokenData.data}`);
       return tokenData.data;
     }
+    return null;
   } catch (e: any) {
-    console.warn('[Push] ❌ getExpoPushTokenAsync fallback failed:', e?.message || e);
+    console.warn('[Push] Strategy 2 failed:', e?.message || e);
+    return null;
   }
-
   return null;
+} catch (err: any) {
+  console.warn('[Push] Error in registerForPushNotifications:', err?.message || err);
+  return null;
+}
 };
 
 /**

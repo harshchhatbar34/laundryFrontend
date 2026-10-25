@@ -25,6 +25,8 @@ export interface User {
   role: 'customer' | 'owner' | 'helper' | 'superadmin';
   mobileNumber?: string;
   tenantCode?: string;
+  referralCode?: string;
+  referredBy?: string;
   isActive?: boolean;
   createdAt?: string;
 }
@@ -49,11 +51,20 @@ export interface Branch {
 
 // ── Service Catalog ───────────────────────────────────────────────────
 
+export interface ServiceItemConfig {
+  item: string | any;
+  price: number;
+  isActive?: boolean;
+}
+
 export interface ServiceMaster {
   _id: string;
   name: string;
   icon?: string;
   description?: string;
+  price?: number;
+  discount?: number;
+  items?: ServiceItemConfig[];
 }
 
 export interface Material {

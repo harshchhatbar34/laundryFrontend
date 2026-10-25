@@ -131,7 +131,7 @@ export default function OwnerCustomerManagementScreen({ navigation }: any) {
               <Text style={[theme.typography.caption, { color: theme.colors.textMuted, marginBottom: 8 }]}>
                 {filtered.length} customer{filtered.length !== 1 ? 's' : ''}
               </Text>
-            ) : null
+            ) : undefined
           }
         />
       )}

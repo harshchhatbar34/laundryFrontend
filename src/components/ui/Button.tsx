@@ -172,7 +172,7 @@ const Button: React.FC<ButtonProps> = ({
 
   const containerStyle = [
     styles.container,
-    { borderRadius: theme.radius.md },
+    { borderRadius: 25 },
     !variantStyle.gradient && { backgroundColor: variantStyle.backgroundColor },
     variantStyle.borderWidth !== undefined && {
       borderWidth: variantStyle.borderWidth,
@@ -198,7 +198,7 @@ const Button: React.FC<ButtonProps> = ({
           end={{ x: 1, y: 0 }}
           style={[
             styles.container,
-            { borderRadius: theme.radius.md },
+            { borderRadius: 25 },
             variantStyle.shadow as any,
           ]}
         >

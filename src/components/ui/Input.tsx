@@ -73,7 +73,7 @@ const Input: React.FC<InputProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const labelAnim = useRef(new Animated.Value(value ? 1 : 0)).current;
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<any>(null);
 
   const hasValue = !!value;
   useEffect(() => {

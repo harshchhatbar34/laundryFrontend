@@ -41,7 +41,7 @@ export const HomeLivingIcon: React.FC<LivingIconProps> = ({ focused, color, size
 
   // Idle animation: Roof bobs gently
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     const triggerBob = () => {
       if (!focused) {
         Animated.sequence([

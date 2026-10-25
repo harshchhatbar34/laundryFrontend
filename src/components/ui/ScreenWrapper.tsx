@@ -47,8 +47,7 @@ const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
     >
       <StatusBar
         barStyle={barStyle}
-        backgroundColor={bgColor}
-        translucent={false}
+        {...({ backgroundColor: bgColor, translucent: false } as any)}
       />
       {children}
     </View>

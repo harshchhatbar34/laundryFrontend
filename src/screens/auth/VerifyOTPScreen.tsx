@@ -40,7 +40,7 @@ export default function VerifyOTPScreen({ navigation, route }: Props) {
   const successScale = useRef(new Animated.Value(0)).current;
   const [success, setSuccess] = useState(false);
 
-  const inputRefs = useRef<(TextInput | null)[]>([]);
+  const inputRefs = useRef<any[]>([]);
 
   // Countdown timer
   useEffect(() => {

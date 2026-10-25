@@ -51,7 +51,6 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
 
   // Add New Item selection state
   const [selectedService, setSelectedService] = useState<any>(null);
-  const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [selectedQty, setSelectedQty] = useState(1);
 
@@ -132,15 +131,47 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
     setPickerVisible(true);
   };
 
+  const getAvailableItemsForService = (serviceObj: any) => {
+    if (!serviceObj) return [];
+    const discount = serviceObj.discount || 0;
+    if (serviceObj.items && Array.isArray(serviceObj.items) && serviceObj.items.length > 0) {
+      return serviceObj.items
+        .filter((si: any) => si.isActive !== false)
+        .map((si: any) => {
+          const itemDoc = si.item?._id ? si.item : catalog.items.find((it: any) => it._id === (si.item?._id || si.item));
+          const basePrice = si.price != null ? si.price : (itemDoc?.price || 0);
+          const finalPrice = discount > 0 ? Math.max(0, Math.round(basePrice * (1 - discount / 100))) : basePrice;
+          return {
+            _id: itemDoc?._id || si.item,
+            name: itemDoc?.name || 'Item',
+            price: finalPrice,
+            basePrice,
+            discount,
+          };
+        });
+    }
+    // Fallback
+    return catalog.items.map((it: any) => {
+      const basePrice = it.price || 0;
+      const finalPrice = discount > 0 ? Math.max(0, Math.round(basePrice * (1 - discount / 100))) : basePrice;
+      return {
+        _id: it._id,
+        name: it.name,
+        price: finalPrice,
+        basePrice,
+        discount,
+      };
+    });
+  };
+
   const handleAddDraftItem = () => {
-    if (!selectedService || !selectedMaterial || !selectedItem) {
-      dispatch(showToast({ type: 'warning', message: 'Please select service, material and item' }));
+    if (!selectedService || !selectedItem) {
+      dispatch(showToast({ type: 'warning', message: 'Please select service and item' }));
       return;
     }
     const exists = draftItems.some(
       (it) =>
         it.service === selectedService._id &&
-        it.material === selectedMaterial._id &&
         it.item === selectedItem._id
     );
     if (exists) {
@@ -148,20 +179,19 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
       return;
     }
 
+    const itemPrice = selectedItem.price != null ? selectedItem.price : ((selectedService.price || 0) + (selectedItem.price || 0));
+
     const newItem = {
       service: selectedService._id,
       serviceName: selectedService.name,
-      material: selectedMaterial._id,
-      materialName: selectedMaterial.name,
       item: selectedItem._id,
       itemName: selectedItem.name,
       quantity: selectedQty,
-      price: (selectedService.price || 0) + (selectedMaterial.price || 0) + (selectedItem.price || 0), // display-only estimate; backend recalculates from DB
+      price: itemPrice,
     };
 
     setDraftItems((prev) => [...prev, newItem]);
     setSelectedService(null);
-    setSelectedMaterial(null);
     setSelectedItem(null);
     setSelectedQty(1);
   };
@@ -554,32 +584,40 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
               {/* Service Selection */}
               <TouchableOpacity
                 style={[styles.selectBox, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
-                onPress={() => openPicker('Select Service', catalog.services, (opt) => setSelectedService(opt))}
+                onPress={() =>
+                  openPicker('Select Service', catalog.services, (opt) => {
+                    setSelectedService(opt);
+                    setSelectedItem(null);
+                  })
+                }
               >
                 <Text style={[theme.typography.body, { color: selectedService ? theme.colors.textPrimary : theme.colors.textMuted }]}>
-                  {selectedService ? selectedService.name : 'Select Service'}
+                  {selectedService ? `${selectedService.name}${selectedService.discount ? ` (${selectedService.discount}% OFF)` : ''}` : 'Select Service'}
                 </Text>
                 <Ionicons name="chevron-down" size={16} color={theme.colors.textSecondary} />
               </TouchableOpacity>
 
-              {/* Material Selection */}
+              {/* Cloth / Item Selection (Filtered to service's items) */}
               <TouchableOpacity
-                style={[styles.selectBox, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
-                onPress={() => openPicker('Select Material', catalog.materials, (opt) => setSelectedMaterial(opt))}
-              >
-                <Text style={[theme.typography.body, { color: selectedMaterial ? theme.colors.textPrimary : theme.colors.textMuted }]}>
-                  {selectedMaterial ? selectedMaterial.name : 'Select Material'}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-
-              {/* Cloth / Item Selection */}
-              <TouchableOpacity
-                style={[styles.selectBox, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
-                onPress={() => openPicker('Select Cloth/Item', catalog.items, (opt) => setSelectedItem(opt))}
+                style={[
+                  styles.selectBox,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: !selectedService ? theme.colors.borderLight : theme.colors.border,
+                    opacity: !selectedService ? 0.6 : 1,
+                  },
+                ]}
+                onPress={() => {
+                  if (!selectedService) {
+                    dispatch(showToast({ type: 'warning', message: 'Please select a service first' }));
+                    return;
+                  }
+                  const available = getAvailableItemsForService(selectedService);
+                  openPicker(`Select Cloth (${selectedService.name})`, available, (opt) => setSelectedItem(opt));
+                }}
               >
                 <Text style={[theme.typography.body, { color: selectedItem ? theme.colors.textPrimary : theme.colors.textMuted }]}>
-                  {selectedItem ? selectedItem.name : 'Select Cloth/Item'}
+                  {selectedItem ? `${selectedItem.name} (₹${selectedItem.price})` : selectedService ? 'Select Cloth/Item' : 'Select Service First'}
                 </Text>
                 <Ionicons name="chevron-down" size={16} color={theme.colors.textSecondary} />
               </TouchableOpacity>
@@ -601,7 +639,7 @@ export default function OwnerOrderDetailScreen({ route, navigation }: Props) {
               <Button
                 title="Add to List"
                 onPress={handleAddDraftItem}
-                disabled={!selectedService || !selectedMaterial || !selectedItem}
+                disabled={!selectedService || !selectedItem}
                 variant="secondary"
                 size="small"
                 icon="add-circle-outline"

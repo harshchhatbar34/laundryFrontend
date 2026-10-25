@@ -187,7 +187,7 @@ const SlideUpModal = memo<SlideUpModalProps>(({
           {/* Absolute positioned Drag Zone over the top of the sheet */}
           <View
             style={[
-              StyleSheet.absoluteFillObject,
+              StyleSheet.absoluteFill as any,
               {
                 height: dragZoneHeight,
                 backgroundColor: 'transparent',
@@ -197,7 +197,7 @@ const SlideUpModal = memo<SlideUpModalProps>(({
           >
             <View
               {...panResponder.panHandlers}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill as any}
             />
           </View>
         </Animated.View>
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill as any,
     backgroundColor: 'rgba(15, 23, 42, 0.5)',
   },
   sheet: {

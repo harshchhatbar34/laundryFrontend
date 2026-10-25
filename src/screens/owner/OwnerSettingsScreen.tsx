@@ -1,7 +1,7 @@
 // FreshWash — Owner Settings Screen
 // Unified Left-to-Right Electric Ocean Header + Shop Profile Hero
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -39,6 +39,8 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
 
   // Display state
   const [laundryName, setLaundryName] = useState('');
+  const laundryNameRef = useRef(laundryName);
+  laundryNameRef.current = laundryName;
   const [upiId, setUpiId] = useState('');
   const [city, setCity] = useState('');
   const [stateName, setStateName] = useState('');
@@ -70,9 +72,9 @@ export default function OwnerSettingsScreen({ navigation }: Props) {
   }, []);
 
   useFocusEffect(useCallback(() => {
-    const isFirstLoad = !laundryName;
+    const isFirstLoad = !laundryNameRef.current;
     fetchProfile(!isFirstLoad);
-  }, [fetchProfile, laundryName]));
+  }, [fetchProfile]));
 
   const saveUpi = async (value: string) => {
     const trimmed = value.trim();

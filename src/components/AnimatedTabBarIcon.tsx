@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   pillBackground: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 16,
   },
 });

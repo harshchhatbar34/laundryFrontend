@@ -2,20 +2,33 @@
 
 import { ORDER_STATUSES, ORDER_STATUS_LABELS, OrderStatus } from './constants';
 
+// Standard ECMAScript Intl formatters (cached for performance)
+const inrFormatter = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 2,
+});
+
+const inrShortFormatter = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 0,
+});
+
 /**
- * Format a number as currency (Indian Rupees)
+ * Format a number as currency (Indian Rupees) using standard ECMAScript Intl
  */
 export const formatPrice = (amount: number | string | null | undefined): string => {
   if (amount == null || isNaN(Number(amount))) return '₹0.00';
-  return `₹${Number(amount).toFixed(2)}`;
+  return inrFormatter.format(Number(amount));
 };
 
 /**
- * Format a number as short currency (no decimals)
+ * Format a number as short currency (no decimals) using standard ECMAScript Intl
  */
 export const formatPriceShort = (amount: number | string | null | undefined): string => {
   if (amount == null || isNaN(Number(amount))) return '₹0';
-  return `₹${Math.round(Number(amount))}`;
+  return inrShortFormatter.format(Number(amount));
 };
 
 /**
@@ -52,7 +65,7 @@ export const formatDateTime = (dateString: string | null | undefined): string =>
 };
 
 /**
- * Get relative time string (e.g., "2 hours ago", "Just now")
+ * Get relative time string using standard ECMAScript Intl.RelativeTimeFormat
  */
 export const getRelativeTime = (dateString: string | null | undefined): string => {
   if (!dateString) return '';

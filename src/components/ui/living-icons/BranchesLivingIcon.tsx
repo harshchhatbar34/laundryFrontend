@@ -45,7 +45,7 @@ export const BranchesLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
 
   // Idle animation: Pin bobs up and down
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     const triggerBob = () => {
       if (!focused) {
         Animated.sequence([

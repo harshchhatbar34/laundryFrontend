@@ -38,7 +38,7 @@ export const SettingsLivingIcon: React.FC<LivingIconProps> = ({ focused, color, 
 
   // Idle Animation: Toggle 1 flicks gently
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     const triggerFlick = () => {
       if (!focused) {
         Animated.sequence([

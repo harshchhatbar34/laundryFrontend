@@ -679,7 +679,7 @@ export default function OwnerManagementScreen({ navigation }: Props) {
                       <Text style={[theme.typography.caption, { color: theme.colors.textMuted, fontStyle: 'italic', textAlign: 'center', marginVertical: 12 }]}>
                         No orders placed yet.
                       </Text>
-                    ) : null
+                    ) : undefined
                   }
                   ListFooterComponent={
                     ordersLoadingMore ? (
@@ -688,7 +688,7 @@ export default function OwnerManagementScreen({ navigation }: Props) {
                       <Text style={[theme.typography.caption, { color: theme.colors.textMuted, textAlign: 'center', marginVertical: 12 }]}>
                         No more orders
                       </Text>
-                    ) : null
+                    ) : undefined
                   }
                 />
               ) : (

@@ -1,21 +1,24 @@
+import './src/utils/debugLogger';
 import { registerRootComponent } from 'expo';
 import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
 import App from './App';
 
+console.log('[STARTUP] index.ts loaded, registering root component');
+
 // ─── Android Notification Channel (must exist before first notification arrives) ───
-// On Android 8+, the OS silently drops notifications if the channel doesn't exist.
-// Creating it here at app startup (not just at login) ensures it's always ready.
-if (Platform.OS === 'android') {
-  Notifications.setNotificationChannelAsync('default', {
-    name: 'LaundroFlow',
-    importance: Notifications.AndroidImportance.MAX,
-    vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#6366F1',
-    sound: 'default',
-    enableVibrate: true,
-    showBadge: true,
-  });
+if (Platform.OS === 'android' && !__DEV__) {
+  try {
+    const Notifications = require('expo-notifications');
+    Notifications.setNotificationChannelAsync('default', {
+      name: 'LaundroFlow',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#6366F1',
+      sound: 'default',
+      enableVibrate: true,
+      showBadge: true,
+    }).catch(() => {});
+  } catch {}
 }
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);

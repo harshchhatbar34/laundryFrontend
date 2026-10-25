@@ -37,7 +37,7 @@ export const DashboardLivingIcon: React.FC<LivingIconProps> = ({ focused, color,
 
   // Idle animation every 6 seconds: card 2 pulses
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     const triggerIdle = () => {
       if (!focused) {
         Animated.sequence([

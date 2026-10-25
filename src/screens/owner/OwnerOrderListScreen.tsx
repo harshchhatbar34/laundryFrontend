@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, FlatList, RefreshControl, StyleSheet, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
@@ -37,6 +37,8 @@ const FILTERS = [
 export default function OwnerOrderListScreen({ navigation }: Props) {
   const { theme } = useTheme();
   const [orders, setOrders] = useState<any[]>([]);
+  const ordersRef = useRef(orders);
+  ordersRef.current = orders;
   const [filter, setFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -60,13 +62,13 @@ export default function OwnerOrderListScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       // If we already have orders, do silent fetch in background instead of showing loader
-      const hasData = orders.length > 0;
+      const hasData = ordersRef.current.length > 0;
       fetch(hasData);
 
       // Poll every 15 seconds silently while focused
       const interval = setInterval(() => fetch(true), 15000);
       return () => clearInterval(interval);
-    }, [orders.length, fetch])
+    }, [fetch])
   );
 
   const onRefresh = async () => { setRefreshing(true); await fetch(false); setRefreshing(false); };
