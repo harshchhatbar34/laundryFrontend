@@ -89,7 +89,12 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
     setSelectedItems((prev) => {
       const current = prev[itemId];
       if (!current) return prev;
-      const newQty = Math.max(1, current.quantity + delta);
+      const newQty = current.quantity + delta;
+      if (newQty <= 0) {
+        const copy = { ...prev };
+        delete copy[itemId];
+        return copy;
+      }
       return {
         ...prev,
         [itemId]: { ...current, quantity: newQty },
@@ -413,76 +418,121 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
 
         {/* 3. Selection Summary and Add to Cart — ONLY WHEN AT LEAST 1 ITEM SELECTED */}
         {selectedService && selectedItemsList.length > 0 && (
-          <Card style={[styles.summaryCard, { borderColor: theme.colors.primary }]} padding="medium">
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <Text style={[styles.summaryTitle, { color: theme.colors.textPrimary }]}>
-                Selection Summary
-              </Text>
-              <Text style={[theme.typography.caption, { color: theme.colors.primary, fontWeight: '700' }]}>
-                {selectedItemsList.length} {selectedItemsList.length === 1 ? 'item' : 'items'} ({totalItemsCount} pcs)
-              </Text>
-            </View>
-
-            {selectedItemsList.map(({ item, quantity: itemQty }) => (
-              <View
-                key={item._id}
-                style={[
-                  styles.summaryItemRow,
-                  { borderBottomColor: theme.colors.border },
-                ]}
-              >
-                <View style={{ flex: 1, marginRight: 10 }}>
-                  <Text style={[theme.typography.label, { color: theme.colors.textPrimary }]} numberOfLines={1}>
-                    {item.name}
+          <Card style={[styles.summaryCard, { borderColor: theme.colors.primary + '35' }]} padding="none">
+            {/* Summary Card Header */}
+            <View style={[styles.summaryHeader, { borderBottomColor: theme.colors.border }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={[styles.summaryIconCircle, { backgroundColor: theme.colors.primaryBg }]}>
+                  <Ionicons name="basket-outline" size={18} color={theme.colors.primary} />
+                </View>
+                <View>
+                  <Text style={[styles.summaryTitle, { color: theme.colors.textPrimary }]}>
+                    Selection Summary
                   </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: theme.colors.primary }}>
-                      {formatPrice(item.price)}
-                    </Text>
-                    {item.discount > 0 && item.basePrice !== item.price && (
-                      <Text style={{ fontSize: 11, color: theme.colors.textMuted, textDecorationLine: 'line-through' }}>
-                        ₹{item.basePrice}
-                      </Text>
-                    )}
-                  </View>
+                  <Text style={[styles.summarySubtitle, { color: theme.colors.textSecondary }]}>
+                    {selectedService.name}
+                  </Text>
                 </View>
+              </View>
 
-                {/* Stepper */}
-                <View style={styles.stepper}>
-                  <TouchableOpacity
-                    onPress={() => updateItemQty(item._id, -1)}
-                    style={[styles.stepBtn, { backgroundColor: theme.colors.surfaceVariant }]}
-                  >
-                    <Ionicons name="remove" size={16} color={theme.colors.textPrimary} />
-                  </TouchableOpacity>
-                  <Text style={[styles.qtyText, { color: theme.colors.textPrimary }]}>{itemQty}</Text>
-                  <TouchableOpacity
-                    onPress={() => updateItemQty(item._id, 1)}
-                    style={[styles.stepBtn, { backgroundColor: theme.colors.primary }]}
-                  >
-                    <Ionicons name="add" size={16} color="#FFF" />
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={[theme.typography.price, { color: theme.colors.primary, minWidth: 64, textAlign: 'right' }]}>
-                  {formatPrice(item.price * itemQty)}
+              <View style={[styles.itemsCountBadge, { backgroundColor: theme.colors.primaryBg }]}>
+                <Text style={[styles.itemsCountText, { color: theme.colors.primary }]}>
+                  {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
                 </Text>
               </View>
-            ))}
+            </View>
 
-            {/* Total and Add to Cart Row */}
-            <View style={styles.summaryFooterRow}>
-              <View>
-                <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-                  Total Price
-                </Text>
-                <Text style={[theme.typography.h3, { color: theme.colors.primary, marginTop: 2 }]}>
+            {/* List of Selected Items */}
+            <View style={styles.summaryItemsContainer}>
+              {selectedItemsList.map(({ item, quantity: itemQty }) => (
+                <View
+                  key={item._id}
+                  style={[
+                    styles.summaryItemCard,
+                    {
+                      backgroundColor: theme.colors.surfaceVariant + '35',
+                      borderColor: theme.colors.border,
+                    },
+                  ]}
+                >
+                  <View style={styles.summaryItemTop}>
+                    <View style={{ flex: 1, marginRight: 12 }}>
+                      <Text style={[styles.summaryItemName, { color: theme.colors.textPrimary }]} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                      <View style={styles.summaryItemPriceRow}>
+                        <Text style={[styles.summaryUnitPrice, { color: theme.colors.textSecondary }]}>
+                          {formatPrice(item.price)} each
+                        </Text>
+                        {item.discount > 0 && item.basePrice !== item.price && (
+                          <Text style={styles.summaryItemStrike}>
+                            ₹{item.basePrice}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+
+                    <Text style={[styles.summaryItemTotal, { color: theme.colors.primary }]}>
+                      {formatPrice(item.price * itemQty)}
+                    </Text>
+                  </View>
+
+                  <View style={[styles.summaryItemBottom, { borderTopColor: theme.colors.border + '60' }]}>
+                    <Text style={[styles.summaryQtyLabel, { color: theme.colors.textMuted }]}>
+                      Quantity
+                    </Text>
+
+                    <View style={[styles.stepperContainer, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}>
+                      <TouchableOpacity
+                        onPress={() => updateItemQty(item._id, -1)}
+                        style={styles.stepperBtn}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Ionicons
+                          name={itemQty === 1 ? 'trash-outline' : 'remove'}
+                          size={15}
+                          color={itemQty === 1 ? theme.colors.error : theme.colors.textPrimary}
+                        />
+                      </TouchableOpacity>
+
+                      <Text style={[styles.stepperQty, { color: theme.colors.textPrimary }]}>
+                        {itemQty}
+                      </Text>
+
+                      <TouchableOpacity
+                        onPress={() => updateItemQty(item._id, 1)}
+                        style={[styles.stepperBtn, { backgroundColor: theme.colors.primary }]}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Ionicons name="add" size={15} color="#FFF" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            {/* Summary Footer with Total and Add to Cart */}
+            <View style={[styles.summaryFooter, { borderTopColor: theme.colors.border, backgroundColor: theme.colors.surface }]}>
+              <View style={styles.summaryTotalRow}>
+                <View>
+                  <Text style={[styles.summaryTotalLabel, { color: theme.colors.textSecondary }]}>
+                    Total Amount
+                  </Text>
+                  <Text style={[styles.summaryTotalSubtitle, { color: theme.colors.textMuted }]}>
+                    {selectedItemsList.length} {selectedItemsList.length === 1 ? 'item' : 'items'} ({totalItemsCount} pcs)
+                  </Text>
+                </View>
+
+                <Text style={[styles.summaryTotalPrice, { color: theme.colors.primary }]}>
                   {formatPrice(totalEstimatedPrice)}
                 </Text>
               </View>
 
               <Button
-                title={selectedItemsList.length > 1 ? `Add to Cart (${totalItemsCount})` : 'Add to Cart'}
+                title={selectedItemsList.length > 1 ? `Add to Cart (${totalItemsCount} items)` : 'Add to Cart'}
                 onPress={handleAddToCart}
                 icon="cart-outline"
                 style={styles.addBtn}
@@ -496,7 +546,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { padding: 16, paddingBottom: 60 },
+  scroll: { padding: 16, paddingBottom: 90 },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -671,26 +721,140 @@ const styles = StyleSheet.create({
 
   // Summary Card
   summaryCard: {
-    marginTop: 24,
-    borderWidth: 2,
-    borderRadius: 16,
+    marginTop: 26,
+    marginBottom: 20,
+    borderWidth: 1.5,
+    borderRadius: 20,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
   },
-  summaryTitle: { fontSize: 14, fontWeight: '700' },
-  summaryItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-  },
-  summaryFooterRow: {
+  summaryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 14,
-    paddingTop: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
   },
-  stepper: { flexDirection: 'row', alignItems: 'center' },
-  stepBtn: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  qtyText: { fontSize: 15, fontWeight: '700', minWidth: 28, textAlign: 'center' },
-  addBtn: { minWidth: 140, marginLeft: 16 },
+  summaryIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  summaryTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  summarySubtitle: {
+    fontSize: 12,
+    marginTop: 1,
+  },
+  itemsCountBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  itemsCountText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  summaryItemsContainer: {
+    padding: 14,
+    gap: 10,
+  },
+  summaryItemCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+  },
+  summaryItemTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  summaryItemName: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  summaryItemPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 3,
+  },
+  summaryUnitPrice: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  summaryItemStrike: {
+    fontSize: 11,
+    color: '#94A3B8',
+    textDecorationLine: 'line-through',
+  },
+  summaryItemTotal: {
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  summaryItemBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+  },
+  summaryQtyLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  stepperBtn: {
+    width: 32,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperQty: {
+    fontSize: 14,
+    fontWeight: '700',
+    minWidth: 28,
+    textAlign: 'center',
+  },
+  summaryFooter: {
+    padding: 16,
+    borderTopWidth: 1,
+    gap: 14,
+  },
+  summaryTotalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  summaryTotalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  summaryTotalSubtitle: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  summaryTotalPrice: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  addBtn: {
+    width: '100%',
+  },
 });
