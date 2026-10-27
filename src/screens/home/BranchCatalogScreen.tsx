@@ -23,6 +23,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
   const { branch, masters } = route.params;
 
   const [selectedService, setSelectedService] = useState<any>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [quantity, setQuantity] = useState<number>(1);
 
@@ -83,7 +84,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
       return;
     }
     if (!selectedItem) {
-      dispatch(showToast({ type: 'warning', message: 'Please select a cloth' }));
+      dispatch(showToast({ type: 'warning', message: 'Please select an item' }));
       return;
     }
 
@@ -106,8 +107,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
       })
     );
 
-    // Reset selections for next item
-    setSelectedService(null);
+    // Reset item selection for next addition (keep service selected for convenience)
     setSelectedItem(null);
     setQuantity(1);
   };
@@ -139,101 +139,137 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
       
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         
-        {/* Service Section */}
+        {/* Service Dropdown Header Label */}
         <View style={styles.sectionHeaderRow}>
           <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
-            {selectedService ? 'Selected Service' : '1. Select Service'}
+            Service
           </Text>
-          {!selectedService && (
-            <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-              {services.length} services available
-            </Text>
-          )}
+          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
+            {services.length} services available
+          </Text>
         </View>
 
-        {/* If a service is selected: ONLY SHOW THAT SERVICE with Deselect option */}
-        {selectedService ? (
-          <View
-            style={[
-              styles.selectedServiceCard,
-              { backgroundColor: theme.colors.primaryBg, borderColor: theme.colors.primary },
-            ]}
-          >
-            <View style={[styles.serviceEmojiCircle, { backgroundColor: theme.colors.surface }]}>
-              <Text style={styles.serviceEmoji}>
-                {(SERVICE_ICONS as any)[selectedService.name] || '🧺'}
-              </Text>
-            </View>
-
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
-                <Text style={[styles.selectedServiceName, { color: theme.colors.primary }]}>
-                  {selectedService.name}
-                </Text>
-                {selectedService.discount > 0 && (
-                  <View style={[styles.discountTag, { backgroundColor: theme.colors.successBg }]}>
-                    <Text style={[styles.discountTagText, { color: theme.colors.success }]}>
-                      {selectedService.discount}% OFF
+        {/* Service Dropdown Selector Box */}
+        <TouchableOpacity
+          style={[
+            styles.serviceDropdownCard,
+            {
+              backgroundColor: selectedService ? theme.colors.primaryBg : theme.colors.surface,
+              borderColor: isDropdownOpen ? theme.colors.primary : selectedService ? theme.colors.primary + '60' : theme.colors.border,
+            },
+          ]}
+          onPress={() => setIsDropdownOpen((prev) => !prev)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.dropdownLeftCol}>
+            {selectedService ? (
+              <>
+                <View style={[styles.serviceEmojiCircle, { backgroundColor: theme.colors.surface }]}>
+                  <Text style={styles.serviceEmoji}>
+                    {(SERVICE_ICONS as any)[selectedService.name] || '🧺'}
+                  </Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                    <Text style={[styles.selectedServiceName, { color: theme.colors.primary }]}>
+                      {selectedService.name}
                     </Text>
+                    {selectedService.discount > 0 && (
+                      <View style={[styles.discountTag, { backgroundColor: theme.colors.successBg }]}>
+                        <Text style={[styles.discountTagText, { color: theme.colors.success }]}>
+                          {selectedService.discount}% OFF
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-              <Text style={[styles.selectedServiceSub, { color: theme.colors.textSecondary }]}>
-                Selected • Tap &quot;Deselect&quot; to change
-              </Text>
-            </View>
-
-            {/* Deselect Button */}
-            <TouchableOpacity
-              style={[styles.deselectBtn, { borderColor: theme.colors.primary, backgroundColor: theme.colors.surface }]}
-              onPress={() => {
-                setSelectedService(null);
-                setSelectedItem(null);
-                setQuantity(1);
-              }}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="close-circle" size={16} color={theme.colors.primary} />
-              <Text style={[styles.deselectBtnText, { color: theme.colors.primary }]}>
-                Deselect
-              </Text>
-            </TouchableOpacity>
+                  <Text style={[styles.selectedServiceSub, { color: theme.colors.textSecondary }]}>
+                    Tap to change service
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={[styles.serviceEmojiCircle, { backgroundColor: theme.colors.surfaceVariant }]}>
+                  <Ionicons name="shirt-outline" size={22} color={theme.colors.primary} />
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.placeholderText, { color: theme.colors.textPrimary }]}>
+                    Select a Service
+                  </Text>
+                  <Text style={[styles.selectedServiceSub, { color: theme.colors.textSecondary }]}>
+                    Choose Dry Clean, Wash, Steam Press, etc.
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
-        ) : (
-          /* When NO service is selected: Show elegant service selection grid */
-          <View style={styles.serviceGrid}>
-            {services.map((s: any) => {
+
+          {/* Dropdown chevron icon */}
+          <View style={[styles.chevronCircle, { backgroundColor: isDropdownOpen ? theme.colors.primary : theme.colors.surfaceVariant }]}>
+            <Ionicons
+              name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={isDropdownOpen ? '#FFF' : theme.colors.primary}
+            />
+          </View>
+        </TouchableOpacity>
+
+        {/* Dropdown Options List (when opened) */}
+        {isDropdownOpen && (
+          <View style={[styles.dropdownMenu, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+            {services.map((s: any, idx: number) => {
+              const isSelected = selectedService?._id === s._id;
               const emoji = (SERVICE_ICONS as any)[s.name] || (SERVICE_ICONS as any).default || '🧺';
               const hasDiscount = s.discount && s.discount > 0;
               return (
                 <TouchableOpacity
                   key={s._id}
                   style={[
-                    styles.serviceCard,
-                    { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                    styles.dropdownItem,
+                    idx > 0 && { borderTopWidth: 1, borderTopColor: theme.colors.divider },
+                    isSelected && { backgroundColor: theme.colors.primaryBg },
                   ]}
                   onPress={() => {
                     setSelectedService(s);
                     setSelectedItem(null);
+                    setIsDropdownOpen(false);
                   }}
-                  activeOpacity={0.75}
+                  activeOpacity={0.7}
                 >
-                  <View style={[styles.serviceEmojiCircle, { backgroundColor: theme.colors.primaryBg }]}>
-                    <Text style={styles.serviceEmoji}>{emoji}</Text>
+                  <View style={[styles.itemEmojiWrap, { backgroundColor: isSelected ? theme.colors.surface : theme.colors.surfaceVariant }]}>
+                    <Text style={{ fontSize: 20 }}>{emoji}</Text>
                   </View>
-                  <Text style={[styles.serviceCardTitle, { color: theme.colors.textPrimary }]} numberOfLines={1}>
-                    {s.name}
-                  </Text>
-                  {hasDiscount ? (
-                    <View style={[styles.discountTag, { backgroundColor: theme.colors.successBg, marginTop: 4 }]}>
-                      <Text style={[styles.discountTagText, { color: theme.colors.success }]}>
-                        {s.discount}% OFF
+
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text
+                        style={[
+                          styles.dropdownItemName,
+                          {
+                            color: isSelected ? theme.colors.primary : theme.colors.textPrimary,
+                            fontWeight: isSelected ? '700' : '600',
+                          },
+                        ]}
+                      >
+                        {s.name}
                       </Text>
+                      {hasDiscount && (
+                        <View style={[styles.discountTag, { backgroundColor: theme.colors.successBg }]}>
+                          <Text style={[styles.discountTagText, { color: theme.colors.success }]}>
+                            {s.discount}% OFF
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                  ) : (
-                    <Text style={[styles.serviceCardHint, { color: theme.colors.textMuted }]}>
-                      Tap to select
+                    <Text style={[theme.typography.caption, { color: theme.colors.textMuted, marginTop: 2 }]}>
+                      Tap to select this service
                     </Text>
+                  </View>
+
+                  {isSelected ? (
+                    <Ionicons name="checkmark-circle" size={22} color={theme.colors.primary} />
+                  ) : (
+                    <Ionicons name="chevron-forward" size={16} color={theme.colors.textMuted} />
                   )}
                 </TouchableOpacity>
               );
@@ -241,22 +277,22 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
           </View>
         )}
 
-        {/* 2. Select Cloth — ONLY SHOWN WHEN A SERVICE IS SELECTED */}
-        {selectedService && (
+        {/* Select Items — ONLY SHOWN WHEN A SERVICE IS SELECTED AND DROPDOWN IS CLOSED */}
+        {selectedService && !isDropdownOpen && (
           <View style={{ marginTop: 24 }}>
             <View style={styles.sectionHeaderRow}>
               <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
-                2. Select Cloth
+                Select Items
               </Text>
               <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-                {availableItems.length} items for {selectedService.name}
+                {availableItems.length} items available for {selectedService.name}
               </Text>
             </View>
 
             {availableItems.length === 0 ? (
               <Card style={{ marginTop: 8 }} padding="medium">
                 <Text style={[theme.typography.bodySmall, { color: theme.colors.textMuted, textAlign: 'center' }]}>
-                  No clothes configured for {selectedService.name}.
+                  No items configured for {selectedService.name}.
                 </Text>
               </Card>
             ) : (
@@ -275,7 +311,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
                         },
                       ]}
                       onPress={() => {
-                        // Tapping again deselects cloth
+                        // Tapping again deselects item
                         if (isSelected) {
                           setSelectedItem(null);
                         } else {
@@ -317,8 +353,8 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
           </View>
         )}
 
-        {/* 3. Selection Summary and Add to Cart — ONLY WHEN BOTH SELECTED */}
-        {selectedService && selectedItem && (
+        {/* Selection Summary and Add to Cart — ONLY WHEN BOTH SELECTED AND DROPDOWN IS CLOSED */}
+        {selectedService && selectedItem && !isDropdownOpen && (
           <Card style={[styles.summaryCard, { borderColor: theme.colors.primary }]} padding="medium">
             <Text style={[styles.summaryTitle, { color: theme.colors.textPrimary }]}>Selection Summary</Text>
             <View style={styles.summaryRow}>
@@ -385,7 +421,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 16,
@@ -404,72 +440,81 @@ const styles = StyleSheet.create({
   navigateTitle: { fontSize: 13, fontWeight: '700' },
   navigateSub: { fontSize: 11, marginTop: 1 },
 
-  // Service grid when choosing
-  serviceGrid: {
+  // Service Dropdown Card
+  serviceDropdownCard: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  serviceCard: {
-    width: '48%',
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    padding: 14,
+  },
+  dropdownLeftCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
   },
   serviceEmojiCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
   },
   serviceEmoji: {
-    fontSize: 24,
-  },
-  serviceCardTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  serviceCardHint: {
-    fontSize: 11,
-    marginTop: 4,
-  },
-
-  // Active / Selected single service card
-  selectedServiceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderRadius: 18,
-    padding: 14,
+    fontSize: 22,
   },
   selectedServiceName: {
     fontSize: 16,
     fontWeight: '800',
   },
+  placeholderText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
   selectedServiceSub: {
     fontSize: 12,
     marginTop: 2,
   },
-  deselectBtn: {
-    flexDirection: 'row',
+  chevronCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 4,
-  },
-  deselectBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
+    justifyContent: 'center',
   },
 
-  // Cloth selection grid
+  // Dropdown Menu List
+  dropdownMenu: {
+    borderRadius: 16,
+    borderWidth: 1,
+    marginTop: 8,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  itemEmojiWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dropdownItemName: {
+    fontSize: 15,
+  },
+
+  // Cloth / Items selection grid
   clothGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
