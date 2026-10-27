@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#C9A227',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   avatarText: {
     fontSize: 30,

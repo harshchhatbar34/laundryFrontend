@@ -1,40 +1,39 @@
 // FreshWash Design System — Unified Design Tokens
-// Inspired by Apple, Airbnb, Stripe, Dyson, and Linear
 
 export const tokens = {
   colors: {
-    // Primary & Core Brand
-    deepNavy: '#0B1E3B',
-    deepNavyLight: '#162E52',
-    deepNavyDark: '#050E1D',
+    // Primary & Core Brand (Ocean & Sky)
+    deepNavy: '#0284C7',
+    deepNavyLight: '#38BDF8',
+    deepNavyDark: '#0369A1',
 
-    solarGold: '#C9A227',
-    solarGoldAccent: '#D4AF37',
-    solarGoldLight: '#FBF3D5',
-    solarGoldDark: '#A68218',
+    solarGold: '#0284C7',
+    solarGoldAccent: '#06B6D4',
+    solarGoldLight: '#E0F2FE',
+    solarGoldDark: '#0369A1',
 
-    electricBlue: '#2563EB',
-    electricBlueLight: '#60A5FA',
-    electricBlueDark: '#1D4ED8',
+    electricBlue: '#0284C7',
+    electricBlueLight: '#38BDF8',
+    electricBlueDark: '#0369A1',
 
-    trustTeal: '#1F8A80',
+    trustTeal: '#10B981',
     trustTealLight: '#34D399',
-    trustTealDark: '#145C55',
+    trustTealDark: '#059669',
 
     // Surfaces & Canvas
     white: '#FFFFFF',
-    backgroundLight: '#F7F9FC',
-    backgroundDark: '#071326',
+    backgroundLight: '#F8FAFC',
+    backgroundDark: '#0B1426',
 
     // Borders & Dividers
-    border: '#E5EAF0',
+    border: '#E2E8F0',
     borderLight: '#F1F5F9',
-    borderGold: 'rgba(201, 162, 39, 0.35)',
-    divider: '#EDF2F7',
+    borderGold: '#BAE6FD',
+    divider: '#F1F5F9',
 
     // Typography Colors
-    textPrimary: '#0B1E3B',
-    textSecondary: '#5B6472',
+    textPrimary: '#0F172A',
+    textSecondary: '#64748B',
     textMuted: '#94A3B8',
     textInverse: '#FFFFFF',
   },

@@ -1,42 +1,26 @@
-// FreshWash Design System — Luxury Color Tokens (Deep Navy & Solar Gold)
+// FreshWash Design System — Color Tokens
 
 export const palette = {
-  // Brand Core
-  navy: '#0B1E3B',
-  navyLight: '#162E52',
-  navyDark: '#050E1D',
-
-  gold: '#C9A227',
-  goldLight: '#FBF3D5',
-  goldAccent: '#D4AF37',
-  goldDark: '#A68218',
-
-  electric: '#2563EB',
-  electricLight: '#60A5FA',
-  electricDark: '#1D4ED8',
-
-  teal: '#1F8A80',
-  tealLight: '#34D399',
-  tealDark: '#145C55',
-
-  coral: '#FF6B6B',
-  coralLight: '#FF8A8A',
-  coralDark: '#E84545',
-
-  // Legacy compatibility keys
-  ocean: '#0B1E3B',
-  oceanLight: '#162E52',
-  oceanDark: '#050E1D',
-  azure: '#2563EB',
-  azureLight: '#60A5FA',
-  azureDark: '#1D4ED8',
-  mint: '#1F8A80',
+  // Brand Core - Vibrant Ocean & Sky Theme
+  ocean: '#0284C7',
+  oceanLight: '#38BDF8',
+  oceanDark: '#0369A1',
+  azure: '#0284C7',
+  azureLight: '#38BDF8',
+  azureDark: '#0369A1',
+  cyan: '#06B6D4',
+  cyanLight: '#22D3EE',
+  cyanDark: '#0891B2',
+  mint: '#10B981',
   mintLight: '#34D399',
-  mintDark: '#145C55',
+  mintDark: '#059669',
+  coral: '#EF4444',
+  coralLight: '#F87171',
+  coralDark: '#DC2626',
 
   // Neutrals
   white: '#FFFFFF',
-  gray50: '#F7F9FC',
+  gray50: '#F8FAFC',
   gray100: '#F1F5F9',
   gray200: '#E2E8F0',
   gray300: '#CBD5E1',
@@ -45,91 +29,106 @@ export const palette = {
   gray600: '#475569',
   gray700: '#334155',
   gray800: '#1E293B',
-  gray900: '#0B1E3B',
+  gray900: '#0F172A',
   black: '#000000',
 
   // Semantic
-  amber: '#C9A227',
-  amberLight: '#FBF3D5',
+  amber: '#F59E0B',
+  amberLight: '#FCD34D',
   purple: '#8B5CF6',
   purpleLight: '#A78BFA',
   indigo: '#6366F1',
+
+  // Compatibility aliases (mapped to brand ocean & sky, NO GOLD)
+  navy: '#0369A1',
+  navyLight: '#0284C7',
+  navyDark: '#0c4a6e',
+  electric: '#0284C7',
+  electricLight: '#38BDF8',
+  electricDark: '#0369A1',
+  teal: '#0891B2',
+  tealLight: '#22D3EE',
+  tealDark: '#0e7490',
+  gold: '#0284C7',
+  goldLight: '#E0F2FE',
+  goldAccent: '#06B6D4',
+  goldDark: '#0369A1',
 } as const;
 
 export const lightColors = {
   // Backgrounds
-  background: '#F7F9FC',
+  background: '#F8FAFC',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
   surfaceVariant: '#F1F5F9',
 
-  // Primary actions (Electric Blue & Solar Gold)
-  primary: palette.electric,
-  primaryLight: palette.electricLight,
-  primaryDark: palette.electricDark,
-  primaryBg: '#EFF6FF',
+  // Primary actions
+  primary: '#0284C7',
+  primaryLight: '#38BDF8',
+  primaryDark: '#0369A1',
+  primaryBg: '#F0F9FF',
 
-  // Secondary & Accents
-  secondary: palette.navy,
-  secondaryLight: palette.navyLight,
-  accent: palette.gold,
-  accentLight: palette.goldLight,
+  // Secondary
+  secondary: '#0EA5E9',
+  secondaryLight: '#38BDF8',
+  accent: '#06B6D4',
+  accentLight: '#E0F2FE',
 
   // Text
-  textPrimary: '#0B1E3B',
+  textPrimary: '#0F172A',
   textSecondary: '#64748B',
   textMuted: '#94A3B8',
   textInverse: '#FFFFFF',
-  textGold: palette.goldDark,
+  textGold: '#0369A1',
 
   // Borders & Dividers
   border: '#E2E8F0',
   borderLight: '#F1F5F9',
-  borderGold: 'rgba(201, 162, 39, 0.3)',
+  borderGold: '#BAE6FD',
   divider: '#F1F5F9',
 
   // Input
-  inputBg: '#FFFFFF',
+  inputBg: '#F8FAFC',
   inputBorder: '#E2E8F0',
-  inputFocus: palette.electric,
+  inputFocus: '#0284C7',
   placeholder: '#94A3B8',
 
-  // Status Colors (Trust Teal, Solar Gold & Coral)
-  success: palette.teal,
-  successBg: '#E6F4F1',        // Soft Teal Tint
-  error: palette.coral,
-  errorBg: '#FFE4E6',
-  warning: palette.gold,
-  warningBg: palette.goldLight,
-  info: palette.electric,
-  infoBg: '#EFF6FF',
+  // Status Colors
+  success: '#10B981',
+  successBg: '#ECFDF5',
+  error: '#EF4444',
+  errorBg: '#FEF2F2',
+  warning: '#F59E0B',
+  warningBg: '#FFFBEB',
+  info: '#0284C7',
+  infoBg: '#F0F9FF',
 
   // Order Status
-  statusPending: palette.gold,
-  statusAccepted: palette.electric,
-  statusPickedUp: palette.indigo,
-  statusProcessing: palette.purple,
-  statusReady: palette.purpleLight,
-  statusOutForDelivery: palette.electricLight,
-  statusDelivered: palette.teal,
-  statusCompleted: palette.tealDark,
-  statusCancelled: palette.coral,
-  statusFailed: palette.coralDark,
+  statusPending: '#F59E0B',
+  statusAccepted: '#0284C7',
+  statusPickedUp: '#6366F1',
+  statusProcessing: '#8B5CF6',
+  statusReady: '#06D6A0',
+  statusOutForDelivery: '#0284C7',
+  statusDelivered: '#10B981',
+  statusCompleted: '#10B981',
+  statusCancelled: '#EF4444',
+  statusFailed: '#DC2626',
 
   // Navigation
   tabBar: '#FFFFFF',
-  tabBarActive: palette.electric,
+  tabBarActive: '#0284C7',
   tabBarInactive: '#94A3B8',
-  headerBg: palette.navy,
+  headerBg: '#0284C7',
   headerText: '#FFFFFF',
 
-  // Card & Shadows
+  // Card
   card: '#FFFFFF',
-  cardShadow: 'rgba(11, 30, 59, 0.07)',
-  cardShadowGold: 'rgba(201, 162, 39, 0.15)',
+  cardShadow: 'rgba(2, 132, 199, 0.08)',
+  cardShadowGold: 'rgba(2, 132, 199, 0.08)',
 
   // Overlay
-  overlay: 'rgba(11, 30, 59, 0.6)',
+  overlay: 'rgba(15, 23, 42, 0.5)',
   shimmer: ['#F1F5F9', '#E2E8F0', '#F1F5F9'] as string[],
 };
 
@@ -139,96 +138,95 @@ export type Colors = {
 
 export const darkColors: Colors = {
   // Backgrounds
-  background: '#071326',
-  surface: '#0B1E3B',
-  surfaceElevated: '#122647',
-  surfaceVariant: '#10223E',
+  background: '#0B1426',
+  surface: '#162032',
+  surfaceElevated: '#1E2D42',
+  surfaceVariant: '#1A2636',
 
   // Primary actions
-  primary: palette.electricLight,
-  primaryLight: palette.electric,
-  primaryDark: palette.electricDark,
-  primaryBg: 'rgba(37, 99, 235, 0.18)',
+  primary: palette.azureLight,
+  primaryLight: palette.azure,
+  primaryDark: palette.azureDark,
+  primaryBg: 'rgba(59, 130, 246, 0.15)',
 
-  // Secondary & Accents
-  secondary: palette.gold,
-  secondaryLight: palette.goldAccent,
-  accent: palette.goldAccent,
-  accentLight: palette.goldLight,
+  // Secondary
+  secondary: palette.azureLight,
+  secondaryLight: palette.azure,
+  accent: palette.cyanLight,
+  accentLight: 'rgba(6, 182, 212, 0.2)',
 
   // Text
-  textPrimary: '#F7F9FC',
+  textPrimary: '#F1F5F9',
   textSecondary: '#94A3B8',
   textMuted: '#64748B',
-  textInverse: '#0B1E3B',
-  textGold: palette.goldAccent,
+  textInverse: '#0F172A',
+  textGold: palette.cyanLight,
 
   // Borders & Dividers
-  border: '#162E52',
-  borderLight: '#10223E',
-  borderGold: 'rgba(201, 162, 39, 0.4)',
-  divider: '#10223E',
+  border: '#1E3A5F',
+  borderLight: '#1A2636',
+  borderGold: '#0891B2',
+  divider: '#1A2636',
 
   // Input
-  inputBg: '#10223E',
-  inputBorder: '#162E52',
-  inputFocus: palette.electricLight,
+  inputBg: '#1A2636',
+  inputBorder: '#1E3A5F',
+  inputFocus: palette.azureLight,
   placeholder: '#64748B',
 
   // Status Colors
-  success: palette.tealLight,
-  successBg: '#0D3834',
+  success: palette.mintLight,
+  successBg: '#064E3B',
   error: palette.coralLight,
   errorBg: '#4C0519',
-  warning: palette.goldAccent,
-  warningBg: '#3A2E0A',
-  info: palette.electricLight,
-  infoBg: '#0B1E3B',
+  warning: palette.amberLight,
+  warningBg: '#451A03',
+  info: palette.azureLight,
+  infoBg: '#1E3A5F',
 
   // Order Status
-  statusPending: palette.goldAccent,
-  statusAccepted: palette.electricLight,
+  statusPending: palette.amberLight,
+  statusAccepted: palette.azureLight,
   statusPickedUp: palette.indigo,
   statusProcessing: palette.purpleLight,
   statusReady: palette.purpleLight,
-  statusOutForDelivery: palette.electricLight,
-  statusDelivered: palette.tealLight,
-  statusCompleted: palette.teal,
+  statusOutForDelivery: palette.azureLight,
+  statusDelivered: palette.mintLight,
+  statusCompleted: palette.mint,
   statusCancelled: palette.coralLight,
   statusFailed: palette.coral,
 
   // Navigation
-  tabBar: '#0B1E3B',
-  tabBarActive: palette.goldAccent,
+  tabBar: '#162032',
+  tabBarActive: palette.azureLight,
   tabBarInactive: '#64748B',
-  headerBg: '#071326',
-  headerText: '#F7F9FC',
+  headerBg: '#162032',
+  headerText: '#F1F5F9',
 
   // Card
-  card: '#0B1E3B',
-  cardShadow: 'rgba(0, 0, 0, 0.45)',
-  cardShadowGold: 'rgba(201, 162, 39, 0.2)',
+  card: '#162032',
+  cardShadow: 'rgba(0, 0, 0, 0.3)',
+  cardShadowGold: 'rgba(0, 0, 0, 0.3)',
 
   // Overlay
-  overlay: 'rgba(0, 0, 0, 0.75)',
-  shimmer: ['#10223E', '#162E52', '#10223E'] as string[],
+  overlay: 'rgba(0, 0, 0, 0.7)',
+  shimmer: ['#1A2636', '#1E2D42', '#1A2636'] as string[],
 };
 
 export const gradients = {
-  primary: ['#0B1E3B', '#1D4ED8', '#2563EB'] as string[],
-  primaryLight: ['#162E52', '#2563EB', '#60A5FA'] as string[],
-  ocean: ['#050E1D', '#0B1E3B', '#1D4ED8', '#2563EB'] as string[],
-  gold: ['#D4AF37', '#C9A227', '#A68218'] as string[],
-  teal: ['#1F8A80', '#145C55'] as string[],
-  mint: ['#1F8A80', '#145C55'] as string[],
-  coral: ['#FF6B6B', '#E84545'] as string[],
-  amber: ['#C9A227', '#A68218'] as string[],
+  primary: ['#0284C7', '#06B6D4'] as string[],
+  primaryLight: ['#38BDF8', '#0EA5E9'] as string[],
+  ocean: ['#0284C7', '#0EA5E9', '#06B6D4'] as string[],
+  mint: ['#10B981', '#059669'] as string[],
+  coral: ['#EF4444', '#DC2626'] as string[],
+  amber: ['#F59E0B', '#D97706'] as string[],
   purple: ['#8B5CF6', '#7C3AED'] as string[],
+  gold: ['#0284C7', '#06B6D4'] as string[],
+  teal: ['#0891B2', '#06B6D4'] as string[],
   surface: {
-    light: ['#FFFFFF', '#F7F9FC'] as string[],
-    dark: ['#0B1E3B', '#071326'] as string[],
+    light: ['#FFFFFF', '#F8FAFC'] as string[],
+    dark: ['#162032', '#0B1426'] as string[],
   },
 } as const;
 
 export type Gradients = typeof gradients;
-

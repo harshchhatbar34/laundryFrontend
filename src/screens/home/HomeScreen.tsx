@@ -150,7 +150,7 @@ export default function HomeScreen({ navigation }: Props) {
           >
             <View style={styles.heroContent}>
               <View style={styles.heroEmblem}>
-                <Ionicons name="shirt-outline" size={26} color="#C9A227" />
+                <Ionicons name="shirt-outline" size={26} color="#FFFFFF" />
               </View>
               <View style={{ flex: 1, marginLeft: 14 }}>
                 <Text style={styles.heroTitle}>LaundroFlow Express</Text>
@@ -228,20 +228,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     overflow: 'hidden',
-    shadowColor: '#0B1E3B',
+    shadowColor: '#0284C7',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 6,
+    elevation: 4,
   },
   heroContent: { flexDirection: 'row', alignItems: 'center' },
   heroEmblem: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderWidth: 1.5,
-    borderColor: '#C9A227',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
   },

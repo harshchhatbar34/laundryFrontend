@@ -16,6 +16,7 @@ import {
   TextInputProps,
   TouchableWithoutFeedback,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/ThemeContext';
@@ -191,6 +192,13 @@ const Input: React.FC<InputProps> = ({
               editable={editable}
               onFocus={handleFocus}
               onBlur={handleBlur}
+              blurOnSubmit={!multiline}
+              returnKeyType={multiline ? 'default' : 'done'}
+              onSubmitEditing={() => {
+                if (!multiline) {
+                  Keyboard.dismiss();
+                }
+              }}
               textContentType={textContentType}
               autoComplete={autoComplete}
               style={[

@@ -282,7 +282,7 @@ export default function CustomerProfileScreen({ navigation }: Props) {
         style={styles.hero}
       >
         {/* Avatar */}
-        <View style={[styles.avatarRing, { borderColor: '#C9A227' }]}>
+        <View style={[styles.avatarRing, { borderColor: 'rgba(255, 255, 255, 0.4)' }]}>
           <View style={[styles.avatarCircle, { backgroundColor: avatarColor }]}>
             <Text style={styles.avatarInitials}>{initials}</Text>
           </View>
