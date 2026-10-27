@@ -43,7 +43,9 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    paddingTop: 16,
+    paddingBottom: 32,
+    paddingHorizontal: 24,
   },
   fullScreen: {
     flex: 1,
