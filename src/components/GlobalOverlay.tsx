@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from '../theme/ThemeContext';
 import { hideToast } from '../store/slices/uiSlice';
 import Toast from './ui/Toast';
-import BubbleLoader from '../animations/BubbleLoader';
+import FreshSpinLoader from './ui/FreshSpinLoader';
 import { RootState } from '../store';
 
 const GlobalOverlay = () => {
@@ -25,12 +25,14 @@ const GlobalOverlay = () => {
               styles.loaderCard,
               {
                 backgroundColor: theme.colors.surface,
-                borderRadius: theme.radius.xl,
+                borderRadius: 24,
+                borderColor: theme.colors.border + '60',
+                borderWidth: 1,
               },
               theme.shadows.xl as any,
             ]}
           >
-            <BubbleLoader size="medium" />
+            <FreshSpinLoader size="medium" message="Freshening up" showDots={true} />
           </View>
         </View>
       )}
@@ -54,8 +56,10 @@ const styles = StyleSheet.create({
     zIndex: 9998,
   },
   loaderCard: {
-    width: 120,
-    height: 120,
+    paddingHorizontal: 28,
+    paddingVertical: 22,
+    minWidth: 154,
+    minHeight: 148,
     alignItems: 'center',
     justifyContent: 'center',
   },

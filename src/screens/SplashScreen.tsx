@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { APP_NAME } from '../utils/constants';
-import BubbleLoader from '../animations/BubbleLoader';
+import FreshSpinLoader from '../components/ui/FreshSpinLoader';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthStack';
 
@@ -43,7 +43,7 @@ export default function SplashScreen({ navigation }: Props) {
         </View>
       </Animated.View>
       <View style={styles.loader}>
-        <BubbleLoader size="medium" />
+        <FreshSpinLoader size="medium" color="#FFFFFF" showDots={false} />
       </View>
     </LinearGradient>
   );

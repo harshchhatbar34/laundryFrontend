@@ -11,3 +11,4 @@ export { default as SlideUpModal } from './SlideUpModal';
 export { default as CountUpNumber } from './CountUpNumber';
 export { default as WashingMachineLoader } from './WashingMachineLoader';
 export { default as StaggeredDotLoader } from './StaggeredDotLoader';
+export { default as FreshSpinLoader } from '../components/ui/FreshSpinLoader';
