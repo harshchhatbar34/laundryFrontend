@@ -1,12 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch } from 'react-redux';
 import ScreenWrapper from '../../components/ui/ScreenWrapper';
 import Header from '../../components/ui/Header';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import Chip from '../../components/ui/Chip';
 import { useTheme } from '../../theme/ThemeContext';
 import { addToCart } from '../../store/slices/orderSlice';
 import { showToast } from '../../store/slices/uiSlice';
@@ -95,7 +94,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
         item: selectedItem._id,
         itemName: selectedItem.name,
         quantity,
-        price: estimatedPrice, // display-only estimate; backend recalculates real price from DB
+        price: estimatedPrice,
         name: selectedItem.name,
       })
     );
@@ -107,7 +106,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
       })
     );
 
-    // Reset all selections for next item
+    // Reset selections for next item
     setSelectedService(null);
     setSelectedItem(null);
     setQuantity(1);
@@ -140,56 +139,185 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
       
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         
-        {/* 1. Select Service */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>1. Select Service</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-          {services.map((s: any) => {
-            const isSelected = selectedService?._id === s._id;
-            const emoji = (SERVICE_ICONS as any)[s.name] || (SERVICE_ICONS as any).default;
-            const discountLabel = s.discount && s.discount > 0 ? ` · ${s.discount}% OFF` : '';
-            return (
-              <Chip
-                key={s._id}
-                label={`${emoji} ${s.name}${discountLabel}`}
-                selected={isSelected}
-                onPress={() => {
-                  setSelectedService(s);
-                  setSelectedItem(null);
-                }}
-                style={styles.chip}
-              />
-            );
-          })}
-        </ScrollView>
+        {/* Service Section */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
+            {selectedService ? 'Selected Service' : '1. Select Service'}
+          </Text>
+          {!selectedService && (
+            <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
+              {services.length} services available
+            </Text>
+          )}
+        </View>
 
-        {/* 2. Select Cloth */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary, marginTop: 20 }]}>2. Select Cloth</Text>
-        {!selectedService ? (
-          <Text style={[theme.typography.caption, { color: theme.colors.textMuted, marginHorizontal: 16, marginTop: 4 }]}>
-            👆 Please select a service first to view available clothes & prices.
-          </Text>
-        ) : availableItems.length === 0 ? (
-          <Text style={[theme.typography.caption, { color: theme.colors.textMuted, marginHorizontal: 16, marginTop: 4 }]}>
-            No clothes configured for {selectedService.name}.
-          </Text>
+        {/* If a service is selected: ONLY SHOW THAT SERVICE with Deselect option */}
+        {selectedService ? (
+          <View
+            style={[
+              styles.selectedServiceCard,
+              { backgroundColor: theme.colors.primaryBg, borderColor: theme.colors.primary },
+            ]}
+          >
+            <View style={[styles.serviceEmojiCircle, { backgroundColor: theme.colors.surface }]}>
+              <Text style={styles.serviceEmoji}>
+                {(SERVICE_ICONS as any)[selectedService.name] || '🧺'}
+              </Text>
+            </View>
+
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                <Text style={[styles.selectedServiceName, { color: theme.colors.primary }]}>
+                  {selectedService.name}
+                </Text>
+                {selectedService.discount > 0 && (
+                  <View style={[styles.discountTag, { backgroundColor: theme.colors.successBg }]}>
+                    <Text style={[styles.discountTagText, { color: theme.colors.success }]}>
+                      {selectedService.discount}% OFF
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text style={[styles.selectedServiceSub, { color: theme.colors.textSecondary }]}>
+                Selected • Tap &quot;Deselect&quot; to change
+              </Text>
+            </View>
+
+            {/* Deselect Button */}
+            <TouchableOpacity
+              style={[styles.deselectBtn, { borderColor: theme.colors.primary, backgroundColor: theme.colors.surface }]}
+              onPress={() => {
+                setSelectedService(null);
+                setSelectedItem(null);
+                setQuantity(1);
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="close-circle" size={16} color={theme.colors.primary} />
+              <Text style={[styles.deselectBtnText, { color: theme.colors.primary }]}>
+                Deselect
+              </Text>
+            </TouchableOpacity>
+          </View>
         ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-            {availableItems.map((item: any) => {
-              const isSelected = selectedItem?._id === item._id;
+          /* When NO service is selected: Show elegant service selection grid */
+          <View style={styles.serviceGrid}>
+            {services.map((s: any) => {
+              const emoji = (SERVICE_ICONS as any)[s.name] || (SERVICE_ICONS as any).default || '🧺';
+              const hasDiscount = s.discount && s.discount > 0;
               return (
-                <Chip
-                  key={item._id}
-                  label={`${item.name} (₹${item.price})`}
-                  selected={isSelected}
-                  onPress={() => setSelectedItem(item)}
-                  style={styles.chip}
-                />
+                <TouchableOpacity
+                  key={s._id}
+                  style={[
+                    styles.serviceCard,
+                    { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                  ]}
+                  onPress={() => {
+                    setSelectedService(s);
+                    setSelectedItem(null);
+                  }}
+                  activeOpacity={0.75}
+                >
+                  <View style={[styles.serviceEmojiCircle, { backgroundColor: theme.colors.primaryBg }]}>
+                    <Text style={styles.serviceEmoji}>{emoji}</Text>
+                  </View>
+                  <Text style={[styles.serviceCardTitle, { color: theme.colors.textPrimary }]} numberOfLines={1}>
+                    {s.name}
+                  </Text>
+                  {hasDiscount ? (
+                    <View style={[styles.discountTag, { backgroundColor: theme.colors.successBg, marginTop: 4 }]}>
+                      <Text style={[styles.discountTagText, { color: theme.colors.success }]}>
+                        {s.discount}% OFF
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text style={[styles.serviceCardHint, { color: theme.colors.textMuted }]}>
+                      Tap to select
+                    </Text>
+                  )}
+                </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         )}
 
-        {/* 3. Selection Summary and Add to Cart */}
+        {/* 2. Select Cloth — ONLY SHOWN WHEN A SERVICE IS SELECTED */}
+        {selectedService && (
+          <View style={{ marginTop: 24 }}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
+                2. Select Cloth
+              </Text>
+              <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
+                {availableItems.length} items for {selectedService.name}
+              </Text>
+            </View>
+
+            {availableItems.length === 0 ? (
+              <Card style={{ marginTop: 8 }} padding="medium">
+                <Text style={[theme.typography.bodySmall, { color: theme.colors.textMuted, textAlign: 'center' }]}>
+                  No clothes configured for {selectedService.name}.
+                </Text>
+              </Card>
+            ) : (
+              <View style={styles.clothGrid}>
+                {availableItems.map((item: any) => {
+                  const isSelected = selectedItem?._id === item._id;
+                  return (
+                    <TouchableOpacity
+                      key={item._id}
+                      style={[
+                        styles.clothCard,
+                        {
+                          backgroundColor: isSelected ? theme.colors.primaryBg : theme.colors.surface,
+                          borderColor: isSelected ? theme.colors.primary : theme.colors.border,
+                          borderWidth: isSelected ? 2 : 1,
+                        },
+                      ]}
+                      onPress={() => {
+                        // Tapping again deselects cloth
+                        if (isSelected) {
+                          setSelectedItem(null);
+                        } else {
+                          setSelectedItem(item);
+                        }
+                      }}
+                      activeOpacity={0.75}
+                    >
+                      <View style={styles.clothHeader}>
+                        <Text
+                          style={[
+                            styles.clothName,
+                            { color: isSelected ? theme.colors.primary : theme.colors.textPrimary, fontWeight: isSelected ? '700' : '600' },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {item.name}
+                        </Text>
+                        <View style={[styles.checkCircle, { borderColor: isSelected ? theme.colors.primary : theme.colors.border, backgroundColor: isSelected ? theme.colors.primary : 'transparent' }]}>
+                          {isSelected && <Ionicons name="checkmark" size={12} color="#FFF" />}
+                        </View>
+                      </View>
+
+                      <View style={styles.clothPriceRow}>
+                        <Text style={[styles.clothPrice, { color: theme.colors.primary }]}>
+                          {formatPrice(item.price)}
+                        </Text>
+                        {item.discount > 0 && item.basePrice !== item.price && (
+                          <Text style={styles.clothStrikePrice}>
+                            ₹{item.basePrice}
+                          </Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* 3. Selection Summary and Add to Cart — ONLY WHEN BOTH SELECTED */}
         {selectedService && selectedItem && (
           <Card style={[styles.summaryCard, { borderColor: theme.colors.primary }]} padding="medium">
             <Text style={[styles.summaryTitle, { color: theme.colors.textPrimary }]}>Selection Summary</Text>
@@ -206,8 +334,8 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
                     <Text style={{ fontSize: 12, color: theme.colors.textMuted, textDecorationLine: 'line-through' }}>
                       ₹{selectedItem.basePrice}
                     </Text>
-                    <View style={{ backgroundColor: theme.colors.success + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 }}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: theme.colors.success }}>
+                    <View style={[styles.discountTag, { backgroundColor: theme.colors.successBg }]}>
+                      <Text style={[styles.discountTagText, { color: theme.colors.success }]}>
                         {selectedItem.discount}% OFF
                       </Text>
                     </View>
@@ -253,9 +381,16 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 60 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', marginBottom: 10, fontFamily: 'System' },
-  horizontalScroll: { paddingBottom: 4 },
-  chip: { marginRight: 8, height: 40, borderRadius: 20 },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
   navigateBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -263,11 +398,135 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 4,
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
   },
   navigateTitle: { fontSize: 13, fontWeight: '700' },
   navigateSub: { fontSize: 11, marginTop: 1 },
+
+  // Service grid when choosing
+  serviceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  serviceCard: {
+    width: '48%',
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  serviceEmojiCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  serviceEmoji: {
+    fontSize: 24,
+  },
+  serviceCardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  serviceCardHint: {
+    fontSize: 11,
+    marginTop: 4,
+  },
+
+  // Active / Selected single service card
+  selectedServiceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 18,
+    padding: 14,
+  },
+  selectedServiceName: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  selectedServiceSub: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  deselectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 4,
+  },
+  deselectBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  // Cloth selection grid
+  clothGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  clothCard: {
+    width: '48%',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+  },
+  clothHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  clothName: {
+    fontSize: 14,
+    flex: 1,
+    marginRight: 6,
+  },
+  checkCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  clothPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  clothPrice: {
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  clothStrikePrice: {
+    fontSize: 12,
+    color: '#94A3B8',
+    textDecorationLine: 'line-through',
+  },
+
+  // Common tags
+  discountTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  discountTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+
+  // Summary Card
   summaryCard: {
     marginTop: 24,
     borderWidth: 2,
