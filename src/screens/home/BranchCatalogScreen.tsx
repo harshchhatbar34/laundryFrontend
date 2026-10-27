@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch } from 'react-redux';
@@ -22,10 +22,12 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const { branch, masters } = route.params;
 
+  const scrollRef = useRef<any>(null);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [quantity, setQuantity] = useState<number>(1);
+
+  // Multi-item quantities map: { [itemId]: quantity }
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   // Extract services and master items
   const services = useMemo(() => masters?.services || [], [masters]);
@@ -72,46 +74,78 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
     });
   }, [selectedService, allMasterItems]);
 
-  // Display-only estimated price
-  const estimatedPrice = useMemo(() => {
-    if (!selectedItem) return 0;
-    return selectedItem.price || 0;
-  }, [selectedItem]);
+  // Quantity helpers for multiple items
+  const updateQty = (itemId: string, delta: number) => {
+    setQuantities((prev) => {
+      const current = prev[itemId] || 0;
+      const next = current + delta;
+      if (next <= 0) {
+        const copy = { ...prev };
+        delete copy[itemId];
+        return copy;
+      }
+      return { ...prev, [itemId]: next };
+    });
+  };
 
+  const totalItemsCount = useMemo(() => {
+    return Object.values(quantities).reduce((sum, q) => sum + q, 0);
+  }, [quantities]);
+
+  const totalEstimatedPrice = useMemo(() => {
+    return Object.entries(quantities).reduce((sum, [itemId, qty]) => {
+      const item = availableItems.find((it: any) => it._id === itemId);
+      return sum + (item ? item.price * qty : 0);
+    }, 0);
+  }, [quantities, availableItems]);
+
+  // Select service and automatically scroll to top
+  const handleSelectService = (s: any) => {
+    setSelectedService(s);
+    setServiceDropdownOpen(false);
+    setQuantities({});
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+    }, 50);
+  };
+
+  // Add all selected items with their quantities to cart
   const handleAddToCart = () => {
     if (!selectedService) {
       dispatch(showToast({ type: 'warning', message: 'Please select a service' }));
       return;
     }
-    if (!selectedItem) {
-      dispatch(showToast({ type: 'warning', message: 'Please select an item' }));
+    if (totalItemsCount === 0) {
+      dispatch(showToast({ type: 'warning', message: 'Please select at least one item' }));
       return;
     }
 
-    dispatch(
-      addToCart({
-        service: selectedService._id,
-        serviceName: selectedService.name,
-        item: selectedItem._id,
-        itemName: selectedItem.name,
-        quantity,
-        price: estimatedPrice,
-        name: selectedItem.name,
-      })
-    );
+    Object.entries(quantities).forEach(([itemId, qty]) => {
+      const item = availableItems.find((it: any) => it._id === itemId);
+      if (item && qty > 0) {
+        dispatch(
+          addToCart({
+            service: selectedService._id,
+            serviceName: selectedService.name,
+            item: item._id,
+            itemName: item.name,
+            quantity: qty,
+            price: item.price,
+            name: item.name,
+          })
+        );
+      }
+    });
 
     dispatch(
       showToast({
         type: 'success',
-        message: `${quantity} x ${selectedItem.name} (${selectedService.name}) added to cart`,
+        message: `Added ${totalItemsCount} items (${selectedService.name}) to cart!`,
       })
     );
 
-    // Reset selections for next item
-    setSelectedService(null);
-    setServiceDropdownOpen(false);
-    setSelectedItem(null);
-    setQuantity(1);
+    // Reset quantities after adding to cart
+    setQuantities({});
   };
 
   return (
@@ -139,8 +173,11 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
         <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
       </TouchableOpacity>
       
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={[styles.scroll, totalItemsCount > 0 && { paddingBottom: 110 }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Service Section Header */}
         <View style={styles.sectionHeaderRow}>
           <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
@@ -224,11 +261,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
                         styles.dropdownOptionRow,
                         isCurrent && { backgroundColor: theme.colors.primaryBg },
                       ]}
-                      onPress={() => {
-                        setSelectedService(s);
-                        setSelectedItem(null);
-                        setServiceDropdownOpen(false);
-                      }}
+                      onPress={() => handleSelectService(s)}
                       activeOpacity={0.7}
                     >
                       <View style={[styles.optionEmojiCircle, { backgroundColor: theme.colors.surfaceVariant }]}>
@@ -276,11 +309,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
                     styles.serviceCard,
                     { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
                   ]}
-                  onPress={() => {
-                    setSelectedService(s);
-                    setServiceDropdownOpen(false);
-                    setSelectedItem(null);
-                  }}
+                  onPress={() => handleSelectService(s)}
                   activeOpacity={0.75}
                 >
                   <View style={[styles.serviceEmojiCircle, { backgroundColor: theme.colors.primaryBg }]}>
@@ -327,9 +356,11 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
             ) : (
               <View style={styles.clothGrid}>
                 {availableItems.map((item: any) => {
-                  const isSelected = selectedItem?._id === item._id;
+                  const qty = quantities[item._id] || 0;
+                  const isSelected = qty > 0;
+
                   return (
-                    <TouchableOpacity
+                    <View
                       key={item._id}
                       style={[
                         styles.clothCard,
@@ -339,15 +370,6 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
                           borderWidth: isSelected ? 2 : 1,
                         },
                       ]}
-                      onPress={() => {
-                        // Tapping again deselects item
-                        if (isSelected) {
-                          setSelectedItem(null);
-                        } else {
-                          setSelectedItem(item);
-                        }
-                      }}
-                      activeOpacity={0.75}
                     >
                       <View style={styles.clothHeader}>
                         <Text
@@ -359,9 +381,11 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
                         >
                           {item.name}
                         </Text>
-                        <View style={[styles.checkCircle, { borderColor: isSelected ? theme.colors.primary : theme.colors.border, backgroundColor: isSelected ? theme.colors.primary : 'transparent' }]}>
-                          {isSelected && <Ionicons name="checkmark" size={12} color="#FFF" />}
-                        </View>
+                        {isSelected && (
+                          <View style={[styles.selectedCheckBadge, { backgroundColor: theme.colors.primary }]}>
+                            <Ionicons name="checkmark" size={10} color="#FFF" />
+                          </View>
+                        )}
                       </View>
 
                       <View style={styles.clothPriceRow}>
@@ -374,72 +398,71 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
                           </Text>
                         )}
                       </View>
-                    </TouchableOpacity>
+
+                      {/* Item Stepper / Add button */}
+                      <View style={styles.clothCardActions}>
+                        {isSelected ? (
+                          <View style={styles.itemStepperRow}>
+                            <TouchableOpacity
+                              onPress={() => updateQty(item._id, -1)}
+                              style={[styles.miniStepBtn, { backgroundColor: theme.colors.surfaceVariant }]}
+                              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                            >
+                              <Ionicons name="remove" size={14} color={theme.colors.textPrimary} />
+                            </TouchableOpacity>
+
+                            <Text style={[styles.miniQtyText, { color: theme.colors.primary }]}>
+                              {qty}
+                            </Text>
+
+                            <TouchableOpacity
+                              onPress={() => updateQty(item._id, 1)}
+                              style={[styles.miniStepBtn, { backgroundColor: theme.colors.primary }]}
+                              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                            >
+                              <Ionicons name="add" size={14} color="#FFF" />
+                            </TouchableOpacity>
+                          </View>
+                        ) : (
+                          <TouchableOpacity
+                            onPress={() => updateQty(item._id, 1)}
+                            style={[styles.addItemBtn, { borderColor: theme.colors.primary + '50', backgroundColor: theme.colors.primaryBg }]}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="add" size={14} color={theme.colors.primary} />
+                            <Text style={[styles.addItemBtnText, { color: theme.colors.primary }]}>Add</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
                   );
                 })}
               </View>
             )}
           </View>
         )}
-
-        {/* 3. Selection Summary and Add to Cart — ONLY WHEN BOTH SELECTED */}
-        {selectedService && selectedItem && (
-          <Card style={[styles.summaryCard, { borderColor: theme.colors.primary }]} padding="medium">
-            <Text style={[styles.summaryTitle, { color: theme.colors.textPrimary }]}>Selection Summary</Text>
-            <View style={styles.summaryRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={[theme.typography.label, { color: theme.colors.textPrimary }]}>
-                  {selectedItem.name}
-                </Text>
-                <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 2 }]}>
-                  Service: {selectedService.name}
-                </Text>
-                {selectedItem.discount > 0 && selectedItem.basePrice !== selectedItem.price && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                    <Text style={{ fontSize: 12, color: theme.colors.textMuted, textDecorationLine: 'line-through' }}>
-                      ₹{selectedItem.basePrice}
-                    </Text>
-                    <View style={[styles.discountTag, { backgroundColor: theme.colors.successBg }]}>
-                      <Text style={[styles.discountTagText, { color: theme.colors.success }]}>
-                        {selectedItem.discount}% OFF
-                      </Text>
-                    </View>
-                  </View>
-                )}
-              </View>
-              <Text style={[theme.typography.price, { color: theme.colors.primary }]}>
-                {formatPrice(estimatedPrice * quantity)}
-              </Text>
-            </View>
-
-            <View style={styles.actionRow}>
-              {/* Stepper */}
-              <View style={styles.stepper}>
-                <TouchableOpacity
-                  onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-                  style={[styles.stepBtn, { backgroundColor: theme.colors.surfaceVariant }]}
-                >
-                  <Ionicons name="remove" size={18} color={theme.colors.textPrimary} />
-                </TouchableOpacity>
-                <Text style={[styles.qtyText, { color: theme.colors.textPrimary }]}>{quantity}</Text>
-                <TouchableOpacity
-                  onPress={() => setQuantity((q) => q + 1)}
-                  style={[styles.stepBtn, { backgroundColor: theme.colors.primary }]}
-                >
-                  <Ionicons name="add" size={18} color="#FFF" />
-                </TouchableOpacity>
-              </View>
-
-              <Button
-                title="Add to Cart"
-                onPress={handleAddToCart}
-                icon="cart-outline"
-                style={styles.addBtn}
-              />
-            </View>
-          </Card>
-        )}
       </ScrollView>
+
+      {/* Floating Bottom Action Bar for Multi-Item Selection */}
+      {selectedService && totalItemsCount > 0 && (
+        <View style={[styles.floatingBottomBar, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.bottomBarCount, { color: theme.colors.textPrimary }]}>
+              {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'} selected
+            </Text>
+            <Text style={[styles.bottomBarPrice, { color: theme.colors.primary }]}>
+              Total: {formatPrice(totalEstimatedPrice)}
+            </Text>
+          </View>
+
+          <Button
+            title={`Add to Cart (${totalItemsCount})`}
+            icon="cart-outline"
+            onPress={handleAddToCart}
+            style={styles.bottomBarAddBtn}
+          />
+        </View>
+      )}
     </ScreenWrapper>
   );
 }
@@ -504,7 +527,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Service Dropdown trigger card (replaces Deselect button)
+  // Service Dropdown trigger card
   serviceDropdownTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -569,26 +592,25 @@ const styles = StyleSheet.create({
   },
   clothCard: {
     width: '48%',
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 12,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   clothHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   clothName: {
     fontSize: 14,
     flex: 1,
     marginRight: 6,
   },
-  checkCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
+  selectedCheckBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -596,6 +618,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginBottom: 10,
   },
   clothPrice: {
     fontSize: 15,
@@ -605,6 +628,40 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#94A3B8',
     textDecorationLine: 'line-through',
+  },
+  clothCardActions: {
+    marginTop: 'auto',
+  },
+  addItemBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 4,
+  },
+  addItemBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  itemStepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  miniStepBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniQtyText: {
+    fontSize: 14,
+    fontWeight: '800',
+    minWidth: 24,
+    textAlign: 'center',
   },
 
   // Common tags
@@ -618,17 +675,34 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Summary Card
-  summaryCard: {
-    marginTop: 24,
-    borderWidth: 2,
-    borderRadius: 16,
+  // Floating Bottom Action Bar
+  floatingBottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  summaryTitle: { fontSize: 14, fontWeight: '700', marginBottom: 10 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  actionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  stepper: { flexDirection: 'row', alignItems: 'center' },
-  stepBtn: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  qtyText: { fontSize: 16, fontWeight: '700', minWidth: 32, textAlign: 'center' },
-  addBtn: { flex: 1, marginLeft: 16 },
+  bottomBarCount: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  bottomBarPrice: {
+    fontSize: 17,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  bottomBarAddBtn: {
+    minWidth: 150,
+    marginLeft: 12,
+  },
 });
