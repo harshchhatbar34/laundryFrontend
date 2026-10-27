@@ -174,7 +174,14 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
         <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
       </TouchableOpacity>
       
-      <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
+      >
         
         {/* Service Section Header */}
         <View style={styles.sectionHeaderRow}>
@@ -546,7 +553,7 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { padding: 16, paddingBottom: 90 },
+  scroll: { padding: 16, paddingBottom: 150 },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',

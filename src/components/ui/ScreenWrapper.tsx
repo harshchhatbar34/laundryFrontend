@@ -2,7 +2,7 @@
 // SafeArea + StatusBar + themed background wrapper for all screens
 
 import React from 'react';
-import { View, StatusBar, StyleSheet, StyleProp, ViewStyle, StatusBarStyle, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, StatusBar, StyleSheet, StyleProp, ViewStyle, StatusBarStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeContext';
 
@@ -13,7 +13,6 @@ export interface ScreenWrapperProps {
   statusBarStyle?: StatusBarStyle;
   backgroundColor?: string;
   withPadding?: boolean;
-  dismissKeyboardOnTap?: boolean;
 }
 
 const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
@@ -23,7 +22,6 @@ const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   statusBarStyle,
   backgroundColor,
   withPadding = false,
-  dismissKeyboardOnTap = true,
 }) => {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
@@ -34,7 +32,7 @@ const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   const paddingTop = edges.includes('top') ? insets.top : 0;
   const paddingBottom = edges.includes('bottom') ? insets.bottom : 0;
 
-  const content = (
+  return (
     <View
       style={[
         styles.container,
@@ -54,16 +52,6 @@ const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       {children}
     </View>
   );
-
-  if (dismissKeyboardOnTap) {
-    return (
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        {content}
-      </TouchableWithoutFeedback>
-    );
-  }
-
-  return content;
 };
 
 const styles = StyleSheet.create({
