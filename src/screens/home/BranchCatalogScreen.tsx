@@ -158,22 +158,6 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
         onBack={() => navigation.goBack()}
       />
 
-      {/* Navigate to Branch Banner */}
-      <TouchableOpacity
-        style={[styles.navigateBanner, { backgroundColor: theme.colors.primary + '12', borderColor: theme.colors.primary + '30' }]}
-        onPress={() => navigation.navigate('BranchNavigation', { branch })}
-        activeOpacity={0.75}
-      >
-        <Ionicons name="navigate-circle" size={22} color={theme.colors.primary} />
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={[styles.navigateTitle, { color: theme.colors.primary }]}>Navigate to this branch</Text>
-          <Text style={[styles.navigateSub, { color: theme.colors.textSecondary }]} numberOfLines={1}>
-            {branch?.addressLine}, {branch?.city}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
-      </TouchableOpacity>
-      
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
@@ -182,6 +166,21 @@ export default function BranchCatalogScreen({ route, navigation }: Props) {
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled={true}
       >
+        {/* Navigate to Branch Banner — scrolls with content, visible at top */}
+        <TouchableOpacity
+          style={[styles.navigateBanner, { backgroundColor: theme.colors.primary + '12', borderColor: theme.colors.primary + '30' }]}
+          onPress={() => navigation.navigate('BranchNavigation', { branch })}
+          activeOpacity={0.75}
+        >
+          <Ionicons name="navigate-circle" size={22} color={theme.colors.primary} />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={[styles.navigateTitle, { color: theme.colors.primary }]}>Navigate to this branch</Text>
+            <Text style={[styles.navigateSub, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+              {branch?.addressLine}, {branch?.city}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
+        </TouchableOpacity>
         
         {/* Service Section Header */}
         <View style={styles.sectionHeaderRow}>
@@ -567,9 +566,7 @@ const styles = StyleSheet.create({
   navigateBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 4,
+    marginBottom: 16,
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
