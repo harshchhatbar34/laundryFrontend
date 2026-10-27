@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTheme } from '../../theme/ThemeContext';
 import FreshSpinLoader from './FreshSpinLoader';
 
 interface CenteredLoaderProps {
@@ -19,8 +20,16 @@ const CenteredLoader: React.FC<CenteredLoaderProps> = ({
   size = 'large',
   fullScreen = true,
 }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={[styles.container, fullScreen && styles.fullScreen]}>
+    <View
+      style={[
+        styles.container,
+        fullScreen && styles.fullScreen,
+        fullScreen && { backgroundColor: theme.colors.background },
+      ]}
+    >
       <FreshSpinLoader
         size={size === 'large' ? 'large' : 'small'}
         message={message}

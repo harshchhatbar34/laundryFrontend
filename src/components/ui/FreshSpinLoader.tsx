@@ -1,7 +1,7 @@
-// FreshWash / LaundroFlow — Senior UI Animated Loader: Warm Aqua Aura
-// Designed with layered organic physics: liquid squash & stretch droplet,
-// warm ambient sunlit aura, concentric expanding ripples, counter-spinning kinetic arcs,
-// and floating aquatic micro-bubbles. 100% Native Driver 60 FPS.
+// FreshWash / LaundroFlow — Warm Water Droplet Ripple Loader
+// Designed with organic liquid physics: breathing water droplet hero pod,
+// warm sunlit ambient aura, triple staggered concentric ripples, floating aquatic micro-bubbles,
+// and wave-bouncing status dots. 100% ZERO-SPIN, 100% Native Driver 60 FPS.
 
 import React, { useEffect, useRef, memo } from 'react';
 import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
@@ -23,36 +23,36 @@ export interface FreshSpinLoaderProps {
 
 const SIZES = {
   small: {
-    podSize: 34,
-    iconSize: 18,
-    rippleSize: 42,
-    ringSize: 52,
-    borderWidth: 2,
-    particleDistance: 12,
+    podSize: 38,
+    iconSize: 20,
+    rippleSize: 48,
+    stageSize: 76,
+    borderWidth: 1.5,
     titleSize: 12,
     subtitleSize: 10,
+    bubbleDistance: 16,
     gap: 8,
   },
   medium: {
-    podSize: 56,
+    podSize: 58,
     iconSize: 30,
     rippleSize: 76,
-    ringSize: 94,
-    borderWidth: 2.5,
-    particleDistance: 20,
+    stageSize: 120,
+    borderWidth: 2,
     titleSize: 14,
     subtitleSize: 11,
+    bubbleDistance: 24,
     gap: 12,
   },
   large: {
-    podSize: 72,
-    iconSize: 40,
-    rippleSize: 104,
-    ringSize: 130,
-    borderWidth: 3,
-    particleDistance: 28,
+    podSize: 74,
+    iconSize: 38,
+    rippleSize: 96,
+    stageSize: 154,
+    borderWidth: 2.5,
     titleSize: 16,
     subtitleSize: 12,
+    bubbleDistance: 32,
     gap: 16,
   },
 };
@@ -70,108 +70,77 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
   const primaryColor = color || theme.colors.primary; // Ocean Blue (#0284C7)
   const skyColor = '#38BDF8';
   const cyanColor = '#06B6D4';
-  const warmAmber = '#F59E0B'; // Soft warm sunlit amber touch
+  const warmAmber = '#F59E0B'; // Warm sunlit amber touch
 
-  // 1. Droplet organic squash & stretch animation
-  const dropletAnim = useRef(new Animated.Value(0)).current;
+  // 1. Droplet liquid floating & breathing animation
+  const floatAnim = useRef(new Animated.Value(0)).current;
 
-  // 2. Concentric liquid ripples
+  // 2. Triple concentric liquid ripples
   const ripple1 = useRef(new Animated.Value(0)).current;
   const ripple2 = useRef(new Animated.Value(0)).current;
+  const ripple3 = useRef(new Animated.Value(0)).current;
 
-  // 3. Dual orbital kinetic rings
-  const spinClockwise = useRef(new Animated.Value(0)).current;
-  const spinCounter = useRef(new Animated.Value(0)).current;
-
-  // 4. Warm ambient halo breathing
+  // 3. Warm ambient sunlit halo breathing
   const auraPulse = useRef(new Animated.Value(0)).current;
 
-  // 5. Rising micro-particles
-  const particle1 = useRef(new Animated.Value(0)).current;
-  const particle2 = useRef(new Animated.Value(0)).current;
+  // 4. Rising floating aquatic micro-bubbles
+  const bubble1 = useRef(new Animated.Value(0)).current;
+  const bubble2 = useRef(new Animated.Value(0)).current;
+  const bubble3 = useRef(new Animated.Value(0)).current;
 
-  // 6. Dot bounces
+  // 5. Bouncing wave dots
   const dot1 = useRef(new Animated.Value(0)).current;
   const dot2 = useRef(new Animated.Value(0)).current;
   const dot3 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // 1. Organic Droplet bounce with squash & stretch (2.4s loop)
-    const dropLoop = Animated.loop(
+    // 1. Organic Droplet floating & breathing (smooth ease-in-out loop)
+    const breatheAnim = Animated.loop(
       Animated.sequence([
-        Animated.timing(dropletAnim, {
-          toValue: 1, // peak height (elongate)
-          duration: 650,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(dropletAnim, {
-          toValue: 2, // landing impact (squash)
-          duration: 550,
-          easing: Easing.in(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(dropletAnim, {
-          toValue: 3, // secondary micro bounce
-          duration: 350,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(dropletAnim, {
-          toValue: 0, // settle back to rest
-          duration: 500,
+        Animated.timing(floatAnim, {
+          toValue: 1,
+          duration: 1300,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
-        Animated.delay(350),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: 1300,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
       ])
     );
 
-    // 2. Continuous liquid ripples
-    const startRipple = (val: Animated.Value, delay: number) => {
+    // 2. Continuous triple liquid ripples with staggered initial delays
+    const startRipple = (val: Animated.Value, delay: number, duration: number = 2550) => {
       const anim = Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(val, {
-            toValue: 1,
-            duration: 2400,
-            easing: Easing.out(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(val, {
-            toValue: 0,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ])
+        Animated.timing(val, {
+          toValue: 1,
+          duration,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        })
       );
-      anim.start();
-      return anim;
+
+      const timeout = setTimeout(() => {
+        val.setValue(0);
+        anim.start();
+      }, delay);
+
+      return {
+        stop: () => {
+          clearTimeout(timeout);
+          anim.stop();
+        },
+      };
     };
 
-    const r1 = startRipple(ripple1, 0);
-    const r2 = startRipple(ripple2, 1200);
+    const r1 = startRipple(ripple1, 0, 2550);
+    const r2 = startRipple(ripple2, 850, 2550);
+    const r3 = startRipple(ripple3, 1700, 2550);
 
-    // 3. Kinetic rings
-    const clockwiseLoop = Animated.loop(
-      Animated.timing(spinClockwise, {
-        toValue: 1,
-        duration: 5000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-
-    const counterLoop = Animated.loop(
-      Animated.timing(spinCounter, {
-        toValue: 1,
-        duration: 3600,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-
-    // 4. Warm ambient aura breathing
+    // 3. Warm ambient sunlit halo breathing
     const auraLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(auraPulse, {
@@ -189,32 +158,35 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
       ])
     );
 
-    // 5. Rising micro-bubbles
-    const startParticle = (val: Animated.Value, delay: number, duration: number) => {
+    // 4. Rising floating micro-bubbles
+    const startBubble = (val: Animated.Value, delay: number, duration: number = 2700) => {
       const anim = Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(val, {
-            toValue: 1,
-            duration,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
-          }),
-          Animated.timing(val, {
-            toValue: 0,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ])
+        Animated.timing(val, {
+          toValue: 1,
+          duration,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        })
       );
-      anim.start();
-      return anim;
+
+      const timeout = setTimeout(() => {
+        val.setValue(0);
+        anim.start();
+      }, delay);
+
+      return {
+        stop: () => {
+          clearTimeout(timeout);
+          anim.stop();
+        },
+      };
     };
 
-    const p1 = startParticle(particle1, 0, 2200);
-    const p2 = startParticle(particle2, 800, 2600);
+    const b1 = startBubble(bubble1, 0, 2700);
+    const b2 = startBubble(bubble2, 900, 2700);
+    const b3 = startBubble(bubble3, 1800, 2700);
 
-    // 6. Dot wave
+    // 5. Bouncing wave dots
     const makeDot = (val: Animated.Value, delay: number) =>
       Animated.loop(
         Animated.sequence([
@@ -239,85 +211,77 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
     const d2 = makeDot(dot2, 140);
     const d3 = makeDot(dot3, 280);
 
-    dropLoop.start();
-    clockwiseLoop.start();
-    counterLoop.start();
+    breatheAnim.start();
     auraLoop.start();
     d1.start();
     d2.start();
     d3.start();
 
     return () => {
-      dropLoop.stop();
+      breatheAnim.stop();
       r1.stop();
       r2.stop();
-      clockwiseLoop.stop();
-      counterLoop.stop();
+      r3.stop();
       auraLoop.stop();
-      p1.stop();
-      p2.stop();
+      b1.stop();
+      b2.stop();
+      b3.stop();
       d1.stop();
       d2.stop();
       d3.stop();
     };
   }, [
-    dropletAnim,
+    floatAnim,
     ripple1,
     ripple2,
-    spinClockwise,
-    spinCounter,
+    ripple3,
     auraPulse,
-    particle1,
-    particle2,
+    bubble1,
+    bubble2,
+    bubble3,
     dot1,
     dot2,
     dot3,
   ]);
 
   // Interpolations
-  const dropTranslateY = dropletAnim.interpolate({
-    inputRange: [0, 1, 2, 3],
-    outputRange: [0, -10, 2, -3],
+  // Droplet floating & organic stretch
+  const dropTranslateY = floatAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [2, -6],
   });
-
-  const dropScaleX = dropletAnim.interpolate({
-    inputRange: [0, 1, 2, 3],
-    outputRange: [1, 0.92, 1.1, 0.97],
+  const dropScaleX = floatAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1.02, 0.98],
   });
-
-  const dropScaleY = dropletAnim.interpolate({
-    inputRange: [0, 1, 2, 3],
-    outputRange: [1, 1.12, 0.9, 1.03],
+  const dropScaleY = floatAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.98, 1.05],
   });
 
   // Concentric ripples
-  const ripScale1 = ripple1.interpolate({ inputRange: [0, 1], outputRange: [0.75, 1.85] });
-  const ripOpacity1 = ripple1.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0.55, 0.25, 0] });
+  const ripScale1 = ripple1.interpolate({ inputRange: [0, 1], outputRange: [0.85, 2.3] });
+  const ripOpacity1 = ripple1.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.65, 0.25, 0] });
 
-  const ripScale2 = ripple2.interpolate({ inputRange: [0, 1], outputRange: [0.75, 1.85] });
-  const ripOpacity2 = ripple2.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0.55, 0.25, 0] });
+  const ripScale2 = ripple2.interpolate({ inputRange: [0, 1], outputRange: [0.85, 2.3] });
+  const ripOpacity2 = ripple2.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.6, 0.22, 0] });
 
-  // Rotations
-  const spinClockDeg = spinClockwise.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  const ripScale3 = ripple3.interpolate({ inputRange: [0, 1], outputRange: [0.85, 2.3] });
+  const ripOpacity3 = ripple3.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.55, 0.2, 0] });
 
-  const spinCountDeg = spinCounter.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['360deg', '0deg'],
-  });
+  // Warm ambient aura backlight
+  const auraScale = auraPulse.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1.3] });
+  const auraOpacity = auraPulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.85] });
 
-  // Aura warmth
-  const auraScale = auraPulse.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1.18] });
-  const auraOpacity = auraPulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.75] });
+  // Rising bubbles
+  const b1Y = bubble1.interpolate({ inputRange: [0, 1], outputRange: [cfg.bubbleDistance * 0.6, -cfg.bubbleDistance - 8] });
+  const b1Op = bubble1.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [0, 0.9, 0.7, 0] });
 
-  // Particles
-  const p1Y = particle1.interpolate({ inputRange: [0, 1], outputRange: [cfg.particleDistance, -cfg.particleDistance - 6] });
-  const p1Op = particle1.interpolate({ inputRange: [0, 0.3, 0.8, 1], outputRange: [0, 0.9, 0.7, 0] });
+  const b2Y = bubble2.interpolate({ inputRange: [0, 1], outputRange: [cfg.bubbleDistance * 0.7, -cfg.bubbleDistance - 12] });
+  const b2Op = bubble2.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [0, 0.85, 0.6, 0] });
 
-  const p2Y = particle2.interpolate({ inputRange: [0, 1], outputRange: [cfg.particleDistance, -cfg.particleDistance - 8] });
-  const p2Op = particle2.interpolate({ inputRange: [0, 0.3, 0.8, 1], outputRange: [0, 0.8, 0.6, 0] });
+  const b3Y = bubble3.interpolate({ inputRange: [0, 1], outputRange: [cfg.bubbleDistance * 0.5, -cfg.bubbleDistance - 6] });
+  const b3Op = bubble3.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [0, 0.75, 0.5, 0] });
 
   return (
     <View style={styles.container}>
@@ -326,8 +290,8 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
         style={[
           styles.stage,
           {
-            width: cfg.ringSize + 16,
-            height: cfg.ringSize + 16,
+            width: cfg.stageSize,
+            height: cfg.stageSize,
           },
         ]}
       >
@@ -336,17 +300,18 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
           style={[
             styles.auraGlow,
             {
-              width: cfg.rippleSize * 1.25,
-              height: cfg.rippleSize * 1.25,
-              borderRadius: (cfg.rippleSize * 1.25) / 2,
-              backgroundColor: isDark ? cyanColor + '20' : warmAmber + '18',
+              width: cfg.rippleSize * 1.35,
+              height: cfg.rippleSize * 1.35,
+              borderRadius: (cfg.rippleSize * 1.35) / 2,
+              backgroundColor: isDark ? cyanColor + '25' : warmAmber + '22',
               opacity: auraOpacity,
               transform: [{ scale: auraScale }],
             },
           ]}
         />
 
-        {/* Layer 2: Expanding Concentric Fluid Ripples */}
+        {/* Layer 2: Triple Concentric Fluid Water Ripples (ZERO SPIN) */}
+        {/* Ripple 1: Sky Blue */}
         <Animated.View
           style={[
             styles.rippleCircle,
@@ -354,12 +319,16 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
               width: cfg.rippleSize,
               height: cfg.rippleSize,
               borderRadius: cfg.rippleSize / 2,
-              borderColor: skyColor + '50',
+              borderWidth: cfg.borderWidth,
+              borderColor: skyColor + '70',
+              backgroundColor: skyColor + '10',
               opacity: ripOpacity1,
               transform: [{ scale: ripScale1 }],
             },
           ]}
         />
+
+        {/* Ripple 2: Warm Amber / Sunlit shimmer */}
         <Animated.View
           style={[
             styles.rippleCircle,
@@ -367,90 +336,86 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
               width: cfg.rippleSize,
               height: cfg.rippleSize,
               borderRadius: cfg.rippleSize / 2,
-              borderColor: cyanColor + '40',
+              borderWidth: cfg.borderWidth - 0.5,
+              borderColor: warmAmber + '65',
+              backgroundColor: warmAmber + '0D',
               opacity: ripOpacity2,
               transform: [{ scale: ripScale2 }],
             },
           ]}
         />
 
-        {/* Layer 3: Dual Harmonic Kinetic Rings */}
-        {/* Outer Ring — Clockwise with Sky & Ocean Gradient Arc */}
+        {/* Ripple 3: Pure Cyan Wave */}
         <Animated.View
           style={[
-            styles.kineticRing,
+            styles.rippleCircle,
             {
-              width: cfg.ringSize,
-              height: cfg.ringSize,
-              borderRadius: cfg.ringSize / 2,
-              borderWidth: cfg.borderWidth,
-              borderTopColor: primaryColor,
-              borderRightColor: skyColor,
-              borderBottomColor: 'transparent',
-              borderLeftColor: 'transparent',
-              transform: [{ rotate: spinClockDeg }],
-            },
-          ]}
-        />
-
-        {/* Inner Ring — Counter-Clockwise with Warm Sunlit & Cyan Arc */}
-        <Animated.View
-          style={[
-            styles.kineticRing,
-            {
-              width: cfg.rippleSize + 6,
-              height: cfg.rippleSize + 6,
-              borderRadius: (cfg.rippleSize + 6) / 2,
+              width: cfg.rippleSize,
+              height: cfg.rippleSize,
+              borderRadius: cfg.rippleSize / 2,
               borderWidth: cfg.borderWidth - 0.5,
-              borderBottomColor: warmAmber,
-              borderLeftColor: cyanColor,
-              borderTopColor: 'transparent',
-              borderRightColor: 'transparent',
-              transform: [{ rotate: spinCountDeg }],
+              borderColor: cyanColor + '60',
+              backgroundColor: cyanColor + '0A',
+              opacity: ripOpacity3,
+              transform: [{ scale: ripScale3 }],
             },
           ]}
         />
 
-        {/* Layer 4: Floating Aquatic Micro-Bubbles */}
+        {/* Layer 3: Floating Aquatic Micro-Bubbles */}
         <Animated.View
           style={[
-            styles.floatingParticle,
+            styles.floatingBubble,
             {
               width: 7,
               height: 7,
               borderRadius: 3.5,
-              backgroundColor: cyanColor,
-              left: (cfg.ringSize - cfg.podSize) / 2 - 6,
-              opacity: p1Op,
-              transform: [{ translateY: p1Y }],
+              backgroundColor: warmAmber,
+              left: (cfg.stageSize - cfg.podSize) / 2 - 10,
+              opacity: b1Op,
+              transform: [{ translateY: b1Y }],
             },
           ]}
         />
         <Animated.View
           style={[
-            styles.floatingParticle,
+            styles.floatingBubble,
+            {
+              width: 6,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: skyColor,
+              right: (cfg.stageSize - cfg.podSize) / 2 - 8,
+              opacity: b2Op,
+              transform: [{ translateY: b2Y }],
+            },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.floatingBubble,
             {
               width: 5,
               height: 5,
               borderRadius: 2.5,
-              backgroundColor: warmAmber,
-              right: (cfg.ringSize - cfg.podSize) / 2 - 8,
-              opacity: p2Op,
-              transform: [{ translateY: p2Y }],
+              backgroundColor: cyanColor,
+              left: cfg.stageSize / 2 + 10,
+              opacity: b3Op,
+              transform: [{ translateY: b3Y }],
             },
           ]}
         />
 
-        {/* Layer 5: Glassmorphic Pod with Hero Droplet & Squash/Stretch */}
+        {/* Layer 4: Floating Hero Water Droplet Pod (ZERO SPIN) */}
         <Animated.View
           style={[
             styles.dropletPod,
             {
               width: cfg.podSize,
               height: cfg.podSize,
-              borderRadius: cfg.podSize * 0.38,
-              backgroundColor: isDark ? theme.colors.surface : '#FFFFFF',
-              borderColor: primaryColor + '25',
+              borderRadius: cfg.podSize * 0.42,
+              backgroundColor: primaryColor,
+              borderColor: '#FFFFFF40',
               shadowColor: primaryColor,
               transform: [
                 { translateY: dropTranslateY },
@@ -460,10 +425,22 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
             },
           ]}
         >
-          {/* Hero Water Droplet Icon */}
-          <Ionicons name="water" size={cfg.iconSize} color={primaryColor} />
+          {/* Subtle Top-Left Glass Reflection Highlight */}
+          <View
+            style={[
+              styles.glassShine,
+              {
+                width: cfg.podSize * 0.38,
+                height: cfg.podSize * 0.18,
+                borderRadius: cfg.podSize * 0.1,
+              },
+            ]}
+          />
 
-          {/* Tiny Warm Sunlit Highlight Glint on top corner */}
+          {/* Hero Water Droplet Icon */}
+          <Ionicons name="water" size={cfg.iconSize} color="#FFFFFF" />
+
+          {/* Warm Sunlit Micro Glint */}
           <View
             style={[
               styles.sparkleGlint,
@@ -478,7 +455,7 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
         </Animated.View>
       </View>
 
-      {/* Layer 6: Polished Status Text & Bouncing Wave Dots */}
+      {/* Layer 5: Polished Status Text & Bouncing Wave Dots */}
       {(message || showDots) && (
         <View style={[styles.textBlock, { marginTop: cfg.gap }]}>
           <View style={styles.titleRow}>
@@ -562,38 +539,42 @@ const styles = StyleSheet.create({
     position: 'absolute',
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
     elevation: 4,
   },
   rippleCircle: {
     position: 'absolute',
-    borderWidth: 1.5,
   },
-  kineticRing: {
+  floatingBubble: {
     position: 'absolute',
-  },
-  floatingParticle: {
-    position: 'absolute',
-    shadowColor: '#06B6D4',
+    shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
+    shadowOpacity: 0.6,
     shadowRadius: 3,
   },
   dropletPod: {
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 10,
+    elevation: 6,
     position: 'relative',
+    zIndex: 10,
+  },
+  glassShine: {
+    position: 'absolute',
+    top: 5,
+    left: 7,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    transform: [{ rotate: '-35deg' }],
   },
   sparkleGlint: {
     position: 'absolute',
-    top: 5,
-    right: 6,
+    top: 6,
+    right: 7,
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
