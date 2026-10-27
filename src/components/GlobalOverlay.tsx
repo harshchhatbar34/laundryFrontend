@@ -25,14 +25,19 @@ const GlobalOverlay = () => {
               styles.loaderCard,
               {
                 backgroundColor: theme.colors.surface,
-                borderRadius: 24,
+                borderRadius: 28,
                 borderColor: theme.colors.border + '60',
                 borderWidth: 1,
               },
               theme.shadows.xl as any,
             ]}
           >
-            <FreshSpinLoader size="medium" message="Freshening up" showDots={true} />
+            <FreshSpinLoader
+              size="medium"
+              message="Freshening Up"
+              subtitle="Gentle care in motion"
+              showDots={true}
+            />
           </View>
         </View>
       )}
@@ -57,9 +62,9 @@ const styles = StyleSheet.create({
   },
   loaderCard: {
     paddingHorizontal: 28,
-    paddingVertical: 22,
-    minWidth: 154,
-    minHeight: 148,
+    paddingVertical: 24,
+    minWidth: 174,
+    minHeight: 168,
     alignItems: 'center',
     justifyContent: 'center',
   },
