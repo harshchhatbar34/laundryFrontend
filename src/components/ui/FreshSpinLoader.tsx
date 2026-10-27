@@ -23,46 +23,49 @@ export interface FreshSpinLoaderProps {
 
 const SIZES = {
   small: {
-    podSize: 38,
-    iconSize: 20,
-    rippleSize: 48,
-    stageSize: 76,
-    borderWidth: 1.5,
-    titleSize: 12,
-    subtitleSize: 10,
-    bubbleDistance: 16,
-    gap: 8,
+    podSize: 28,
+    iconSize: 14,
+    rippleSize: 34,
+    stageSize: 48,
+    borderWidth: 1.2,
+    titleSize: 11,
+    subtitleSize: 9,
+    bubbleDistance: 10,
+    bubbleSize: 3.5,
+    gap: 5,
   },
   medium: {
-    podSize: 58,
-    iconSize: 30,
-    rippleSize: 76,
-    stageSize: 120,
-    borderWidth: 2,
-    titleSize: 14,
-    subtitleSize: 11,
-    bubbleDistance: 24,
-    gap: 12,
+    podSize: 40,
+    iconSize: 20,
+    rippleSize: 48,
+    stageSize: 68,
+    borderWidth: 1.5,
+    titleSize: 13,
+    subtitleSize: 10,
+    bubbleDistance: 14,
+    bubbleSize: 4.5,
+    gap: 7,
   },
   large: {
-    podSize: 74,
-    iconSize: 38,
-    rippleSize: 96,
-    stageSize: 154,
-    borderWidth: 2.5,
-    titleSize: 16,
-    subtitleSize: 12,
-    bubbleDistance: 32,
-    gap: 16,
+    podSize: 50,
+    iconSize: 26,
+    rippleSize: 58,
+    stageSize: 84,
+    borderWidth: 1.8,
+    titleSize: 14,
+    subtitleSize: 11,
+    bubbleDistance: 18,
+    bubbleSize: 5.5,
+    gap: 9,
   },
 };
 
 const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
   size = 'medium',
-  message = '',
+  message = 'Freshening Up',
   subtitle,
   color,
-  showDots = false,
+  showDots = true,
 }) => {
   const { theme, isDark } = useTheme();
   const cfg = SIZES[size] || SIZES.medium;
@@ -248,7 +251,7 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
   // Droplet floating & organic stretch
   const dropTranslateY = floatAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [2, -6],
+    outputRange: [1, -3],
   });
   const dropScaleX = floatAnim.interpolate({
     inputRange: [0, 1],
@@ -256,31 +259,31 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
   });
   const dropScaleY = floatAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.98, 1.05],
+    outputRange: [0.98, 1.04],
   });
 
-  // Concentric ripples
-  const ripScale1 = ripple1.interpolate({ inputRange: [0, 1], outputRange: [0.85, 2.3] });
+  // Concentric ripples (tight, elegant expansion)
+  const ripScale1 = ripple1.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1.48] });
   const ripOpacity1 = ripple1.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.65, 0.25, 0] });
 
-  const ripScale2 = ripple2.interpolate({ inputRange: [0, 1], outputRange: [0.85, 2.3] });
+  const ripScale2 = ripple2.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1.48] });
   const ripOpacity2 = ripple2.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.6, 0.22, 0] });
 
-  const ripScale3 = ripple3.interpolate({ inputRange: [0, 1], outputRange: [0.85, 2.3] });
+  const ripScale3 = ripple3.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1.48] });
   const ripOpacity3 = ripple3.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.55, 0.2, 0] });
 
   // Warm ambient aura backlight
-  const auraScale = auraPulse.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1.3] });
+  const auraScale = auraPulse.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1.16] });
   const auraOpacity = auraPulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.85] });
 
   // Rising bubbles
-  const b1Y = bubble1.interpolate({ inputRange: [0, 1], outputRange: [cfg.bubbleDistance * 0.6, -cfg.bubbleDistance - 8] });
+  const b1Y = bubble1.interpolate({ inputRange: [0, 1], outputRange: [cfg.bubbleDistance * 0.5, -cfg.bubbleDistance - 4] });
   const b1Op = bubble1.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [0, 0.9, 0.7, 0] });
 
-  const b2Y = bubble2.interpolate({ inputRange: [0, 1], outputRange: [cfg.bubbleDistance * 0.7, -cfg.bubbleDistance - 12] });
+  const b2Y = bubble2.interpolate({ inputRange: [0, 1], outputRange: [cfg.bubbleDistance * 0.6, -cfg.bubbleDistance - 6] });
   const b2Op = bubble2.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [0, 0.85, 0.6, 0] });
 
-  const b3Y = bubble3.interpolate({ inputRange: [0, 1], outputRange: [cfg.bubbleDistance * 0.5, -cfg.bubbleDistance - 6] });
+  const b3Y = bubble3.interpolate({ inputRange: [0, 1], outputRange: [cfg.bubbleDistance * 0.4, -cfg.bubbleDistance - 3] });
   const b3Op = bubble3.interpolate({ inputRange: [0, 0.25, 0.8, 1], outputRange: [0, 0.75, 0.5, 0] });
 
   return (
@@ -300,9 +303,9 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
           style={[
             styles.auraGlow,
             {
-              width: cfg.rippleSize * 1.35,
-              height: cfg.rippleSize * 1.35,
-              borderRadius: (cfg.rippleSize * 1.35) / 2,
+              width: cfg.rippleSize * 1.15,
+              height: cfg.rippleSize * 1.15,
+              borderRadius: (cfg.rippleSize * 1.15) / 2,
               backgroundColor: isDark ? cyanColor + '25' : warmAmber + '22',
               opacity: auraOpacity,
               transform: [{ scale: auraScale }],
@@ -336,7 +339,7 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
               width: cfg.rippleSize,
               height: cfg.rippleSize,
               borderRadius: cfg.rippleSize / 2,
-              borderWidth: cfg.borderWidth - 0.5,
+              borderWidth: cfg.borderWidth - 0.4,
               borderColor: warmAmber + '65',
               backgroundColor: warmAmber + '0D',
               opacity: ripOpacity2,
@@ -353,7 +356,7 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
               width: cfg.rippleSize,
               height: cfg.rippleSize,
               borderRadius: cfg.rippleSize / 2,
-              borderWidth: cfg.borderWidth - 0.5,
+              borderWidth: cfg.borderWidth - 0.4,
               borderColor: cyanColor + '60',
               backgroundColor: cyanColor + '0A',
               opacity: ripOpacity3,
@@ -367,11 +370,11 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
           style={[
             styles.floatingBubble,
             {
-              width: 7,
-              height: 7,
-              borderRadius: 3.5,
+              width: cfg.bubbleSize,
+              height: cfg.bubbleSize,
+              borderRadius: cfg.bubbleSize / 2,
               backgroundColor: warmAmber,
-              left: (cfg.stageSize - cfg.podSize) / 2 - 10,
+              left: (cfg.stageSize - cfg.podSize) / 2 - 6,
               opacity: b1Op,
               transform: [{ translateY: b1Y }],
             },
@@ -381,11 +384,11 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
           style={[
             styles.floatingBubble,
             {
-              width: 6,
-              height: 6,
-              borderRadius: 3,
+              width: cfg.bubbleSize * 0.85,
+              height: cfg.bubbleSize * 0.85,
+              borderRadius: (cfg.bubbleSize * 0.85) / 2,
               backgroundColor: skyColor,
-              right: (cfg.stageSize - cfg.podSize) / 2 - 8,
+              right: (cfg.stageSize - cfg.podSize) / 2 - 5,
               opacity: b2Op,
               transform: [{ translateY: b2Y }],
             },
@@ -395,11 +398,11 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
           style={[
             styles.floatingBubble,
             {
-              width: 5,
-              height: 5,
-              borderRadius: 2.5,
+              width: cfg.bubbleSize * 0.7,
+              height: cfg.bubbleSize * 0.7,
+              borderRadius: (cfg.bubbleSize * 0.7) / 2,
               backgroundColor: cyanColor,
-              left: cfg.stageSize / 2 + 10,
+              left: cfg.stageSize / 2 + 7,
               opacity: b3Op,
               transform: [{ translateY: b3Y }],
             },
@@ -415,6 +418,7 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
               height: cfg.podSize,
               borderRadius: cfg.podSize * 0.42,
               backgroundColor: primaryColor,
+              borderColor: '#FFFFFF40',
               shadowColor: primaryColor,
               transform: [
                 { translateY: dropTranslateY },
@@ -454,8 +458,8 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
         </Animated.View>
       </View>
 
-      {/* Layer 5: Polished Status Text & Bouncing Wave Dots (Only if message/dots requested) */}
-      {(Boolean(message) || showDots) && (
+      {/* Layer 5: Polished Status Text & Bouncing Wave Dots */}
+      {(message || showDots) && (
         <View style={[styles.textBlock, { marginTop: cfg.gap }]}>
           <View style={styles.titleRow}>
             {message ? (
@@ -555,7 +559,7 @@ const styles = StyleSheet.create({
   dropletPod: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0,
+    borderWidth: 1.5,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.28,
     shadowRadius: 10,

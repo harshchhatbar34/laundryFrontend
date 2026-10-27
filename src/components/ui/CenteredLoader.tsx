@@ -9,15 +9,15 @@ import FreshSpinLoader from './FreshSpinLoader';
 interface CenteredLoaderProps {
   /** Optional message to display below the spinner */
   message?: string;
-  /** Override spinner size. Defaults to 'large'. */
-  size?: 'small' | 'large';
+  /** Override spinner size. Defaults to 'medium'. */
+  size?: 'small' | 'medium' | 'large';
   /** If true, takes up the full flex:1 container. Defaults to true. */
   fullScreen?: boolean;
 }
 
 const CenteredLoader: React.FC<CenteredLoaderProps> = ({
-  message = '',
-  size = 'large',
+  message = 'Loading...',
+  size = 'medium',
   fullScreen = true,
 }) => {
   const { theme } = useTheme();
@@ -31,9 +31,9 @@ const CenteredLoader: React.FC<CenteredLoaderProps> = ({
       ]}
     >
       <FreshSpinLoader
-        size={size === 'large' ? 'large' : 'small'}
+        size={size}
         message={message}
-        showDots={false}
+        showDots={true}
       />
     </View>
   );
