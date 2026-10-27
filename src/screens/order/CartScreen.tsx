@@ -108,7 +108,12 @@ export default function CartScreen({ route, navigation }: Props) {
     }
     setLoading(true);
     try {
-      const items = cart.map((c) => ({ material: c.material, item: c.item, service: c.service, quantity: c.quantity }));
+      const items = cart.map((c) => ({
+        ...(c.material ? { material: c.material } : {}),
+        item: c.item,
+        service: c.service,
+        quantity: c.quantity,
+      }));
       const data = {
         branchId: resolvedBranch._id,
         addressId: addressId,
@@ -133,7 +138,7 @@ export default function CartScreen({ route, navigation }: Props) {
         <View style={{ flex: 1 }}>
           <Text style={[theme.typography.label, { color: theme.colors.textPrimary }]}>{item.itemName || 'Item'}</Text>
           <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-            {item.materialName} · {item.serviceName}
+            {item.materialName ? `${item.materialName} · ` : ''}{item.serviceName}
           </Text>
         </View>
         <View style={styles.stepper}>

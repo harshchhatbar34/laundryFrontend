@@ -276,7 +276,7 @@ export default function OrderDetailScreen({ route, navigation }: Props) {
                   {item.itemName || item.item?.name || 'Item'} × {item.quantity}
                 </Text>
                 <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 2 }]}>
-                  {item.materialName || item.material?.name || ''} · {item.serviceName || item.service?.name || ''}
+                  {item.materialName || item.material?.name ? `${item.materialName || item.material?.name} · ` : ''}{item.serviceName || item.service?.name || ''}
                 </Text>
               </View>
               <Text style={[theme.typography.body, { color: theme.colors.textSecondary, alignSelf: 'center' }]}>{formatPrice(item.price * item.quantity)}</Text>

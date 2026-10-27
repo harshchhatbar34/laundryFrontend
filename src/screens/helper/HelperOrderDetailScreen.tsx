@@ -463,7 +463,7 @@ export default function HelperOrderDetailScreen({ route, navigation }: Props) {
                     {it.itemName}
                   </Text>
                   <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-                    {it.materialName} · {it.serviceName}
+                    {it.materialName ? `${it.materialName} · ` : ''}{it.serviceName}
                   </Text>
                   <Text style={[theme.typography.caption, { color: theme.colors.textMuted }]}>
                     Price: {formatPrice(it.price)} · Subtotal: {formatPrice(it.price * it.quantity)}
@@ -582,7 +582,7 @@ export default function HelperOrderDetailScreen({ route, navigation }: Props) {
                     {it.itemName || it.item?.name || 'Item'}
                   </Text>
                   <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-                    {it.materialName || it.material?.name || ''} · {it.serviceName || it.service?.name || ''}
+                    {it.materialName || it.material?.name ? `${it.materialName || it.material?.name} · ` : ''}{it.serviceName || it.service?.name || ''}
                   </Text>
                   <Text style={[theme.typography.caption, { color: theme.colors.textMuted }]}>Quantity: {it.quantity}</Text>
                 </View>
