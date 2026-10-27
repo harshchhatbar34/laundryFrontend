@@ -10,10 +10,10 @@ interface WashingMachineLoaderProps {
 }
 
 const WashingMachineLoader: React.FC<WashingMachineLoaderProps> = ({
-  message = 'Refreshing...',
+  message = '',
   size = 'medium',
 }) => {
-  return <FreshSpinLoader size={size} message={message} showDots={true} />;
+  return <FreshSpinLoader size={size} message={message} showDots={false} />;
 };
 
 export default React.memo(WashingMachineLoader);

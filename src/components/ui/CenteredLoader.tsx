@@ -16,7 +16,7 @@ interface CenteredLoaderProps {
 }
 
 const CenteredLoader: React.FC<CenteredLoaderProps> = ({
-  message = 'Loading...',
+  message = '',
   size = 'large',
   fullScreen = true,
 }) => {
@@ -33,7 +33,7 @@ const CenteredLoader: React.FC<CenteredLoaderProps> = ({
       <FreshSpinLoader
         size={size === 'large' ? 'large' : 'small'}
         message={message}
-        showDots={true}
+        showDots={false}
       />
     </View>
   );

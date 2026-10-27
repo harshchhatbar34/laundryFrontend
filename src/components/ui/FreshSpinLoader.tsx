@@ -59,10 +59,10 @@ const SIZES = {
 
 const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
   size = 'medium',
-  message = 'Freshening Up',
+  message = '',
   subtitle,
   color,
-  showDots = true,
+  showDots = false,
 }) => {
   const { theme, isDark } = useTheme();
   const cfg = SIZES[size] || SIZES.medium;
@@ -415,7 +415,6 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
               height: cfg.podSize,
               borderRadius: cfg.podSize * 0.42,
               backgroundColor: primaryColor,
-              borderColor: '#FFFFFF40',
               shadowColor: primaryColor,
               transform: [
                 { translateY: dropTranslateY },
@@ -455,8 +454,8 @@ const FreshSpinLoader: React.FC<FreshSpinLoaderProps> = ({
         </Animated.View>
       </View>
 
-      {/* Layer 5: Polished Status Text & Bouncing Wave Dots */}
-      {(message || showDots) && (
+      {/* Layer 5: Polished Status Text & Bouncing Wave Dots (Only if message/dots requested) */}
+      {(Boolean(message) || showDots) && (
         <View style={[styles.textBlock, { marginTop: cfg.gap }]}>
           <View style={styles.titleRow}>
             {message ? (
@@ -556,7 +555,7 @@ const styles = StyleSheet.create({
   dropletPod: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 0,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.28,
     shadowRadius: 10,
